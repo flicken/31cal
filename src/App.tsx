@@ -26,17 +26,17 @@ function App() {
 
     return (
         <userContext.Provider value={user}>
-            <nav>
-                <ActiveLink href="/">Home</ActiveLink>
-                <ActiveLink href="/calendars">Calendars</ActiveLink>
-                <ActiveLink href="/events">Events</ActiveLink>
-            </nav>
-
+            <ActiveLink href="/">Home</ActiveLink>
             {googleButton}
             <Switch>
                 <Route path="/calendars" component={Calendars} />
                 <Route path="/events" component={Events} />
-                <Route>Check out the links!</Route>
+                <Route>
+                <nav>
+                    <ActiveLink href="/calendars">Calendars</ActiveLink>
+                    <ActiveLink href="/events">Events</ActiveLink>
+                </nav>
+                </Route>
             </Switch>
         </userContext.Provider>);
 
