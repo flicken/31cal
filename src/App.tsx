@@ -27,15 +27,16 @@ function App() {
     return (
         <userContext.Provider value={user}>
             <ActiveLink href="/">Home</ActiveLink>
-            {googleButton}
+            <div style={{float: "right"}}>{googleButton}</div>
             <Switch>
                 <Route path="/calendars" component={Calendars} />
                 <Route path="/events" component={Events} />
                 <Route>
-                <nav>
-                    <ActiveLink href="/calendars">Calendars</ActiveLink>
-                    <ActiveLink href="/events">Events</ActiveLink>
-                </nav>
+                    <nav>
+                        <ActiveLink href="/calendars">Calendars</ActiveLink>
+                        <ActiveLink href="/events">Events</ActiveLink>
+                    </nav>
+                    Agenda: 31 different ways to calendar
                 </Route>
             </Switch>
         </userContext.Provider>);
