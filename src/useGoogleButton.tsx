@@ -9,7 +9,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         () => {
             setUser(null);
         },
-        [],
+        [setUser],
     );
     const onFailure = useCallback(
         (e: any) => {
@@ -22,7 +22,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
             console.log("success", e);
             setUser(e);
         },
-        [],
+        [setUser],
     );
 
     const { signIn, loaded: signInLoaded } = useGoogleLogin({
@@ -40,6 +40,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         onLogoutSuccess,
     });
 
+    if (!signInLoaded) return <button>Loading...</button>
     if (user) {
         const logoutText = user?.profileObj?.email ? `Logout (${user.profileObj.email})` : "Logout";
         return <button onClick={signOut}>{logoutText}</button>;
