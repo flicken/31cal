@@ -10,6 +10,8 @@
     "@types/node": "^16.7.13",
     "@types/react": "^17.0.20",
     "@types/react-dom": "^17.0.9",
+    "dexie": "3.2.0",
+    "dexie-react-hooks": "1.1.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-google-login": "5.2.2",
