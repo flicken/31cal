@@ -5,7 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 
 
 function Events() {
-    const eventList = useLiveQuery(() => db.events.toArray());
+    const eventList = useLiveQuery(() => db.events.limit(100).toArray());
 
     return (<div>
     {eventList && eventList.map((e: any) =>
