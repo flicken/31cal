@@ -4,6 +4,16 @@ import { useGoogleLogin, useGoogleLogout } from 'react-google-login';
 
 import {  GOOGLE_CLIENT_ID } from "./config";
 
+const CALENDAR_READONLY = "https://www.googleapis.com/auth/calendar.readonly"
+const EVENTS_READONLY = "https://www.googleapis.com/auth/calendar.events.readonly"
+const EVENTS_READWRITE = "https://www.googleapis.com/auth/calendar.events"
+const SCOPES = [
+    CALENDAR_READONLY, // not needed until feature for selecting calendar
+    EVENTS_READONLY,
+    EVENTS_READWRITE,
+    "profile",
+    "email"].join(" ")
+
 export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
     const onLogoutSuccess = useCallback(
         () => {
@@ -32,6 +42,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         isSignedIn: true,
         onFailure: () => {console.log("failure");},
         onSuccess,
+        scope: SCOPES,
     });
 
     const { signOut, loaded: signOutLoaded } = useGoogleLogout({
@@ -45,7 +56,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         const logoutText = user?.profileObj?.email ? `Logout (${user.profileObj.email})` : "Logout";
         return <button onClick={signOut}>{logoutText}</button>;
     } else {
-        return <button onClick={signOut}>Login</button>;
+        return <button onClick={signIn}>Login</button>;
     }
 };
 
