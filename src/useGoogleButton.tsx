@@ -22,8 +22,8 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         [setUser],
     );
     const onFailure = useCallback(
-        (e: any) => {
-            console.log("failure", e);
+        () => {
+            console.log("failure");
         },
         [],
     );
@@ -35,23 +35,23 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         [setUser],
     );
 
-    const { signIn, loaded: signInLoaded } = useGoogleLogin({
+    const { signIn, loaded } = useGoogleLogin({
         clientId: GOOGLE_CLIENT_ID,
         cookiePolicy: 'single_host_origin',
         discoveryDocs: "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
         isSignedIn: true,
-        onFailure: () => {console.log("failure");},
+        onFailure,
         onSuccess,
         scope: SCOPES,
     });
 
-    const { signOut, loaded: signOutLoaded } = useGoogleLogout({
+    const { signOut } = useGoogleLogout({
         clientId: GOOGLE_CLIENT_ID,
-        onFailure: () => {console.log("failure");},
+        onFailure,
         onLogoutSuccess,
     });
 
-    if (!signInLoaded) return <button>Loading...</button>
+    if (!loaded) return <button>Loading...</button>
     if (user) {
         const logoutText = user?.profileObj?.email ? `Logout (${user.profileObj.email})` : "Logout";
         return <button onClick={signOut}>{logoutText}</button>;

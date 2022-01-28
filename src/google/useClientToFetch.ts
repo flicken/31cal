@@ -1,6 +1,6 @@
-import { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
-import {db, UpdateState} from '../models/db';
+import {db } from '../models/db';
 import fetchList from './fetchList';
 import { useLiveQuery } from "dexie-react-hooks";
 
