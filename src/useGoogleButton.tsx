@@ -54,9 +54,9 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
     if (!loaded) return <div>Loading...</div>
     if (user) {
         const logoutText = user?.profileObj?.email ? `Logout (${user.profileObj.email})` : "Logout";
-        return <a href="#" onClick={signOut}>{logoutText}</a>;
+        return <a href="/" onClick={signOut}>{logoutText}</a>;
     } else {
-        return <a href="#" onClick={signIn}>Login</a>;
+        return <a href="/" onClick={signIn}>Login</a>;
     }
 };
 
