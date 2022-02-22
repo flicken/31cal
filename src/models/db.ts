@@ -1,28 +1,10 @@
 import Dexie, { Table } from 'dexie';
 
-export interface Calendar {
-    id: string;
-    summary: string;
-    selected: boolean;
-}
-
-export interface Event {
-    id: string;
-    calendarId: string;
-}
-
-export interface UpdateState {
-    account: string;
-    resource: string;
-    nextSyncToken?: string;
-    nextPageToken?: string;
-    etag?: string;
-    updatedAt: number;
-}
+import {Calendar, CalendarEvent, UpdateState} from './types';
 
 export class DB extends Dexie {
     calendars!: Table<Calendar, string>;
-    events!: Table<Event, string>;
+    events!: Table<CalendarEvent, string>;
     updateState!: Table<UpdateState, string[]>;
     constructor() {
         super('31cal');

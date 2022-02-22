@@ -1,6 +1,7 @@
 import ensureClient from './ensureClient';
 
-import {db, UpdateState} from '../models/db'
+import {db} from '../models/db'
+import {UpdateState} from '../models/types'
 
 interface Props {
     account: string;
