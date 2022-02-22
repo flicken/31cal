@@ -4,8 +4,6 @@ import PapaParse from 'papaparse'
 
 import {useDropzone, FileRejection, DropEvent } from 'react-dropzone';
 
-import {db} from './models/db';
-
 const parserOptions = {
     header: true,
     dynamicTyping: true,

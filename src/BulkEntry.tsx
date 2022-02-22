@@ -2,8 +2,6 @@ import React, { useState, useCallback, useRef } from 'react';
 
 import TextareaAutosize from 'react-textarea-autosize';
 
-import {db} from './models/db';
-
 import parseEvent from './lib/parseEvent';
 
 function BulkEntry() {
