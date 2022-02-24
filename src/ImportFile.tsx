@@ -2,12 +2,14 @@ import React, { useState, useCallback, useMemo } from 'react';
 
 import PapaParse from 'papaparse'
 
-import {CalendarEvent, StartEnd} from './models/types'
+import {CalendarEvent} from './models/types'
 
 import {useDropzone, FileRejection, DropEvent } from 'react-dropzone';
 
-import {parse, ParsedComponents} from 'chrono-node';
+import {parse} from 'chrono-node';
 import { DateTime } from 'luxon';
+
+import ViewEvent from './ViewEvent'
 
 const parserOptions = {
     header: true,
@@ -182,50 +184,4 @@ function ImportFile() {
         </>
     )
 }
-
-function timeOf(value: StartEnd) {
-    if ("dateTime" in value)
-        return DateTime.fromISO(value.dateTime)?.toLocaleString(DateTime.TIME_SIMPLE) || null;
-    else
-        return "all day"
-}
-
-function dateOf(value: StartEnd) {
-    if ("dateTime" in value)
-        return value.dateTime?.slice(0, 10)
-    else
-        return value.date
-}
-
-function ViewStartAndEnd({start, end}: {start?: StartEnd, end?: StartEnd}) {
-    if (start && end) {
-        if (dateOf(start) == dateOf(end)) {
-            return <>{dateOf(start)} {timeOf(start)} - {timeOf(end)}</>
-        } else {
-            return <>{dateOf(start)} {timeOf(start)} - {dateOf(end)} {timeOf(end)}</>
-        }
-    } else if (start) {
-        return <>{dateOf(start)} {timeOf(start)}</>
-    } else {
-        return null;
-    }
-}
-
-function ViewStartEnd({value}: {value?: StartEnd}) {
-    if (!value) return null;
-    if ("dateTime" in value)
-        return <>{value.dateTime}</>;
-    else
-        return value?.date ? <>{value.date}</> : null;
-}
-
-function ViewEvent({event}: {event: Partial<CalendarEvent>}) {
-    return (
-        <div>
-            <ViewStartAndEnd start={event.start} end={event.end}/>
-            <br/><b>{event.summary}</b>{' '}<i>{event.description}</i>
-        </div>
-    )
-}
-
 export default ImportFile;
