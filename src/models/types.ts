@@ -11,7 +11,7 @@ export type StartEndDate = {
 
 export type StartEndDateTime = {
     dateTime: string;
-    timeZone: string;
+    timeZone?: string;
 }
 
 export type StartEnd = StartEndDate | StartEndDateTime;
@@ -19,6 +19,8 @@ export type StartEnd = StartEndDate | StartEndDateTime;
 export type CalendarEvent = {
     id: string;
     calendarId: string;
+    summary?: string;
+    description?: string;
     start: StartEnd;
     end?: StartEnd;
 }
