@@ -21,13 +21,12 @@ const toGoogleTime = (components: ParsedComponents) => {
         const parsingComponents: any = components;
         const date = DateTime.fromObject(parsingComponents.impliedValues);
         return dateTimeToGoogleTime(date, components); 
-    } else if (components.isCertain("year") &&
-        components.isCertain("month") &&
+    } else if (components.isCertain("month") &&
         components.isCertain("day")) {
         const kv: any = (components as any).knownValues;
         console.log("kv", kv);
         const date = DateTime.fromObject({
-            year: kv.year,
+            year: kv.year || (components as any).impliedValues.year,
             month: kv.month,
             day: kv.day,
             hour: kv.hour,
