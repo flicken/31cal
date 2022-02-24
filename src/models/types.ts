@@ -1,4 +1,8 @@
 
+export type MaybeDirty = {
+    dirty?: boolean;
+}
+
 export type Calendar = {
     id: string;
     summary: string;
@@ -16,7 +20,7 @@ export type StartEndDateTime = {
 
 export type StartEnd = StartEndDate | StartEndDateTime;
 
-export type CalendarEvent = {
+export type CalendarEvent = MaybeDirty & {
     id: string;
     calendarId: string;
     summary?: string;
@@ -35,3 +39,7 @@ export type UpdateState = {
     updatedAt: number;
 }
 
+export type Setting = {
+    id: string
+    value: string
+}

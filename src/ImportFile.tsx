@@ -10,6 +10,12 @@ import {parse} from 'chrono-node';
 import { DateTime } from 'luxon';
 
 import ViewEvent from './ViewEvent'
+import {
+    Link,
+} from "react-router-dom";
+
+
+import useDefaultCalendar from './lib/useDefaultCalendar'
 
 const parserOptions = {
     header: true,
@@ -118,6 +124,8 @@ const toEvent = (input: any): Partial<CalendarEvent> => {
 }
 
 function ImportFile() {
+    const defaultCalendar = useDefaultCalendar();
+
     const [events, setEvents] = useState<Array<Partial<CalendarEvent>>>([]);
     const onDrop = useCallback((
         acceptedFiles: File[],
@@ -150,7 +158,6 @@ function ImportFile() {
     const {
         getRootProps,
         getInputProps,
-        isFocused,
         isDragAccept,
         isDragReject,
         isDragActive
@@ -167,13 +174,16 @@ function ImportFile() {
         isDragReject,
     ]);
 
+    if (!defaultCalendar) {
+        return <div>Must select default <Link to="/calendars">calendar</Link> before importing.</div>
+    }
     return (<>
           <div {...getRootProps({style})} >
             <input {...getInputProps()} />
         {
-            isFocused ?
-            <p>Drop the csv files here ...</p> :
-            <p>Drag 'n' drop csv files here, or click to select files</p>
+            isDragActive ?
+            <p>Drop to import into <b>{defaultCalendar.summary}</b></p> :
+            <p>Drag 'n' drop csv file(s) to import into <b>{defaultCalendar.summary}</b>, or click to select files</p>
         }
 
         </div>

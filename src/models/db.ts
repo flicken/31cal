@@ -1,11 +1,12 @@
 import Dexie, { Table } from 'dexie';
 
-import {Calendar, CalendarEvent, UpdateState} from './types';
+import {Calendar, CalendarEvent, Setting, UpdateState} from './types';
 
 export class DB extends Dexie {
     calendars!: Table<Calendar, string>;
     events!: Table<CalendarEvent, string>;
     updateState!: Table<UpdateState, string[]>;
+    settings!: Table<Setting, string>;
     constructor() {
         super('31cal');
         this.version(1).stores({
@@ -21,6 +22,10 @@ export class DB extends Dexie {
         this.version(4).stores({
             events: '[id+calendarId]'
         });
+        this.version(5).stores({
+            settings: 'id',
+            events: '[id+calendarId], dirty'
+        })
     }
 }
 
