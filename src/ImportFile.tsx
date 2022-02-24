@@ -107,6 +107,7 @@ const toEvent = (input: any): Partial<CalendarEvent> => {
     return {
         summary: input['subject'] || input['summary'],
         description: input['description'],
+        location: input['location'],
         start: start,
         end: end,
     } 
