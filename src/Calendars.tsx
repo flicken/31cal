@@ -39,7 +39,6 @@ function Calendars() {
           .map((c: any) => {
             const update = updateById[c.id];
             return (
-              <>
                 <div
                   key={c.id}
                   className={update?.requestedAt ? "loading" : undefined}
@@ -54,7 +53,6 @@ function Calendars() {
                 >
                   {c.summary}
                 </div>
-              </>
             );
           })}
     </div>
