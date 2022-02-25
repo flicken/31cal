@@ -26,6 +26,10 @@ export class DB extends Dexie {
             settings: 'id',
             events: '[id+calendarId], dirty'
         })
+        this.version(6).stores({
+            settings: 'id',
+            events: '[id+calendarId], calendarId, dirty'
+        })
     }
 }
 
