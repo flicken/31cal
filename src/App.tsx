@@ -13,6 +13,9 @@ import useDefaultCalendar from './lib/useDefaultCalendar'
 
 import {sample} from "lodash"
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import {
     Outlet,
     Link,
@@ -131,6 +134,7 @@ function App() {
         <userContext.Provider value={user}>
             <div style={{ float: "right", clear: "both" }} ><span title={defaultCalendar?.id}>{defaultCalendar?.summary ?? "No default calendar"}</span> - {googleButton}</div>
             {element}
+        <ToastContainer/>
         </userContext.Provider>
     );
 }

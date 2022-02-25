@@ -3,6 +3,8 @@ import { DateTime } from 'luxon';
 
 import {CalendarEvent, StartEnd, StartEndDate} from '../models/types';
 
+import {pick} from "lodash"
+
 function dateTimeToGoogleTime(dateMaybeTime: DateTime, components: ParsedComponents) {
     if (!components.isCertain("hour")) {
         return { date: dateMaybeTime.toISODate() };
@@ -14,13 +16,19 @@ function dateTimeToGoogleTime(dateMaybeTime: DateTime, components: ParsedCompone
     };
 }
 
+const dateTimeFromAll = (components: any) => {
+    const fields = pick({...components.knownValues, ...components.impliedValues}, [
+        "year", "month", "day", "ordinal", "weekYear", "weekNumber", "weekday", "hour", "minute", "second", "millisecond"
+    ])
+    return DateTime.fromObject(fields);
+}
+
 const toGoogleTime = (components?: ParsedComponents) => {
     if (!components) return undefined
     console.log("toGoogleTime", components);
 
     if (components.isCertain("weekday")) {
-        const parsingComponents: any = components;
-        const date = DateTime.fromObject(parsingComponents.impliedValues);
+        const date = dateTimeFromAll(components)
         return dateTimeToGoogleTime(date, components); 
     } else if (components.isCertain("month") &&
         components.isCertain("day")) {
@@ -35,6 +43,9 @@ const toGoogleTime = (components?: ParsedComponents) => {
             second: kv.second,
             millisecond: kv.millisecond,
         })
+        return dateTimeToGoogleTime(date, components);
+    } else if (components.isCertain("hour")) {
+        const date = dateTimeFromAll(components)
         return dateTimeToGoogleTime(date, components);
     }
 

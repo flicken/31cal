@@ -34,8 +34,8 @@ function ViewStartAndEnd({start, end}: {start?: StartEnd, end?: StartEnd}) {
 function ViewEvent({event}: {event: Partial<CalendarEvent>}) {
     return (
         <div title={JSON.stringify(event, null, 2)}>
-            <ViewStartAndEnd start={event.start} end={event.end}/>
-            <br/><b>{event.summary}</b>{' '}<i>{event.description}</i>
+            <ViewStartAndEnd start={event.start} end={event.end}/>{' '}<b>{event.summary}</b><br/>
+            <i>{event.description}</i>
         </div>
     )
 }

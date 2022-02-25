@@ -1,7 +1,6 @@
 import React from 'react';
 
 import {db} from './models/db';
-import {CalendarEvent} from './models/types'
 import { useLiveQuery } from "dexie-react-hooks";
 
 import useDefaultCalendar from './lib/useDefaultCalendar'
