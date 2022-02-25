@@ -24,12 +24,13 @@ function Events() {
     }, [setNow]);
 
 
-    const eventList: Array<CalendarEvent>|undefined = useLiveQuery(() => {
+    const eventList = useLiveQuery(() => {
         let query = db.events;
-        const max = now.plus({months: 1})
+        const startOfDay = now.startOf("day")
+        const max = startOfDay.plus({months: 1, days: 1})
         if (defaultCalendar) {
             return query.where(["calendarId", "start.ms"])
-                        .between([defaultCalendar.id, now.toMillis()], [defaultCalendar.id, max.toMillis()], true, true)
+                        .between([defaultCalendar.id, startOfDay.toMillis()], [defaultCalendar.id, max.toMillis()], true, true)
                         .toArray()
         } else {
             return query.where("id").notEqual("")
