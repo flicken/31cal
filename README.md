@@ -3,7 +3,7 @@ Agenda: 31 different ways to calendar
 # Ways
 1. **View** all events on one page (easy to search with Ctrl-F)
   * TODO: Make prettier
-2. TODO: **Create** bulk events with same / similar data (e.g. soccer practices + games)
+2. DONE: **Create** bulk events with same / similar data (e.g. soccer practices + games)
 3. TODO: **Filter** events in a "schedule" (e.g. from club, sports, choir)
 4. TODO: **Update** (or delete) all (most?) events within a time period (e.g. during school vacation)
 5. TODO: **View** multi-stream "paper calendar"
@@ -18,7 +18,8 @@ Agenda: 31 different ways to calendar
 13. TODO: **View/Update** Mail Inbox style, for deleting multiple events.
 14. TODO: **View** Non chronological.  Group events together that repeat or are in the same schedule.  Still needs more thought about how this could work.
 15. TODO: **Create/Edit** events via "annotations" of an image / document
-16. TODO: **Add** events via drag/drop CSV/TSV (interactively choosing columns if not [standard Google columns](https://support.google.com/calendar/answer/37118?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ccreate-or-edit-a-csv-file) (Subject, Start Date, Start Time, End Date, End Time, All Day Event, Description, Location, Private) or [API field names](https://developers.google.com/calendar/api/v3/reference/events) (attendees, colorId, extendedProperties.private, extendedProperties.shared, location, source.title, source.url, summary, visibility).
+16. DONE: **Add** events via drag/drop CSV/TSV using a sub-set of [standard Google columns](https://support.google.com/calendar/answer/37118?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ccreate-or-edit-a-csv-file) (Subject, Start Date, Start Time, End Date, End Time, Description, Location)
+17. TODO: More options for importing events support other standard columns (All Day Event and Private) as well as all [API field names](https://developers.google.com/calendar/api/v3/reference/events) (attendees, colorId, extendedProperties.private, extendedProperties.shared, location, source.title, source.url, summary, visibility).
 
 
 # Shortcomings
