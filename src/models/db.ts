@@ -27,8 +27,10 @@ export class DB extends Dexie {
             events: '[id+calendarId], dirty'
         })
         this.version(6).stores({
-            settings: 'id',
             events: '[id+calendarId], calendarId, dirty'
+        })
+        this.version(8).stores({
+            events: '[id+calendarId], calendarId, dirty, [calendarId+start.ms]'
         })
     }
 }
