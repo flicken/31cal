@@ -6,48 +6,13 @@ import parseEvent from './lib/parseEvent';
 
 import ViewEvent from './ViewEvent'
 
-import { DateTime } from 'luxon';
-
-import ensureClient from './google/ensureClient'
-import {compact} from "lodash"
+import {compact, isEmpty} from "lodash"
 import useDefaultCalendar from './lib/useDefaultCalendar'
-import { toast } from 'react-toastify';
 
-import {isEmpty} from "lodash"
+import saveEvents from './google/saveEvents'
 
 const placeholderEntry = "Saturday 3pm rehearsal\n6pm-9pm concert"
 
-function googleTimeToDateTime(value: any, timeZone: any) {
-    return DateTime.fromISO(value.dateTime || value.date, {zone: value.timeZone || timeZone })
-}
-
-async function saveEvents(calendar: any, events: any[], description: string) {
-    toast(`Saving events to ${calendar.summary}`, {hideProgressBar: true});
-    console.log("Saving events to calendar ", calendar?.id)
-    await ensureClient();
-    const gapi: any = (window as any).gapi;
-    events.forEach(async (event: any) => {
-        try {
-        if (!event.end) {
-            if (event.start.date) {
-                event.end = event.start
-            } else {
-                event.end = {
-                    dateTime: googleTimeToDateTime(event.start, calendar.timeZone).plus({hours: 1}).toISO()
-                }
-            }
-        }
-        const response = await gapi.client.calendar.events.insert({
-            'calendarId': calendar?.id,
-            'resource': {description: description, ...event},
-        })
-            console.log("Response", response)
-            toast.info(`Saved event ${JSON.stringify(event)}`, {hideProgressBar: true})
-        } catch (e) {
-            toast.error(`Error sending event ${JSON.stringify(event)}`, {hideProgressBar: true})
-        }
-    })
-}
 
 function BulkEntry() {
     const defaultCalendar = useDefaultCalendar();
@@ -82,9 +47,8 @@ function BulkEntry() {
        saveEvents(defaultCalendar, events, description);
     }, [defaultCalendar, events, description])
 
-    const disabled = events?.length > 0
     let saveButton = <button disabled>Set default calendar first</button>
-    if (events?.length == 0) {
+    if (isEmpty(events)) {
         saveButton = <button disabled>Enter events first</button>
     } else if (defaultCalendar) {
         saveButton = <button onClick={handleSaveEvents} disabled={!(events?.length > 0)} title={defaultCalendar?.id}>Save events to {defaultCalendar?.summary}</button>

@@ -15,6 +15,7 @@ import {
 } from "react-router-dom";
 
 
+import saveEvents from './google/saveEvents'
 import useDefaultCalendar from './lib/useDefaultCalendar'
 
 const parserOptions = {
@@ -148,12 +149,13 @@ function ImportFile() {
                 )
                 const data = csvData?.data ?? []
                 const newEvents = data.map(toEvent)
+                saveEvents(defaultCalendar, newEvents)
                 setEvents(previousEvents => [...previousEvents, ...newEvents]);
             }
 
             reader.readAsText(file, fileEncoding)
         });
-    }, [setEvents]);
+    }, [setEvents, defaultCalendar]);
 
     const {
         getRootProps,
