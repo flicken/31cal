@@ -106,7 +106,7 @@ function Layout() {
                         .filter(r => !r.ignored)
                         .sort((a, b) => compareProperty(a.path, b.path))
                         .map((r) => (
-                            <NavLink {...r} />
+                            <NavLink key={r.path} {...r} />
                     ))}
                 </ul>
             </nav>
