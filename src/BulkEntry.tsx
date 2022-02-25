@@ -4,6 +4,8 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 import parseEvent from './lib/parseEvent';
 
+import ViewEvent from './ViewEvent'
+
 function BulkEntry() {
     const [events, setEvents] = useState<any>([]); 
     const [eventText, setEventText] = useState("");
@@ -46,7 +48,7 @@ function BulkEntry() {
         <div style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
             <div>
                 {events.map((event: any, i: number) =>
-                    <div>{JSON.stringify(event)}</div>
+                    <ViewEvent key={i} event={event}/>
                 )}
                 <form onSubmit={handleSubmit}>
                     <input autoFocus name="eventText" placeholder="e.g. Rehearsal Tuesday january 5th, 19:30" value={eventText} onChange={handleEventTextChange} ref={textInput} onBlur={handleBlur} />

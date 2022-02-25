@@ -9,12 +9,13 @@ function dateTimeToGoogleTime(dateMaybeTime: DateTime, components: ParsedCompone
     }
 
     return {
-        date: dateMaybeTime.toString(),
+        dateTime: dateMaybeTime.toString(),
         timeZone: dateMaybeTime.zoneName,
     };
 }
 
-const toGoogleTime = (components: ParsedComponents) => {
+const toGoogleTime = (components?: ParsedComponents) => {
+    if (!components) return undefined
     console.log("toGoogleTime", components);
 
     if (components.isCertain("weekday")) {
@@ -72,6 +73,7 @@ const parseInput = (s: string, context: CalendarEvent[] = []) => {
         return {
             summary: rest,
             start: toGoogleTime(datetimes[0].start),
+            end: toGoogleTime(datetimes[0].end),
         };
     } else {
         return undefined;
