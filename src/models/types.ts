@@ -42,6 +42,7 @@ export type UpdateState = {
     nextPageToken?: string;
     etag?: string;
     updatedAt: number;
+    requestedAt?: number;
 }
 
 export type Setting = {
