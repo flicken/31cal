@@ -43,7 +43,7 @@ function Events() {
     }
 
     return (<div>
-    {eventList && eventList.map((e: any) =>
+    {eventList && eventList.filter(e => e.status !== "cancelled").map((e: any) =>
         <ViewEvent key={`${e.calendarId}/${e.id}`} event={e}/>
     )}
     </div>);

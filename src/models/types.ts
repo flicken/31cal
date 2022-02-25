@@ -31,6 +31,7 @@ export type CalendarEvent = MaybeDirty & {
     summary?: string;
     description?: string;
     location?: string;
+    status?: string;
     start: StartEnd & Millis;
     end?: StartEnd & Millis;
 }
