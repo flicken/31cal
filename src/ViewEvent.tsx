@@ -2,6 +2,7 @@ import React from 'react'
 import {CalendarEvent, StartEnd} from './models/types'
 
 import { DateTime } from 'luxon';
+import dompurify from 'dompurify';
 
 function timeOf(value: StartEnd) {
     if ("dateTime" in value)
@@ -31,11 +32,14 @@ function ViewStartAndEnd({start, end}: {start?: StartEnd, end?: StartEnd}) {
     }
 }
 
+const sanitizer = dompurify.sanitize;
+
 function ViewEvent({event}: {event: Partial<CalendarEvent>}) {
+    
     return (
         <div title={JSON.stringify(event, null, 2)}>
             <ViewStartAndEnd start={event.start} end={event.end}/>{' '}<b>{event.summary}</b><br/>
-            <i>{event.description}</i>
+            <i><span dangerouslySetInnerHTML={{__html: sanitizer(event.description ?? "")}}></span></i>
         </div>
     )
 }
