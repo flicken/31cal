@@ -1,13 +1,7 @@
-import React, {useState} from 'react';
-
-import {db} from './models/db';
-import { useLiveQuery } from "dexie-react-hooks";
-
-import useDefaultCalendar from './lib/useDefaultCalendar'
-import ViewEvent from './ViewEvent'
+import React from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
-import {parse, ParsedComponents, Component} from 'chrono-node';
+import {parse, ParsedComponents} from 'chrono-node';
 import {pick, isEmpty} from "lodash"
 
 export type DateTimeRange = {
@@ -34,17 +28,6 @@ const dateTimeFromAll = (components: any) => {
 
     return date;
 }
-
-const COMPONENTS = [
-      "millisecond"
-        , "second"
-        , "minute"
-        , "hour"
-        //, "weekday"
-        , "day"
-        , "month"
-    , "year"
-]
 
 function roundTo(c: ParsedComponents, text: string) {
     if (c.isCertain("second")) {
@@ -95,7 +78,7 @@ export default function DateTimeRangeInput({value, onChange}: Props) {
                 onChange({start, end})
             }
         }
-    }, [])
+    }, [onChange])
     return <><input type="text" placeholder="next week" onChange={parseDateRange} />
         <br/>{JSON.stringify(value)}
     </>; 

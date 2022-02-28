@@ -12,15 +12,6 @@ import { DateTime } from 'luxon';
 function Events() {
     const defaultCalendar = useDefaultCalendar();
 
-    const defaultStart = DateTime.now().startOf("day")
-    const [range, onRangeChange] = useState<DateTimeRange>({
-              start: defaultStart,
-              end: defaultStart.plus({months: 1}).endOf("month")
-          });
-
-    const start = range.start || defaultStart;
-    const end   = range.end || start.plus({months: 1}).endOf("month")
-
     const [now, setNow] = useState(DateTime.now()) 
 
     React.useEffect(() => {
@@ -31,6 +22,15 @@ function Events() {
             clearInterval(timer);
         }
     }, [setNow]);
+
+    const defaultStart = now.startOf("day")
+    const [range, onRangeChange] = useState<DateTimeRange>({
+              start: defaultStart,
+              end: defaultStart.plus({months: 1}).endOf("month")
+          });
+
+    const start = range.start || defaultStart;
+    const end   = range.end || start.plus({months: 1}).endOf("month")
 
     const eventList = useLiveQuery(() => {
         let query = db.events;
