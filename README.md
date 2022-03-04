@@ -7,7 +7,7 @@ Agenda: 31 different ways to calendar
 3. TODO: **Filter** events in a "schedule" (e.g. from club, sports, choir)
 4. TODO: **Update** (or delete) all (most?) events within a time period (e.g. during school vacation)
 5. TODO: **View** multi-stream "paper calendar"
-6. TODO: **Filter** events since [datetime], possibly via natural language
+6. DONE: **Filter** events since [datetime], possibly via natural language
 7. TODO: **Filter** events by keyword
 7. TODO: **View** or **Filter** conflicts for events / schedule
 8. TODO: **Add** image / document to events / schedule (e.g. handout of schedule from club)
