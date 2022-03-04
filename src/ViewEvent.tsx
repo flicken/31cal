@@ -35,13 +35,18 @@ function ViewStartAndEnd({start, end}: {start?: StartEnd, end?: StartEnd}) {
 const sanitizer = dompurify.sanitize;
 
 function ViewEvent({event}: {event: Partial<CalendarEvent>}) {
-    
+    if (event.description) {
     return (
-        <div title={JSON.stringify(event, null, 2)}>
-            <ViewStartAndEnd start={event.start} end={event.end}/>{' '}<b>{event.summary}</b><br/>
-            <i><span dangerouslySetInnerHTML={{__html: sanitizer(event.description ?? "")}}></span></i>
-        </div>
+        <details style={{border: "2px dotted #bbb"}} title={JSON.stringify(event, null, 2)} >
+            <summary style={{cursor: "pointer", padding: ".5rem 1rem"}}><ViewStartAndEnd start={event.start} end={event.end}/>{' '}<b style={{display: "inline"}}>{event.summary}</b></summary>
+            <div style={{marginTop: 0, padding: "1rem"}}><i><span dangerouslySetInnerHTML={{__html: sanitizer(event.description ?? "")}}></span></i></div>
+        </details>
     )
+    }  else {
+            return  (
+                <div style={{border: "2px dotted #bbb, padding: ", padding: ".5rem 1rem"}}><ViewStartAndEnd start={event.start} end={event.end}/>{' '}<b style={{display: "inline"}}>{event.summary}</b></div>
+            )
+         }
 }
 
 
