@@ -71,8 +71,16 @@ export default function DateTimeRangeInput({value, onChange}: Props) {
         if (datetimes[0]) {
            const start = dateTimeFrom(true, datetimes[0].start, text)
            const end = dateTimeFrom(false, datetimes[0].end || datetimes[1]?.start || datetimes[0].start, text)
+            console.log({start: start, end: end})
 
-            if (start && end && start.diff(end).valueOf() > 0) {
+            if (!datetimes[0].end && (text.toLowerCase().startsWith("until ") ||
+                                      text.toLowerCase().startsWith("to ") ||
+                                      text.toLowerCase().startsWith("through ") ||
+                                      text.toLowerCase().startsWith("thru "))) {
+                console.log("Until / to branch")
+                console.log({start: start, end: end})
+                onChange({start: DateTime.now(), end: end})
+            } else if (start && end && start.diff(end).valueOf() > 0) {
                 onChange({ start: end, end: start})
             } else {
                 onChange({start, end})
