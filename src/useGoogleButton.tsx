@@ -35,6 +35,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
         [setUser],
     );
 
+    console.log("Google", GOOGLE_CLIENT_ID);
     const { signIn, loaded } = useGoogleLogin({
         clientId: GOOGLE_CLIENT_ID,
         cookiePolicy: 'single_host_origin',
