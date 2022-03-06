@@ -15,7 +15,7 @@
     "@types/react": "17.0.39",
     "@types/react-dom": "17.0.13",
     "@vitejs/plugin-react": "1.2.0",
-    "chrono-node": "2.3.7",
+    "chrono-node": "2.3.8",
     "dexie": "3.2.1",
     "dexie-react-hooks": "1.1.1",
     "dompurify": "2.3.6",
