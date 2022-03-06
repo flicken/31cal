@@ -8,6 +8,7 @@ import BulkEntry from "./BulkEntry";
 import Calendars from "./Calendars";
 import Events from "./Events";
 import ImportFile from "./ImportFile";
+import SlateEvents from "./SlateEvents"
 
 import useDefaultCalendar from './lib/useDefaultCalendar'
 
@@ -63,6 +64,10 @@ const routes = [
             {
                 path: "/import",
                 element: <ImportFile />,
+            },
+            {
+                path: "/slate",
+                element: <SlateEvents />
             },
             {
                 path: "*",
