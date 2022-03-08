@@ -10,7 +10,7 @@ Agenda: 31 different ways to calendar
 6. DONE: **Filter** events since [datetime], possibly via natural language
 7. TODO: **Filter** events by keyword
 7. TODO: **View** or **Filter** conflicts for events / schedule
-8. TODO: **Add** image / document to events / schedule (e.g. handout of schedule from club)
+8. TODO: **Add** (attach) image / document to events / schedule (e.g. handout of schedule from club)
 9. TODO: Command Line UI to create, update, view, filter (by schedule, keyword, datetime...), etc (see https://github.com/insanum/gcalcli )
 10. TODO: Spreadsheet UI (see sheets2gcal.com for alternative)
 11. TODO: **View** details including description (in Google calendar can only see summary)
