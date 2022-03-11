@@ -28,3 +28,9 @@ Perhaps encrypt and load into in-memory database?  Note: legendapp does not encr
 
 # Potential tech
 1. https://react-day-picker.js.org/ - used by LegendApp for date input, their 
+2. https://fusejs.io/ - fuzzy search
+3. https://github.com/timc1/kbar - command bar
+4. https://bit.dev/teambit/explorer/command-bar - command bar
+5. https://github.com/replit/clui - command line UI for Javascript
+6. https://github.com/asabaylus/react-command-palette - command bar
+6. https://github.com/github/time-elements - time display - relative e.g. 2d
