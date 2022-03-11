@@ -32,7 +32,12 @@ export class DB extends Dexie {
         this.version(8).stores({
             events: '[id+calendarId], calendarId, dirty, [calendarId+start.ms]'
         })
-    }
+        // TODO: add multi-index for schedule
+        // https://dexie.org/docs/MultiEntry-Index
+        this.version(12).stores({
+            events: '[id+calendarId], calendarId, dirty, [calendarId+start.ms], *_schedules'
+        })
+     }
 }
 
 export const db = new DB();

@@ -4,7 +4,7 @@ import {db} from './models/db';
 import { useLiveQuery } from "dexie-react-hooks";
 
 import useDefaultCalendar from './lib/useDefaultCalendar'
-import useScheduleList from './lib/useScheduleList'
+import {useScheduleList, eventSchedules} from './lib/useScheduleList'
 import {useSetting} from "./lib/settings";
 import ViewEvent from './ViewEvent'
 import DateTimeRangeInput, {DateTimeRange} from "./DateTimeRangeInput"
@@ -37,10 +37,11 @@ function SelectSchedule() {
 
     const onChange = useCallback((e) => {
         setState(e)
-        setSelectedSchedules([e.value])
+        setSelectedSchedules(e ? [e.value] : [])
     }, []);
 
     return <Select
+               isClearable={true}
                onChange={onChange}
                value={state}
                isLoading={!list || !selectedSchedules}
@@ -48,7 +49,7 @@ function SelectSchedule() {
  }
 
 function Schedule() {
-    const selectedSchedules = useSetting('selectedScheduled')
+    const [selectedSchedules] = useSetting('selectedSchedules')
     const defaultCalendar = useDefaultCalendar();
 
     const [now, setNow] = useState(DateTime.now()) 
@@ -72,18 +73,17 @@ function Schedule() {
     const end   = range.end || start.plus({months: 1}).endOf("month")
 
     const eventList = useLiveQuery(() => {
-        let query = db.events;
-        if (defaultCalendar) {
-            return query.where(["calendarId", "start.ms"])
-                      .between([defaultCalendar.id, start.toMillis()], [defaultCalendar.id, end.toMillis()], true, true)
-                .toArray()
-                //.filter(e =>)
+        if (_.isEmpty(selectedSchedules)) {
+            return db.events.where("id").equals("nothing").toArray()
         } else {
-            return query.where("id").notEqual("")
-                        .toArray()
+            return db.events.where("_schedules").anyOf(selectedSchedules).toArray().then(events => {
+                return events.filter(e => {
+                   return start.toMillis() <= e.start.ms && end.toMillis() >= e.end.ms;
+                }
+                )
+            })
         }
-        
-    }, [defaultCalendar, range, start, end]);
+    }, [defaultCalendar, range, start, end, selectedSchedules]);
 
     if (!defaultCalendar || !eventList) {
         return <div>Loading...</div>

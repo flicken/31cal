@@ -7,6 +7,8 @@ import useDefaultCalendar from '../lib/useDefaultCalendar'
 
 import { DateTime } from 'luxon';
 
+import {eventSchedules} from '../lib/useScheduleList';
+
 const toMillis = (event: any, fieldName: string, timeZone: string) => {
     let value = event[fieldName]
     let date = DateTime.fromISO(value.dateTime || value.date, {zone: value.timeZone || timeZone })
@@ -20,6 +22,7 @@ let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
     event.end.ms = end
     event.eventId = event.id
     event.calendarId = calendarId
+    event._schedules = eventSchedules(event)
     // event.id = idFor(event)
 }
 
