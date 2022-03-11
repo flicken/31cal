@@ -1,12 +1,15 @@
 import React from 'react';
 import {
+    ActionId,
+    KBarAnimator,
+    KBarProvider,
     KBarPortal,
     KBarPositioner,
-    KBarAnimator,
-    KBarResults,
     KBarSearch,
+    KBarResults,
+    createAction,
     useMatches,
-    NO_GROUP
+    ActionImpl,
 } from "kbar";
 
 const searchStyle = {
@@ -51,7 +54,7 @@ function RenderResults() {
           <ResultItem
             action={item}
             active={active}
-            currentRootActionId={rootActionId}
+            currentRootActionId={rootActionId || undefined}
           />
         )
       }
@@ -68,7 +71,7 @@ const ResultItem = React.forwardRef(
     }: {
       action: ActionImpl;
       active: boolean;
-      currentRootActionId: ActionId;
+      currentRootActionId?: ActionId;
     },
     ref: React.Ref<HTMLDivElement>
   ) => {

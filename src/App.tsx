@@ -8,10 +8,12 @@ import BulkEntry from "./BulkEntry";
 import Calendars from "./Calendars";
 import Events from "./Events";
 import ImportFile from "./ImportFile";
+import Schedule from "./Schedule";
 import CommandBar from "./CommandBar";
 
 import useDefaultCalendar from './lib/useDefaultCalendar'
 
+import {SettingsProvider} from "./lib/settings"
 import {sample} from "lodash"
 
 import { ToastContainer } from 'react-toastify';
@@ -23,7 +25,7 @@ import {
     useRoutes,
 } from "react-router-dom";
 
-import { KBarProvider } from 'kbar';
+import { KBarProvider, Action } from 'kbar';
 
 const SmallLogo = (
     <svg
@@ -87,11 +89,11 @@ const routes = [
     },
 ];
 
-const actions = routes[0].children.filter(a => !a.ignored).map(a => {
+const actions: Action[] = routes[0].children.filter(a => !a.ignored).map(a => {
     return {
         ...a,
         id: a.path,
-        name: a.name ?? a.path.replaceAll("/", ""),
+        name: a.name?.toString() ?? a.path.replaceAll("/", ""),
         perform: () => (window.location.pathname = a.path)
     };
 })
@@ -160,11 +162,13 @@ function App() {
                 enableHistory: true,
             }}
             >
-            <CommandBar/>
-                <div style={{ float: "right", clear: "both" }} ><span title={defaultCalendar?.id}>{defaultCalendar?.summary ?? "No default calendar"}</span> - {googleButton}</div>
+            <SettingsProvider>
+              <CommandBar/>
+                  <div style={{ float: "right", clear: "both" }} ><span title={defaultCalendar?.id}>{defaultCalendar?.summary ?? "No default calendar"}</span> - {googleButton}</div>
                 {element}
-                <ToastContainer/>
-            </KBarProvider>
+                  <ToastContainer/>
+            </SettingsProvider>
+           </KBarProvider>
         </userContext.Provider>
     );
 }

@@ -34,6 +34,12 @@ export type CalendarEvent = MaybeDirty & {
     status?: string;
     start: StartEnd & Millis;
     end?: StartEnd & Millis;
+    extendedProperties?: ExtendedProperties;
+}
+
+export type ExtendedProperties = {
+    shared: any;
+    private: any;
 }
 
 export type UpdateState = {
