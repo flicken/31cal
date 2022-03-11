@@ -8,6 +8,7 @@ import BulkEntry from "./BulkEntry";
 import Calendars from "./Calendars";
 import Events from "./Events";
 import ImportFile from "./ImportFile";
+import CommandBar from "./CommandBar";
 
 import useDefaultCalendar from './lib/useDefaultCalendar'
 
@@ -21,6 +22,8 @@ import {
     Link,
     useRoutes,
 } from "react-router-dom";
+
+import { KBarProvider } from 'kbar';
 
 const SmallLogo = (
     <svg
@@ -45,24 +48,35 @@ const routes = [
             {
                 index: true,
                 path: "/",
+                shortcut: ["h"],
                 name: SmallLogo,
                 element: <div> Agenda: 31 different ways to calendar </div>,
+                keywords: "home",
             },
             {
                 path: "/bulk",
+                shortcut: ["b"],
                 element: <BulkEntry />,
             },
             {
                 path: "/calendars",
+                shortcut: ["c"],
                 element: <Calendars />,
             },
             {
                 path: "/events",
+                shortcut: ["e"],
                 element: <Events />,
             },
             {
                 path: "/import",
+                shortcut: ["i"],
                 element: <ImportFile />,
+            },
+            {
+                path: "/schedule",
+                shortcut: ["s"],
+                element: <Schedule />,
             },
             {
                 path: "*",
@@ -72,6 +86,16 @@ const routes = [
         ],
     },
 ];
+
+const actions = routes[0].children.filter(a => !a.ignored).map(a => {
+    return {
+        ...a,
+        id: a.path,
+        name: a.name ?? a.path.replaceAll("/", ""),
+        perform: () => (window.location.pathname = a.path)
+    };
+})
+
 
 function randomRoute() {
     const route = sample(routes[0].children.filter(f => !f.ignored))!
@@ -132,9 +156,15 @@ function App() {
 
     return (
         <userContext.Provider value={user}>
-            <div style={{ float: "right", clear: "both" }} ><span title={defaultCalendar?.id}>{defaultCalendar?.summary ?? "No default calendar"}</span> - {googleButton}</div>
-            {element}
-        <ToastContainer/>
+            <KBarProvider actions={actions} options={{
+                enableHistory: true,
+            }}
+            >
+            <CommandBar/>
+                <div style={{ float: "right", clear: "both" }} ><span title={defaultCalendar?.id}>{defaultCalendar?.summary ?? "No default calendar"}</span> - {googleButton}</div>
+                {element}
+                <ToastContainer/>
+            </KBarProvider>
         </userContext.Provider>
     );
 }
