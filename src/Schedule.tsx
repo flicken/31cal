@@ -45,7 +45,7 @@ function SelectSchedule() {
                onChange={onChange}
                value={state}
                isLoading={!list || !selectedSchedules}
-               options={list?.map(s => ({value: s, label: s} ))} />
+               options={(list ?? []).map(s => ({value: s, label: s} )) as any} />
  }
 
 function Schedule() {
@@ -78,16 +78,16 @@ function Schedule() {
     .then(evts => _.sortBy(evts, e => e.start.ms)));
 
 let eventList = allEvents
-  if (!defaultCalendar || !eventList) {
+  if (!defaultCalendar || !eventList || !allEvents) {
     return <div>Loading...</div>
   }
 
   if (startMs && endMs) {
-    eventList = eventList.filter(e => startMs < e.end.ms && e.start.ms <= endMs);
+    eventList = eventList.filter(e => (!e.end?.ms || startMs < e.end?.ms) && (!e.start?.ms || e.start?.ms <= endMs));
   }
 
   if (!_.isEmpty(selectedSchedules)) {
-    eventList = eventList.filter(e => !_.isEmpty(_.intersection(selectedSchedules, e._schedules)))
+    eventList = eventList.filter(e => !_.isEmpty(_.intersection(selectedSchedules, e._schedules ?? [])))
   }
 
     return (<div>

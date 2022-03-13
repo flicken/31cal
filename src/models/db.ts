@@ -41,4 +41,4 @@ export class DB extends Dexie {
 }
 export const db = new DB();
 
-globalThis.db = db;
+(globalThis as any).db = db;
