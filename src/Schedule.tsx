@@ -71,28 +71,30 @@ function Schedule() {
 
     const start = range.start || defaultStart;
     const end   = range.end || start.plus({months: 1}).endOf("month")
+    const startMs = start.toMillis();
+    const endMs = end.toMillis();
 
-    const eventList = useLiveQuery(() => {
-        if (_.isEmpty(selectedSchedules)) {
-            return db.events.where("id").equals("nothing").toArray()
-        } else {
-            return db.events.where("_schedules").anyOf(selectedSchedules).toArray().then(events => {
-                return events.filter(e => {
-                   return start.toMillis() <= e.start.ms && end.toMillis() >= e.end.ms;
-                }
-                )
-            })
-        }
-    }, [defaultCalendar, range, start, end, selectedSchedules]);
+    const allEvents = useLiveQuery(() => db.events.toArray()
+    .then(evts => _.sortBy(evts, e => e.start.ms)));
 
-    if (!defaultCalendar || !eventList) {
-        return <div>Loading...</div>
-    }
+let eventList = allEvents
+  if (!defaultCalendar || !eventList) {
+    return <div>Loading...</div>
+  }
+
+  if (startMs && endMs) {
+    eventList = eventList.filter(e => startMs < e.end.ms && e.start.ms <= endMs);
+  }
+
+  if (!_.isEmpty(selectedSchedules)) {
+    eventList = eventList.filter(e => !_.isEmpty(_.intersection(selectedSchedules, e._schedules)))
+  }
 
     return (<div>
         <div>Schedule: <SelectSchedule/></div>
         <DateTimeRangeInput value={range} onChange={onRangeChange}/>
         <br/>{JSON.stringify(range)}
+    <div>Showing: {eventList && eventList.length} of {allEvents.length} events</div>
     {eventList && eventList.filter(e => e.status !== "cancelled").map((e: any) =>
         <ViewEvent key={`${e.calendarId}/${e.id}`} event={e}/>
     )}
