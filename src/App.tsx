@@ -43,7 +43,7 @@ const SmallLogo = (
   </svg>
 );
 
-const routes = [
+const ROUTES = [
   {
     path: '/',
     element: <Layout />,
@@ -88,14 +88,14 @@ const routes = [
       },
       {
         path: '*',
-        element: <NotFound routesF={() => routes} />,
+        element: <NotFound routesF={() => ROUTES} />,
         ignored: true,
       },
     ],
   },
 ];
 
-const actions: Action[] = routes[0].children
+const actions: Action[] = ROUTES[0].children
   .filter((a) => !a.ignored)
   .map((a) => {
     return {
@@ -106,13 +106,13 @@ const actions: Action[] = routes[0].children
     };
   });
 
-function randomRoute(routes) {
+function randomRoute(routes: typeof ROUTES) {
   const route = sample(routes[0].children.filter((f) => !f.ignored))!;
 
   return <Link to={route.path}>{route.path}</Link>;
 }
 
-function NotFound({ routesF }) {
+function NotFound({ routesF }: { routesF: () => typeof ROUTES }) {
   return (
     <div>Try {randomRoute(routesF())}, it's better than a blank page.</div>
   );
@@ -135,7 +135,7 @@ function Layout() {
     <div>
       <nav>
         <ul style={{ listStyleType: 'none', margin: 0, padding: 0 }}>
-          {routes[0]
+          {ROUTES[0]
             .children!.filter((r) => !r.ignored)
             .sort((a, b) => compareProperty(a.path, b.path))
             .map((r) => (
@@ -176,7 +176,7 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
 function App() {
   const [user, setUser] = useState<any>(null);
   const googleButton = useGoogleButton(user, setUser);
-  let element = useRoutes(routes);
+  let element = useRoutes(ROUTES);
 
   return (
     <RecoilRoot>

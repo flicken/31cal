@@ -8,8 +8,6 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import { keyBy } from 'lodash';
 
-import { useRecoilState } from 'recoil';
-
 import { defaultCalendar as defaultCalendarState } from './lib/store';
 
 const isDefault = (id: string, defaultId?: string) => {
@@ -17,8 +15,6 @@ const isDefault = (id: string, defaultId?: string) => {
 };
 
 function Calendars() {
-  const [calendarState, setCalendarState] =
-    useRecoilState(defaultCalendarState);
   const calList = useLiveQuery(() => db.calendars.orderBy('summary').toArray());
   const updateState = useLiveQuery(
     () =>

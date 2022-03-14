@@ -1,5 +1,6 @@
 import { atom, selector } from 'recoil';
 import { db } from '../models/db';
+import { CalendarEvent } from '../models/types';
 
 import _ from 'lodash';
 
@@ -10,12 +11,20 @@ export const allEvents = atom({
   default: db.events.toArray(),
 });
 
+export const allEventsCount = selector({
+  key: 'allEventsCount',
+  get: ({ get }) => {
+    const events = get(allEvents);
+    return events.length;
+  },
+});
+
 export const eventFilters = atom({
   key: 'eventFilters',
   default: {
     start: DateTime.now(),
     end: DateTime.now().plus({ months: 1 }).endOf('month'),
-    calendars: undefined,
+    calendarId: undefined,
   },
 });
 
@@ -39,30 +48,30 @@ export const filteredEvents = selector({
       return (
         (!e.end?.ms || startMs < e.end?.ms) &&
         (!e.start?.ms || e.start?.ms <= endMs) &&
-        (!filters.calendars || filters.calendars.includes(e.calendarId))
+        (!filters.calendarId || filters.calendarId == e.calendarId)
       );
     };
-    return events.filter(filter);
+    return _.sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
   },
 });
 
-const objectDiff = (a, b) =>
+const objectDiff = (a: object, b: object) =>
   _.fromPairs(_.differenceWith(_.toPairs(a), _.toPairs(b), _.isEqual));
 
 export const settings = atom({
   key: 'settings',
   default: db.settings.toArray().then((s) => {
-    const o = {};
+    const o = {} as any;
     s.forEach((s) => (o[s.id] = s.value));
     return o;
   }),
   effects: [
     ({ onSet, setSelf }) => {
-      const updateFunction = (modifications, primKey, obj, transaction) => {
-        const newSetting = {};
+      const updateFunction = (modifications: any, primKey: any) => {
+        const newSetting = {} as any;
         newSetting[primKey] = modifications.value;
         console.log('Updating setting', newSetting);
-        setSelf((old) => {
+        setSelf((old: object) => {
           return { ...old, ...newSetting };
         });
       };
@@ -84,7 +93,7 @@ export const settings = atom({
 export const defaultCalendar = selector({
   key: 'calendarDefault',
   get: ({ get }) => {
-    const settingsObject = get(settings);
+    const settingsObject = get(settings) as any;
     return settingsObject.calendarDefault;
   },
 });

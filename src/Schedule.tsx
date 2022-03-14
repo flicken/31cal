@@ -4,11 +4,7 @@ import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import { useRecoilValue } from 'recoil';
-import {
-  filteredEvents,
-  allEventFilters,
-  allEvents as allEventsState,
-} from './lib/store';
+import { filteredEvents, allEventFilters, allEventsCount } from './lib/store';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
 import { useScheduleList, eventSchedules } from './lib/useScheduleList';
@@ -61,7 +57,7 @@ function SelectSchedule() {
 
 function Schedule() {
   const [selectedSchedules] = useSetting('selectedSchedules');
-  const allEvents = useRecoilValue(allEventsState);
+  const allEventsCount_ = useRecoilValue(allEventsCount);
   let eventList = useRecoilValue(filteredEvents);
   const filters = useRecoilValue(allEventFilters);
 
@@ -79,7 +75,7 @@ function Schedule() {
       <br />
       {JSON.stringify(filters)}
       <div>
-        Showing: {eventList && eventList.length} of {allEvents.length} events
+        Showing: {eventList && eventList.length} of {allEventsCount_} events
       </div>
       <EventList events={eventList?.filter((e) => e.status !== 'cancelled')} />
     </div>

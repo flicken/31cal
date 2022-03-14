@@ -11,11 +11,11 @@ import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 import { DateTime } from 'luxon';
 
 function Events() {
-  const [range, _] = useRecoilState(allEventFilters);
+  const range = useRecoilValue(allEventFilters);
   const [_ignored, setFilters] = useRecoilState(eventFilters);
   const eventList = useRecoilValue(filteredEvents);
 
-  const setRange = (newRange) => {
+  const setRange = (newRange: DateTimeRange) => {
     setFilters((f: any) => {
       return { ...f, ...newRange };
     });
