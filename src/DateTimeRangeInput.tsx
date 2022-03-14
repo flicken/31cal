@@ -120,7 +120,6 @@ export default function DateTimeRangeInput({ value, onChange }: Props) {
     <>
       <input type="text" placeholder="next week" onChange={parseDateRange} />
       <br />
-      {JSON.stringify(value)}
     </>
   );
 }

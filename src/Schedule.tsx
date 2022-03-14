@@ -3,6 +3,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
+import { useRecoilValue } from 'recoil';
+import {
+  filteredEvents,
+  allEventFilters,
+  allEvents as allEventsState,
+} from './lib/store';
+
 import useDefaultCalendar from './lib/useDefaultCalendar';
 import { useScheduleList, eventSchedules } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
@@ -54,46 +61,9 @@ function SelectSchedule() {
 
 function Schedule() {
   const [selectedSchedules] = useSetting('selectedSchedules');
-  const defaultCalendar = useDefaultCalendar();
-
-  const [now, setNow] = useState(DateTime.now());
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setNow(DateTime.now());
-    }, 60 * 1000);
-    return () => {
-      clearInterval(timer);
-    };
-  }, [setNow]);
-
-  const defaultStart = now.startOf('day');
-  const [range, onRangeChange] = useState<DateTimeRange>({
-    start: defaultStart,
-    end: defaultStart.plus({ months: 1 }).endOf('month'),
-  });
-
-  const start = range.start || defaultStart;
-  const end = range.end || start.plus({ months: 1 }).endOf('month');
-  const startMs = start.toMillis();
-  const endMs = end.toMillis();
-
-  const allEvents = useLiveQuery(() =>
-    db.events.toArray().then((evts) => _.sortBy(evts, (e) => e.start.ms)),
-  );
-
-  let eventList = allEvents;
-  if (!defaultCalendar || !eventList || !allEvents) {
-    return <div>Loading...</div>;
-  }
-
-  if (startMs && endMs) {
-    eventList = eventList.filter(
-      (e) =>
-        (!e.end?.ms || startMs < e.end?.ms) &&
-        (!e.start?.ms || e.start?.ms <= endMs),
-    );
-  }
+  const allEvents = useRecoilValue(allEventsState);
+  let eventList = useRecoilValue(filteredEvents);
+  const filters = useRecoilValue(allEventFilters);
 
   if (!_.isEmpty(selectedSchedules)) {
     eventList = eventList.filter(
@@ -106,9 +76,8 @@ function Schedule() {
       <div>
         Schedule: <SelectSchedule />
       </div>
-      <DateTimeRangeInput value={range} onChange={onRangeChange} />
       <br />
-      {JSON.stringify(range)}
+      {JSON.stringify(filters)}
       <div>
         Showing: {eventList && eventList.length} of {allEvents.length} events
       </div>

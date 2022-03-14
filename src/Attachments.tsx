@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { useRecoilValue } from 'recoil';
+import {
+  filteredEvents,
+  allEventFilters,
+  allEvents as allEventsState,
+} from './lib/store';
+
 import { db } from './models/db';
 import { Attachment } from './models/types';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -8,7 +15,6 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 import { useScheduleList, eventSchedules } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
 import EventList from './EventList';
-import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 
 import { DateTime } from 'luxon';
 import _ from 'lodash';
@@ -48,14 +54,7 @@ function ViewAttachment({ attachment }: { attachment: Attachment }) {
 }
 
 function Attachments() {
-  const allEvents = useLiveQuery(() =>
-    db.events.toArray().then((evts) => _.sortBy(evts, (e) => e.start.ms)),
-  );
-
-  let eventList = allEvents;
-  if (!eventList || !allEvents) {
-    return <div>Loading...</div>;
-  }
+  const allEvents = useRecoilValue(allEventsState);
 
   const eventsWithAttachments = allEvents.filter((e) => e.attachments);
   const attachments = eventsWithAttachments.flatMap((e) => e.attachments);

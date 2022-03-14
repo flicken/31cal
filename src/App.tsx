@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import './App.css';
 import { userContext } from './userContext';
+
+import { useRecoilValue } from 'recoil';
+import { defaultCalendar as defaultCalendarState } from './lib/store';
 
 import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
@@ -23,6 +26,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Outlet, Link, useRoutes } from 'react-router-dom';
 
 import { KBarProvider, Action } from 'kbar';
+
+import { RecoilRoot } from 'recoil';
 
 const SmallLogo = (
   <svg
@@ -83,7 +88,7 @@ const routes = [
       },
       {
         path: '*',
-        element: <NotFound />,
+        element: <NotFound routesF={() => routes} />,
         ignored: true,
       },
     ],
@@ -101,14 +106,16 @@ const actions: Action[] = routes[0].children
     };
   });
 
-function randomRoute() {
+function randomRoute(routes) {
   const route = sample(routes[0].children.filter((f) => !f.ignored))!;
 
   return <Link to={route.path}>{route.path}</Link>;
 }
 
-function NotFound() {
-  return <div>Try {randomRoute()}, it's better than a blank page.</div>;
+function NotFound({ routesF }) {
+  return (
+    <div>Try {randomRoute(routesF())}, it's better than a blank page.</div>
+  );
 }
 
 function compareProperty(a?: string, b?: string) {
@@ -142,37 +149,55 @@ function Layout() {
   );
 }
 
-function App() {
+function ShowDefaultCalendar() {
   const defaultCalendar = useDefaultCalendar();
+  console.log('defaultCalendar', defaultCalendar);
 
-  const [user, setUser] = useState<any>(null);
-  const googleButton = useGoogleButton(user, setUser);
+  return (
+    <span title={defaultCalendar?.id}>
+      {defaultCalendar?.summary ?? 'No default calendar'}
+    </span>
+  );
+}
 
+function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
   useClientToFetch(user);
 
+  return (
+    <div style={{ float: 'right', clear: 'both' }}>
+      <Suspense fallback={<span>Loading...</span>}>
+        <ShowDefaultCalendar />
+      </Suspense>{' '}
+      - {googleButton}
+    </div>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState<any>(null);
+  const googleButton = useGoogleButton(user, setUser);
   let element = useRoutes(routes);
 
   return (
-    <userContext.Provider value={user}>
-      <KBarProvider
-        actions={actions}
-        options={{
-          enableHistory: true,
-        }}
-      >
-        <SettingsProvider>
-          <CommandBar />
-          <div style={{ float: 'right', clear: 'both' }}>
-            <span title={defaultCalendar?.id}>
-              {defaultCalendar?.summary ?? 'No default calendar'}
-            </span>{' '}
-            - {googleButton}
-          </div>
-          {element}
-          <ToastContainer />
-        </SettingsProvider>
-      </KBarProvider>
-    </userContext.Provider>
+    <RecoilRoot>
+      <userContext.Provider value={user}>
+        <KBarProvider
+          actions={actions}
+          options={{
+            enableHistory: true,
+          }}
+        >
+          <SettingsProvider>
+            <CommandBar />
+            <Suspense fallback={<div>Loading...</div>}>
+              <RightBar user={user} googleButton={googleButton} />
+            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>{element}</Suspense>
+            <ToastContainer />
+          </SettingsProvider>
+        </KBarProvider>
+      </userContext.Provider>
+    </RecoilRoot>
   );
 }
 
