@@ -4,7 +4,7 @@ import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
-import ViewEvent from './ViewEvent';
+import EventList from './EventList';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 
 import { DateTime } from 'luxon';
@@ -58,12 +58,7 @@ function Events() {
       <DateTimeRangeInput value={range} onChange={onRangeChange} />
       <br />
       {JSON.stringify(range)}
-      {eventList &&
-        eventList
-          .filter((e) => e.status !== 'cancelled')
-          .map((e: any) => (
-            <ViewEvent key={`${e.calendarId}/${e.id}`} event={e} />
-          ))}
+      <EventList events={eventList.filter((e) => e.status !== 'cancelled')} />
     </div>
   );
 }

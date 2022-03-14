@@ -7,7 +7,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 import { useScheduleList, eventSchedules } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
-import ViewEvent from './ViewEvent';
+import EventList from './EventList';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 
 import { DateTime } from 'luxon';
@@ -40,10 +40,9 @@ function ViewAttachmentInner({ url }: { url: string }) {
 
 function ViewAttachment({ attachment }: { attachment: Attachment }) {
   return (
-    <div style={{ width: '50vw', float: 'right' }}>
+    <div>
       <h1>{attachment.title}</h1>
       <ViewAttachmentInner url={attachment.fileUrl} />
-      <hr />
     </div>
   );
 }
@@ -61,9 +60,18 @@ function Attachments() {
   const eventsWithAttachments = allEvents.filter((e) => e.attachments);
   const attachments = eventsWithAttachments.flatMap((e) => e.attachments);
   return (
-    <div>
-      {attachments.map((a) => (
-        <ViewAttachment attachment={a} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      {eventsWithAttachments.map((e) => (
+        <>
+          <div>
+            <EventList events={[e]} />
+          </div>
+          <div>
+            {e.attachments.map((a) => (
+              <ViewAttachment attachment={a} />
+            ))}
+          </div>
+        </>
       ))}
     </div>
   );
