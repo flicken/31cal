@@ -4,6 +4,7 @@ import { userContext } from "./userContext";
 
 import useClientToFetch from "./google/useClientToFetch";
 import { useGoogleButton } from "./useGoogleButton";
+import Attachments from "./Attachments";
 import BulkEntry from "./BulkEntry";
 import Calendars from "./Calendars";
 import Events from "./Events";
@@ -54,6 +55,11 @@ const routes = [
                 name: SmallLogo,
                 element: <div> Agenda: 31 different ways to calendar </div>,
                 keywords: "home",
+            },
+            {
+                path: "/attachments",
+                shortcut: ["a"],
+                element: <Attachments />,
             },
             {
                 path: "/bulk",

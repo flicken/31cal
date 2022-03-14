@@ -21,6 +21,8 @@ Agenda: 31 different ways to calendar
 16. DONE: **Add** events via drag/drop CSV/TSV using a sub-set of [standard Google columns](https://support.google.com/calendar/answer/37118?hl=en&co=GENIE.Platform%3DDesktop#zippy=%2Ccreate-or-edit-a-csv-file) (Subject, Start Date, Start Time, End Date, End Time, Description, Location)
 17. TODO: More options for importing events support other standard columns (All Day Event and Private) as well as all [API field names](https://developers.google.com/calendar/api/v3/reference/events) (attendees, colorId, extendedProperties.private, extendedProperties.shared, location, source.title, source.url, summary, visibility).
 18. TODO: Rich editor, like https://www.slatejs.org/ or https://quilljs.com/ for editing
+19. DONE: **View** attachments on events
+20. TODO: **Add/Update** attachments on events
 
 # Shortcomings
 1. Data stored unencrypted in IndexedDB, so others on computer can read / write with browser tools.  
