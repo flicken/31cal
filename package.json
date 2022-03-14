@@ -39,13 +39,8 @@
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
-    "serve": "vite preview"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "serve": "vite preview",
+    "configure-husky": "npx husky install && npx husky add .husky/pre-commit \"npx --no-install lint-staged\""
   },
   "browserslist": {
     "production": [
@@ -60,6 +55,19 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "7.17.5"
+    "@babel/core": "7.17.5",
+    "husky": "7.0.4",
+    "lint-staged": "12.3.5",
+    "prettier": "2.5.1"
+  },
+  "lint-staged": {
+    "**/*.{tsx,ts,js,jsx,json}": [
+      "prettier --write ."
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }

@@ -12,10 +12,9 @@ code {
     monospace;
 }
 
-.loading::after{
-	  content: " 🕐"
+.loading::after {
+  content: ' 🕐';
 }
-
 
 /* https://piccalil.li/blog/a-modern-css-reset/ */
 /* Box sizing rules */
@@ -40,8 +39,8 @@ dd {
 }
 
 /* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
-ul[role="list"],
-ol[role="list"] {
+ul[role='list'],
+ol[role='list'] {
   list-style: none;
   padding: 0;
 }
@@ -96,7 +95,7 @@ select {
 :root {
   --background: rgb(252 252 252);
   --a1: rgba(0 0 0 / 0.05);
-  --a2: rgba(0 0 0 / 0.1); 
+  --a2: rgba(0 0 0 / 0.1);
   --foreground: rgb(28 28 29);
   --shadow: 0px 6px 20px rgb(0 0 0 / 20%);
 

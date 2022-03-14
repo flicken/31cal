@@ -1,59 +1,58 @@
-
 export type MaybeDirty = {
-    dirty?: boolean;
-}
+  dirty?: boolean;
+};
 
 export type Calendar = {
-    id: string;
-    summary: string;
-    selected: boolean;
-    timeZone: string;
-}
+  id: string;
+  summary: string;
+  selected: boolean;
+  timeZone: string;
+};
 
 export type StartEndDate = {
-    date: string;
+  date: string;
 };
 
 export type StartEndDateTime = {
-    dateTime: string;
-    timeZone?: string;
-}
+  dateTime: string;
+  timeZone?: string;
+};
 
 export type StartEnd = StartEndDate | StartEndDateTime;
 
 export type Millis = {
-    ms?: number;
-}
+  ms?: number;
+};
 
 export type CalendarEvent = MaybeDirty & {
-    id: string;
-    calendarId: string;
-    summary?: string;
-    description?: string;
-    location?: string;
-    status?: string;
-    start: StartEnd & Millis;
-    end?: StartEnd & Millis;
-    extendedProperties?: ExtendedProperties;
-    _schedules?: String[];
-}
+  id: string;
+  calendarId: string;
+  summary?: string;
+  description?: string;
+  location?: string;
+  status?: string;
+  start: StartEnd & Millis;
+  end?: StartEnd & Millis;
+  extendedProperties?: ExtendedProperties;
+  _schedules?: String[];
+};
 
 export type ExtendedProperties = {
-    shared: any;
-    private: any;
-}
+  shared: any;
+  private: any;
+};
 
 export type UpdateState = {
-    account: string;
-    resource: string;
-    nextSyncToken?: string;
-    nextPageToken?: string;
-    etag?: string;
-    updatedAt: number;
-    requestedAt?: number;
-}
+  account: string;
+  resource: string;
+  nextSyncToken?: string;
+  nextPageToken?: string;
+  etag?: string;
+  updatedAt: number;
+  requestedAt?: number;
+};
 
 export type Setting = {
-    id: string
-    value: string
-}
+  id: string;
+  value: string;
+};
