@@ -9,7 +9,7 @@ import { useDropzone, FileRejection, DropEvent } from 'react-dropzone';
 import { parse } from 'chrono-node';
 import { DateTime } from 'luxon';
 
-import ViewEvent from './ViewEvent';
+import EventList from './EventList';
 import { Link } from 'react-router-dom';
 
 import saveEvents from './google/saveEvents';
@@ -197,15 +197,7 @@ function ImportFile() {
           </p>
         )}
       </div>
-      {events && (
-        <ul>
-          {events.map((event, i) => (
-            <li key={i}>
-              <ViewEvent event={event} />
-            </li>
-          ))}
-        </ul>
-      )}
+      <EventList events={events} />
     </>
   );
 }

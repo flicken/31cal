@@ -4,7 +4,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 import parseEvent from './lib/parseEvent';
 
-import ViewEvent from './ViewEvent';
+import EventList from './EventList';
 
 import { compact, isEmpty } from 'lodash';
 import useDefaultCalendar from './lib/useDefaultCalendar';
@@ -94,9 +94,7 @@ function BulkEntry() {
           placeholder="Prefix for all events"
           onChange={handlePrefixChange}
         />
-        {events.map((event: any, i: number) => (
-          <ViewEvent key={i} event={event} />
-        ))}
+        <EventList events={events} />
       </div>
     </div>
   );

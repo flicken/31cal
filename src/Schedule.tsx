@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 import { useScheduleList, eventSchedules } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
-import ViewEvent from './ViewEvent';
+import EventList from './EventList';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 
 import { DateTime } from 'luxon';
@@ -112,12 +112,7 @@ function Schedule() {
       <div>
         Showing: {eventList && eventList.length} of {allEvents.length} events
       </div>
-      {eventList &&
-        eventList
-          .filter((e) => e.status !== 'cancelled')
-          .map((e: any) => (
-            <ViewEvent key={`${e.calendarId}/${e.id}`} event={e} />
-          ))}
+      <EventList events={eventList?.filter((e) => e.status !== 'cancelled')} />
     </div>
   );
 }
