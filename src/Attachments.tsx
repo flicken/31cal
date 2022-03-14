@@ -34,10 +34,7 @@ function Attachments() {
             <iframe
               style={{ width: '50vw', height: '50vw' }}
               allowFullScreen={true}
-              src={
-                'https://docs.google.com/feeds/download/documents/export/Export?id=1UhMbbccLB2yWGHda2kBZtayntpvUBPYJsF8S_WHDq6E&exportFormat=html' ??
-                a.fileUrl.replaceAll('view', 'preview')
-              }
+              src={a.fileUrl.replaceAll('view', 'preview')}
             />
             <hr />
           </div>
