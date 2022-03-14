@@ -34,6 +34,7 @@ export default async function saveEvents(
       }
       const response = await gapi.client.calendar.events.insert({
         calendarId: calendar?.id,
+        supportsAttachments: true,
         resource: { description: description, ...event },
       });
       console.log('Response', response);
