@@ -15,6 +15,15 @@ import { Link } from 'react-router-dom';
 import saveEvents from './google/saveEvents';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
+import { customAlphabet } from 'nanoid';
+
+/* See https://developers.google.com/calendar/api/v3/reference/events
+ * characters allowed in the ID are those used in base32hex encoding, i.e. lowercase letters a-v and digits 0-9, see section 3.1.2 in RFC2938
+ * the length of the ID must be between 5 and 1024 characters
+ * the ID must be unique per calendar
+ */
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuv', 26);
+
 const parserOptions = {
   header: true,
   dynamicTyping: true,
@@ -100,12 +109,16 @@ const toGoogleDateTime = (date?: string, time?: string) => {
   const timeParts = parseTime(time);
 
   if (dateParts && timeParts) {
+    const dateTime = DateTime.fromObject({ ...dateParts, ...timeParts });
     return {
-      dateTime: DateTime.fromObject({ ...dateParts, ...timeParts }).toISO(),
+      dateTime: dateTime.toISO(),
+      ms: dateTime.toMillis(),
     };
   } else if (dateParts) {
+    const date = DateTime.fromObject({ ...dateParts });
     return {
-      date: DateTime.fromObject({ ...dateParts }).toISODate(),
+      date: date.toISODate(),
+      ms: date.toMillis(),
     };
   }
 
@@ -115,7 +128,10 @@ const toGoogleDateTime = (date?: string, time?: string) => {
 const toEvent = (input: any): Partial<CalendarEvent> => {
   const start = toGoogleDateTime(input['startdate'], input['starttime']);
   const end = toGoogleDateTime(input['enddate'], input['endtime']);
+  const u = nanoid();
+
   return {
+    id: u.toString().replaceAll(/-/g, ''),
     summary: input['subject'] || input['summary'],
     description: input['description'],
     location: input['location'],
