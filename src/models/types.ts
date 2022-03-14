@@ -35,6 +35,15 @@ export type CalendarEvent = MaybeDirty & {
   end?: StartEnd & Millis;
   extendedProperties?: ExtendedProperties;
   _schedules?: String[];
+  attachments: Attachment[];
+};
+
+export type Attachment = {
+  fileUrl: string;
+  title?: string;
+  mimeType: string;
+  iconLink?: string;
+  fileId: string;
 };
 
 export type ExtendedProperties = {

@@ -33,7 +33,7 @@ function Attachments() {
             <h1>{a.title}</h1>
             <iframe
               style={{ width: '50vw', height: '50vw' }}
-              allowfullscreen="true"
+              allowFullScreen={true}
               src={
                 'https://docs.google.com/feeds/download/documents/export/Export?id=1UhMbbccLB2yWGHda2kBZtayntpvUBPYJsF8S_WHDq6E&exportFormat=html' ??
                 a.fileUrl.replaceAll('view', 'preview')

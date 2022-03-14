@@ -68,7 +68,7 @@ const toGoogleTime = (components?: ParsedComponents) => {
 };
 
 function isStartEndDate(value: StartEnd): value is StartEndDate {
-  return !!value.date;
+  return Object.prototype.hasOwnProperty.call(value, 'date');
 }
 
 const toReferenceDatetime = (startEnd: StartEnd) => {
