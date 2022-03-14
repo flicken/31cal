@@ -1,7 +1,3 @@
 {
-  "extends": [
-    "config:base",
-    "group:allNonMajor",
-    ":pinVersions"
-  ]
+  "extends": ["config:base", "group:allNonMajor", ":pinVersions"]
 }
