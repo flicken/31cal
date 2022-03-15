@@ -5,6 +5,10 @@ import fetchList from './fetchList';
 import { useLiveQuery } from 'dexie-react-hooks';
 import useDefaultCalendar from '../lib/useDefaultCalendar';
 
+import { useRecoilValue } from 'recoil';
+import { selectedCalendars } from '../lib/store';
+import { Calendar } from '../models/types';
+
 import { DateTime } from 'luxon';
 
 import { eventSchedules } from '../lib/useScheduleList';
@@ -51,37 +55,36 @@ function useClientToFetch(user: any) {
     });
   }, [user]);
 
-  const defaultCalendar = useDefaultCalendar();
-  const calList = useLiveQuery(() =>
-    db.calendars.filter((c) => c.selected).toArray(),
-  );
-  console.log('Selected calendars', calList);
+  const calendarsToFetch = useRecoilValue(selectedCalendars);
 
   const getEvents = useCallback(async () => {
     if (!user) return;
-    if (!defaultCalendar) return;
-    const account = user.profileObj.email;
-    const calendarId = defaultCalendar.id;
-    const timeZone = defaultCalendar.timeZone;
-    const resource = `calendar/${calendarId}`;
-    const transformation = (event: any) => {
-      mutateEvent(event, calendarId, timeZone);
-      return event;
-    };
-    const request = {
-      calendarId,
-      showDeleted: true,
-      singleEvents: true,
-    };
-    await fetchList({
-      account,
-      request,
-      resource,
-      transformation,
-      googleResource: (gapi) => gapi.client.calendar.events,
-      table: db.events,
+    if (!calendarsToFetch) return;
+    const fetched = calendarsToFetch.map(async (calendar: Calendar) => {
+      const account = user.profileObj.email;
+      const calendarId = calendar.id;
+      const timeZone = calendar.timeZone;
+      const resource = `calendar/${calendarId}`;
+      const transformation = (event: any) => {
+        mutateEvent(event, calendarId, timeZone);
+        return event;
+      };
+      const request = {
+        calendarId,
+        showDeleted: true,
+        singleEvents: true,
+      };
+      fetchList({
+        account,
+        request,
+        resource,
+        transformation,
+        googleResource: (gapi) => gapi.client.calendar.events,
+        table: db.events,
+      });
     });
-  }, [user, defaultCalendar]);
+    await Promise.all(fetched);
+  }, [user, calendarsToFetch]);
 
   useEffect(() => {
     getCalendars();

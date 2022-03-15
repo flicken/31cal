@@ -18,25 +18,34 @@ function dateOf(value: StartEnd) {
   else return value.date;
 }
 
-function ViewStartAndEnd({ start, end }: { start?: StartEnd; end?: StartEnd }) {
+export function ViewStartAndEnd({
+  start,
+  end,
+  showDate = true,
+}: {
+  start?: StartEnd;
+  end?: StartEnd;
+  showDate?: boolean;
+}) {
   if (start && end) {
     if (dateOf(start) === dateOf(end)) {
       return (
         <>
-          {dateOf(start)} {timeOf(start)} - {timeOf(end)}
+          {showDate ? dateOf(start) : null} {timeOf(start)} - {timeOf(end)}
         </>
       );
     } else {
       return (
         <>
-          {dateOf(start)} {timeOf(start)} - {dateOf(end)} {timeOf(end)}
+          {showDate ? dateOf(start) : null} {timeOf(start)} - {dateOf(end)}{' '}
+          {timeOf(end)}
         </>
       );
     }
   } else if (start) {
     return (
       <>
-        {dateOf(start)} {timeOf(start)}
+        {showDate ? dateOf(start) : null} {timeOf(start)}
       </>
     );
   } else {
@@ -45,6 +54,29 @@ function ViewStartAndEnd({ start, end }: { start?: StartEnd; end?: StartEnd }) {
 }
 
 const sanitizer = dompurify.sanitize;
+
+export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
+  if (event.description) {
+    return (
+      <details title={JSON.stringify(event, null, 2)}>
+        <summary style={{ cursor: 'pointer', padding: '.5rem 1rem' }}>
+          {event.summary}
+        </summary>
+        <div>
+          <i>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: sanitizer(event.description ?? ''),
+              }}
+            ></span>
+          </i>
+        </div>
+      </details>
+    );
+  } else {
+    return <div>{event.summary}</div>;
+  }
+}
 
 function ViewEvent({ event }: { event: Partial<CalendarEvent> }) {
   if (event.description) {

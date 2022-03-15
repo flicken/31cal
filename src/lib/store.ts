@@ -29,6 +29,7 @@ export const eventFilters = atom({
   default: {
     start: DateTime.now(),
     end: DateTime.now().plus({ months: 1 }).endOf('month'),
+    showCancelled: false,
     calendarId: undefined,
   },
 });
@@ -50,6 +51,7 @@ export const filteredEvents = selector({
     const endMs = filters.end.toMillis();
     const filter = (e: CalendarEvent) => {
       return (
+        (filters.showCancelled || e.status != 'cancelled') &&
         (!e.end?.ms || startMs < e.end?.ms) &&
         (!e.start?.ms || e.start?.ms <= endMs) &&
         (!filters.selectedCalendarIds ||

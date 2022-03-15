@@ -12,6 +12,7 @@ import Calendars from './Calendars';
 import Events from './Events';
 import ImportFile from './ImportFile';
 import Schedule from './Schedule';
+import Table from './Table';
 import CommandBar from './CommandBar';
 
 import { SettingsProvider } from './lib/settings';
@@ -82,6 +83,11 @@ const ROUTES = [
         path: '/schedule',
         shortcut: ['s'],
         element: <Schedule />,
+      },
+      {
+        path: '/table',
+        shortcut: ['t'],
+        element: <Table />,
       },
       {
         path: '*',
