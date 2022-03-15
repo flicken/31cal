@@ -44,10 +44,6 @@ const colorStyles: StylesConfig<Calendar, true> = {
       },
     };
   },
-  menuList: (styles) => ({
-    ...styles,
-    minHeight: '80vw',
-  }),
   multiValue: (styles, { data }) => {
     const color = data.foregroundColor;
     return {
