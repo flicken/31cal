@@ -2,8 +2,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import './App.css';
 import { userContext } from './userContext';
 
-import { useRecoilValue } from 'recoil';
-import { defaultCalendarObject } from './lib/store';
+import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
@@ -148,7 +147,7 @@ function Layout() {
 }
 
 function ShowDefaultCalendar() {
-  const defaultCalendar = useRecoilValue(defaultCalendarObject);
+  const defaultCalendar = useDefaultCalendar();
 
   return (
     <span title={defaultCalendar?.id}>

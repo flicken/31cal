@@ -71,16 +71,14 @@ const colorStyles: StylesConfig<Calendar, true> = {
 function Calendars() {
   const calList = useRecoilValue(allCalendars);
   const selectedCalendars = useRecoilValue(selectedCalendarsState);
-  const [state, setState] = useState(selectedCalendars);
 
   const onChange = (calendars: Calendar[]) => {
-    setState(calendars);
-    if (calendars.length > 0) {
+    if (calendars.length > 0 && calendars[0]) {
       db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
     }
     db.settings.put({
       id: 'selectedCalendars',
-      value: calendars.map((c) => c.id),
+      value: calendars.filter((c) => c).map((c) => c?.id),
     });
   };
 
@@ -90,7 +88,6 @@ function Calendars() {
       getOptionLabel={(c: Calendar) => c.summary}
       isClearable={true}
       defaultValue={selectedCalendars}
-      value={state}
       options={calList}
       onChange={onChange}
       styles={colorStyles}

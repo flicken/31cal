@@ -124,6 +124,6 @@ export const defaultCalendar = selector({
   key: 'calendarDefault',
   get: ({ get }) => {
     const settingsObject = get(settings) as any;
-    return settingsObject.calendarDefault;
+    return settingsObject.selectedCalendars?.at(0);
   },
 });

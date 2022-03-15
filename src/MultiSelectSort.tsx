@@ -47,8 +47,8 @@ const SortableSelect = SortableContainer(Select) as React.ComponentClass<
 >;
 
 export default function MultiSelectSort<T>(props: any) {
-  const [selected, setSelected] = React.useState<readonly any[]>([]);
-  const { onChange, ...rest } = props;
+  const { onChange, value, defaultValue, ...rest } = props;
+  const [selected, setSelected] = React.useState<readonly any[]>(defaultValue);
 
   const doOnChange = (selectedOptions: OnChangeValue<any, true>) => {
     setSelected(selectedOptions);
@@ -79,6 +79,7 @@ export default function MultiSelectSort<T>(props: any) {
         MultiValueLabel: SortableMultiValueLabel,
       }}
       closeMenuOnSelect={false}
+      defaultValue={defaultValue}
       {...rest}
     />
   );
