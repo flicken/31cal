@@ -99,7 +99,7 @@ export const selectedCalendarIds = selector({
   key: 'selectedCalendarIds',
   get: ({ get }) => {
     const settingsObject = get(settings) as any;
-    return settingsObject.selectedCalendars;
+    return settingsObject.selectedCalendars ?? [];
   },
 });
 
