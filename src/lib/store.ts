@@ -112,6 +112,14 @@ export const selectedCalendars = selector({
   },
 });
 
+export const defaultCalendarObject = selector({
+  key: 'defaultCalendarObject',
+  get: ({ get }) => {
+    const id = get(defaultCalendar);
+    return get(allCalendars).find((c) => c.id === id);
+  },
+});
+
 export const defaultCalendar = selector({
   key: 'calendarDefault',
   get: ({ get }) => {

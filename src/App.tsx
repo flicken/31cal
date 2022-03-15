@@ -3,7 +3,7 @@ import './App.css';
 import { userContext } from './userContext';
 
 import { useRecoilValue } from 'recoil';
-import { defaultCalendar as defaultCalendarState } from './lib/store';
+import { defaultCalendarObject } from './lib/store';
 
 import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
@@ -14,8 +14,6 @@ import Events from './Events';
 import ImportFile from './ImportFile';
 import Schedule from './Schedule';
 import CommandBar from './CommandBar';
-
-import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import { SettingsProvider } from './lib/settings';
 import { sample } from 'lodash';
@@ -150,8 +148,7 @@ function Layout() {
 }
 
 function ShowDefaultCalendar() {
-  const defaultCalendar = useDefaultCalendar();
-  console.log('defaultCalendar', defaultCalendar);
+  const defaultCalendar = useRecoilValue(defaultCalendarObject);
 
   return (
     <span title={defaultCalendar?.id}>
@@ -165,7 +162,7 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
 
   return (
     <div style={{ float: 'right', clear: 'both' }}>
-      <Suspense fallback={<span>Loading...</span>}>
+      <Suspense fallback={<span>...</span>}>
         <ShowDefaultCalendar />
       </Suspense>{' '}
       - {googleButton}
