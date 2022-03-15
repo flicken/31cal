@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Calendar } from './models/types';
 import { db } from './models/db';
@@ -8,55 +8,93 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import { keyBy } from 'lodash';
 
-import { defaultCalendar as defaultCalendarState } from './lib/store';
+import MultiSelectSort from './MultiSelectSort';
+import { StylesConfig } from 'react-select';
+
+import { useRecoilValue } from 'recoil';
+import {
+  selectedCalendars as selectedCalendarsState,
+  allCalendars,
+} from './lib/store';
+
+import _ from 'lodash';
 
 const isDefault = (id: string, defaultId?: string) => {
   return id === defaultId ? { fontWeight: 'bold' } : null;
 };
 
+const colorStyles: StylesConfig<Calendar, true> = {
+  control: (styles) => ({ ...styles, backgroundColor: 'white' }),
+  option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+    const color = data.foregroundColor;
+    return {
+      ...styles,
+      backgroundColor: data.backgroundColor,
+      color: data.foregroundColor,
+      cursor: isDisabled ? 'not-allowed' : 'default',
+      filter: isFocused ? 'brightness(110%)' : undefined,
+      borderStyle: isFocused ? ('outset' as any) : undefined,
+
+      ':active': {
+        ...styles[':active'],
+        color: data.foregroundColor,
+        backgroundColor: data.backgroundColor,
+        fontWeight: isFocused ? 'bold' : undefined,
+        filter: isFocused ? 'brightness(125%)' : undefined,
+      },
+    };
+  },
+  multiValue: (styles, { data }) => {
+    const color = data.foregroundColor;
+    return {
+      ...styles,
+      color: data.foregroundColor,
+      backgroundColor: data.backgroundColor,
+    };
+  },
+  multiValueLabel: (styles, { data }) => ({
+    ...styles,
+    color: data.foregroundColor,
+    backgroundColor: data.backgroundColor,
+  }),
+  multiValueRemove: (styles, { data }) => ({
+    ...styles,
+    color: data.foregroundColor,
+    backgroundColor: data.backgroundColor,
+    ':hover': {
+      backgroundColor: data.foregroundColor,
+      color: data.backgroundColor,
+    },
+  }),
+};
+
 function Calendars() {
-  const calList = useLiveQuery(() => db.calendars.orderBy('summary').toArray());
-  const updateState = useLiveQuery(
-    () =>
-      db.updateState
-        .toArray()
-        .then((us) => us.filter((u) => u.resource.startsWith('calendar/'))),
-    [],
-  );
-  const defaultCalendar = useDefaultCalendar();
+  const calList = useRecoilValue(allCalendars);
+  const selectedCalendars = useRecoilValue(selectedCalendarsState);
+  const [state, setState] = useState(selectedCalendars);
 
-  const updateById = keyBy(updateState, (u) => u.resource.split('/')[1]);
-
-  const onClick = (c: Calendar) => {
-    db.settings.put({ id: 'calendarDefault', value: c.id });
+  const onChange = (calendars: Calendar[]) => {
+    setState(calendars);
+    if (calendars.length > 0) {
+      db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
+    }
+    db.settings.put({
+      id: 'selectedCalendars',
+      value: calendars.map((c) => c.id),
+    });
   };
 
-  if (!calList) return null;
-
   return (
-    <div>
-      {calList
-        .filter((c: any) => c.selected)
-        .map((c: any) => {
-          const update = updateById[c.id];
-          return (
-            <div
-              key={c.id}
-              className={update?.requestedAt ? 'loading' : undefined}
-              style={{
-                backgroundColor: c.backgroundColor,
-                color: c.foregroundColor,
-                ...isDefault(c.id, defaultCalendar?.id),
-              }}
-              onClick={() => {
-                onClick(c);
-              }}
-            >
-              {c.summary}
-            </div>
-          );
-        })}
-    </div>
+    <MultiSelectSort
+      getOptionValue={(c: Calendar) => c.id}
+      getOptionLabel={(c: Calendar) => c.summary}
+      isClearable={true}
+      defaultValue={selectedCalendars}
+      value={state}
+      options={calList}
+      onChange={onChange}
+      styles={colorStyles}
+    />
   );
 }
 

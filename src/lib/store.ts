@@ -6,9 +6,14 @@ import _ from 'lodash';
 
 import { DateTime } from 'luxon';
 
+export const allCalendars = atom({
+  key: 'allCalendars',
+  default: db.calendars.orderBy('summary').toArray(),
+});
+
 export const allEvents = atom({
   key: 'allEvents',
-  default: db.events.toArray(),
+  default: db.events.orderBy(['start.ms', 'end.ms']).toArray(),
 });
 
 export const allEventsCount = selector({
@@ -32,8 +37,7 @@ export const allEventFilters = selector({
   key: 'allEventFilters',
   get: ({ get }) => {
     const otherFilters = get(eventFilters);
-    const calendarId = get(defaultCalendar);
-    return { ...otherFilters, calendarId };
+    return { ...otherFilters, selectedCalendarIds: get(selectedCalendarIds) };
   },
 });
 
@@ -48,7 +52,8 @@ export const filteredEvents = selector({
       return (
         (!e.end?.ms || startMs < e.end?.ms) &&
         (!e.start?.ms || e.start?.ms <= endMs) &&
-        (!filters.calendarId || filters.calendarId == e.calendarId)
+        (!filters.selectedCalendarIds ||
+          filters.selectedCalendarIds.includes(e.calendarId))
       );
     };
     return _.sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
@@ -88,6 +93,23 @@ export const settings = atom({
       };
     },
   ],
+});
+
+export const selectedCalendarIds = selector({
+  key: 'selectedCalendarIds',
+  get: ({ get }) => {
+    const settingsObject = get(settings) as any;
+    return settingsObject.selectedCalendars;
+  },
+});
+
+export const selectedCalendars = selector({
+  key: 'selectedCalendars',
+  get: ({ get }) => {
+    const calendarIds = get(selectedCalendarIds);
+    const calendars = get(allCalendars);
+    return calendarIds.map((id: string) => calendars.find((c) => c.id === id));
+  },
 });
 
 export const defaultCalendar = selector({

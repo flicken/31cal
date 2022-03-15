@@ -38,6 +38,10 @@ export class DB extends Dexie {
       events:
         '[id+calendarId], calendarId, dirty, [calendarId+start.ms], *_schedules',
     });
+    this.version(13).stores({
+      events:
+        '[id+calendarId], calendarId, dirty, [calendarId+start.ms], *_schedules, [start.ms+end.ms]',
+    });
   }
 }
 export const db = new DB();

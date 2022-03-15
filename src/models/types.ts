@@ -7,6 +7,8 @@ export type Calendar = {
   summary: string;
   selected: boolean;
   timeZone: string;
+  foregroundColor: string;
+  backgroundColor: string;
 };
 
 export type StartEndDate = {
@@ -63,5 +65,5 @@ export type UpdateState = {
 
 export type Setting = {
   id: string;
-  value: string;
+  value: string | string[];
 };

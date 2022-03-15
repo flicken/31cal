@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { useRecoilValue } from 'recoil';
-import {
-  filteredEvents,
-  allEventFilters,
-  allEvents as allEventsState,
-} from './lib/store';
+import { filteredEvents } from './lib/store';
 
 import { db } from './models/db';
 import { Attachment } from './models/types';
@@ -54,25 +50,31 @@ function ViewAttachment({ attachment }: { attachment: Attachment }) {
 }
 
 function Attachments() {
-  const allEvents = useRecoilValue(allEventsState);
+  const events = useRecoilValue(filteredEvents);
+  const eventsWithAttachments = events.filter((e) => e.attachments);
 
-  const eventsWithAttachments = allEvents.filter((e) => e.attachments);
-  const attachments = eventsWithAttachments.flatMap((e) => e.attachments);
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-      {eventsWithAttachments.map((e) => (
-        <>
-          <div>
-            <EventList events={[e]} />
-          </div>
-          <div>
-            {e.attachments.map((a) => (
-              <ViewAttachment attachment={a} />
-            ))}
-          </div>
-        </>
-      ))}
-    </div>
+    <>
+      <div>
+        Showing {eventsWithAttachments.length} events with{' '}
+        {eventsWithAttachments.flatMap((e) => e.attachments).length}{' '}
+        attachments.
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+        {eventsWithAttachments.map((e) => (
+          <>
+            <div>
+              <EventList events={[e]} />
+            </div>
+            <div>
+              {e.attachments.map((a, i) => (
+                <ViewAttachment key={i} attachment={a} />
+              ))}
+            </div>
+          </>
+        ))}
+      </div>
+    </>
   );
 }
 
