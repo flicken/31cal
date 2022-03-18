@@ -21,7 +21,14 @@ import { sample } from 'lodash';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { Outlet, Link, useRoutes, useNavigate } from 'react-router-dom';
+import {
+  Outlet,
+  Link,
+  useRoutes,
+  useNavigate,
+  useMatch,
+  useResolvedPath,
+} from 'react-router-dom';
 
 import { KBarProvider, Action } from 'kbar';
 
@@ -124,8 +131,17 @@ const NavLink = ({
   name?: any;
   logo?: any;
 }) => {
+  let resolved = useResolvedPath(path);
+  let match = useMatch({ path: resolved.pathname, end: true });
+
   return (
-    <li style={{ display: 'inline', marginLeft: '0.25em' }}>
+    <li
+      style={{
+        display: 'inline',
+        marginLeft: '0.25em',
+        fontWeight: match ? 'bold' : undefined,
+      }}
+    >
       <Link to={path}>{logo || name || path}</Link>
     </li>
   );
