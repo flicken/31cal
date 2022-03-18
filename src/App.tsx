@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import './App.css';
 import { userContext } from './userContext';
 
@@ -21,7 +21,7 @@ import { sample } from 'lodash';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { Outlet, Link, useRoutes } from 'react-router-dom';
+import { Outlet, Link, useRoutes, useNavigate } from 'react-router-dom';
 
 import { KBarProvider, Action } from 'kbar';
 
@@ -50,7 +50,8 @@ const ROUTES = [
         index: true,
         path: '/',
         shortcut: ['h'],
-        name: SmallLogo,
+        name: 'home',
+        logo: SmallLogo,
         element: <div> Agenda: 31 different ways to calendar </div>,
         keywords: 'home',
       },
@@ -98,17 +99,6 @@ const ROUTES = [
   },
 ];
 
-const actions: Action[] = ROUTES[0].children
-  .filter((a) => !a.ignored)
-  .map((a) => {
-    return {
-      ...a,
-      id: a.path,
-      name: a.name?.toString() ?? a.path.replaceAll('/', ''),
-      perform: () => (window.location.pathname = a.path),
-    };
-  });
-
 function randomRoute(routes: typeof ROUTES) {
   const route = sample(routes[0].children.filter((f) => !f.ignored))!;
 
@@ -125,10 +115,18 @@ function compareProperty(a?: string, b?: string) {
   return a || b ? (!a ? -1 : !b ? 1 : a.localeCompare(b)) : 0;
 }
 
-const NavLink = ({ path, name }: { path: string; name?: any }) => {
+const NavLink = ({
+  path,
+  name,
+  logo,
+}: {
+  path: string;
+  name?: any;
+  logo?: any;
+}) => {
   return (
     <li style={{ display: 'inline', marginLeft: '0.25em' }}>
-      <Link to={path}>{name || path}</Link>
+      <Link to={path}>{logo || name || path}</Link>
     </li>
   );
 };
@@ -178,7 +176,21 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
 function App() {
   const [user, setUser] = useState<any>(null);
   const googleButton = useGoogleButton(user, setUser);
+  let navigate = useNavigate();
+
   let element = useRoutes(ROUTES);
+  const actions: Action[] = useMemo(() =>
+    ROUTES[0].children
+      .filter((a) => !a.ignored)
+      .map((a) => {
+        return {
+          ...a,
+          id: a.path,
+          name: a.logo ?? a.name ?? a.path.replaceAll('/', ''),
+          perform: () => navigate(a.path),
+        };
+      }),
+  );
 
   return (
     <RecoilRoot>
