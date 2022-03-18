@@ -36,6 +36,7 @@ export type CalendarEvent = MaybeDirty & {
   start: StartEnd & Millis;
   end?: StartEnd & Millis;
   extendedProperties?: ExtendedProperties;
+  updated: string;
   _schedules?: String[];
   attachments: Attachment[];
 };

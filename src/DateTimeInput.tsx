@@ -9,9 +9,14 @@ export type DateTimeRange = {
   end?: DateTime;
 };
 
+type ValueType = {
+  text: string;
+  date: DateTime;
+};
+
 type Props = {
-  value: DateTimeRange;
-  onChange: (arg0: DateTimeRange) => void;
+  value: ValueType;
+  onChange: (arg0: ValueType) => void;
 };
 
 const dateTimeFromAll = (components: any) => {
@@ -79,51 +84,31 @@ const dateTimeFrom = (
   }
 };
 
-export default function DateTimeRangeInput({ value, onChange }: Props) {
-  const parseDateRange = React.useCallback(
+export default function DateTimeInput({ value, onChange }: Props) {
+  const parseDate = React.useCallback(
     (e) => {
       const text = e.target.value;
       if (isEmpty(text)) {
-        onChange({});
+        onChange(undefined);
       }
-      let datetimes = parse(text, new Date(), { forwardDate: true });
+      let datetimes = parse(text, new Date(), { forwardDate: false });
       console.log('datetimes', datetimes);
       if (datetimes[0]) {
-        const start = dateTimeFrom(true, datetimes[0].start, text);
-        const end = dateTimeFrom(
-          false,
-          datetimes[0].end || datetimes[1]?.start || datetimes[0].start,
-          text,
-        );
-        console.log({ start: start, end: end });
-
-        if (
-          !datetimes[0].end &&
-          (text.toLowerCase().startsWith('until ') ||
-            text.toLowerCase().startsWith('to ') ||
-            text.toLowerCase().startsWith('through ') ||
-            text.toLowerCase().startsWith('thru '))
-        ) {
-          console.log('Until / to branch');
-          console.log({ start: start, end: end });
-          onChange({ start: DateTime.now(), end: end, text });
-        } else if (start && end && start.diff(end).valueOf() > 0) {
-          onChange({ start: end, end: start, text });
-        } else {
-          onChange({ start, end, text });
-        }
+        const date = dateTimeFrom(true, datetimes[0].start, text);
+        onChange({ date, text });
       }
     },
     [onChange],
   );
+
   return (
     <>
       <input
         type="text"
-        style={{ width: '40em' }}
-        placeholder="next week"
         defaultValue={value?.text}
-        onChange={parseDateRange}
+        placeholder="e.g. last week"
+        style={{ width: '20em' }}
+        onChange={parseDate}
       />
       <br />
     </>
