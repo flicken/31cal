@@ -30,10 +30,10 @@ export const eventFilters = atom({
     rangeText: 'now to end of next month',
     start: DateTime.now(),
     end: DateTime.now().plus({ months: 1 }).endOf('month'),
-    updatedSince: undefined,
-    updatedSinceText: undefined,
+    updatedSince: undefined as DateTime | undefined,
+    updatedSinceText: undefined as string | undefined,
     showCancelled: false,
-    calendarId: undefined,
+    calendarId: undefined as string | undefined,
   },
 });
 
@@ -60,7 +60,7 @@ export const filteredEvents = selector({
         (!e.start?.ms || e.start?.ms <= endMs) &&
         (!filters.selectedCalendarIds ||
           filters.selectedCalendarIds.includes(e.calendarId)) &&
-        (!filters.updatedSince || e.updated > updatedSinceString)
+        (!updatedSinceString || e.updated > updatedSinceString)
       );
     };
     return _.sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);

@@ -7,6 +7,7 @@ import { pick, isEmpty } from 'lodash';
 export type DateTimeRange = {
   start?: DateTime;
   end?: DateTime;
+  text?: string;
 };
 
 type Props = {
@@ -79,47 +80,50 @@ const dateTimeFrom = (
   }
 };
 
+function parseText(text: string) {
+  if (isEmpty(text)) {
+    return {};
+  }
+  if (text.match(/^[0-9]{4}$/)) {
+    console.log('matched', text);
+    const start = DateTime.local(parseInt(text));
+    return { start, text, end: start.endOf('year') };
+  }
+
+  let datetimes = parse(text, new Date(), { forwardDate: true });
+  console.log('datetimes', datetimes);
+  if (datetimes[0]) {
+    const start = dateTimeFrom(true, datetimes[0].start, text);
+    const end = dateTimeFrom(
+      false,
+      datetimes[0].end || datetimes[1]?.start || datetimes[0].start,
+      text,
+    );
+
+    if (
+      !datetimes[0].end &&
+      (text.toLowerCase().startsWith('until ') ||
+        text.toLowerCase().startsWith('to ') ||
+        text.toLowerCase().startsWith('through ') ||
+        text.toLowerCase().startsWith('thru '))
+    ) {
+      console.log('Until / to branch');
+      console.log({ start: start, end: end });
+      return { start: DateTime.now(), end: end, text };
+    } else if (start && end && start.diff(end).valueOf() > 0) {
+      return { start: end, end: start, text };
+    } else {
+      return { start, end, text };
+    }
+  }
+}
+
 export default function DateTimeRangeInput({ value, onChange }: Props) {
   const parseDateRange = React.useCallback(
     (e) => {
-      const text = e.target.value;
-      console.log('text', text);
-      if (isEmpty(text)) {
-        onChange({});
-      }
-      if (text.match(/^[0-9]{4}$/)) {
-        console.log('matched', text);
-        const start = DateTime.local(parseInt(text));
-        onChange({ start, text, end: start.endOf('year') });
-        return;
-      }
-
-      let datetimes = parse(text, new Date(), { forwardDate: true });
-      console.log('datetimes', datetimes);
-      if (datetimes[0]) {
-        const start = dateTimeFrom(true, datetimes[0].start, text);
-        const end = dateTimeFrom(
-          false,
-          datetimes[0].end || datetimes[1]?.start || datetimes[0].start,
-          text,
-        );
-        console.log({ start, text, end: start.endOf('year') });
-
-        if (
-          !datetimes[0].end &&
-          (text.toLowerCase().startsWith('until ') ||
-            text.toLowerCase().startsWith('to ') ||
-            text.toLowerCase().startsWith('through ') ||
-            text.toLowerCase().startsWith('thru '))
-        ) {
-          console.log('Until / to branch');
-          console.log({ start: start, end: end });
-          onChange({ start: DateTime.now(), end: end, text });
-        } else if (start && end && start.diff(end).valueOf() > 0) {
-          onChange({ start: end, end: start, text });
-        } else {
-          onChange({ start, end, text });
-        }
+      const parsed = parseText(e.target.value);
+      if (parsed) {
+        onChange(parsed);
       }
     },
     [onChange],

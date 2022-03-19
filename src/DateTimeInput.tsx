@@ -10,8 +10,8 @@ export type DateTimeRange = {
 };
 
 type ValueType = {
-  text: string;
-  date: DateTime;
+  text?: string;
+  date?: DateTime;
 };
 
 type Props = {
@@ -89,7 +89,7 @@ export default function DateTimeInput({ value, onChange }: Props) {
     (e) => {
       const text = e.target.value;
       if (isEmpty(text)) {
-        onChange(undefined);
+        onChange({});
       }
       let datetimes = parse(text, new Date(), { forwardDate: false });
       console.log('datetimes', datetimes);

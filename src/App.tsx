@@ -195,18 +195,20 @@ function App() {
   let navigate = useNavigate();
 
   let element = useRoutes(ROUTES);
-  const actions: Action[] = useMemo(() =>
-    ROUTES[0].children
-      .filter((a) => !a.ignored)
-      .map((a) => {
-        return {
-          ...a,
-          id: a.path,
-          name: a.logo ?? a.name ?? a.path.replaceAll('/', ''),
-          perform: () => navigate(a.path),
-        };
-      }),
-  );
+  const actions = useMemo(
+    () =>
+      ROUTES[0].children
+        .filter((a) => !a.ignored)
+        .map((a) => {
+          return {
+            ...a,
+            id: a.path,
+            name: a.logo ?? a.name ?? a.path.replaceAll('/', ''),
+            perform: () => navigate(a.path),
+          };
+        }),
+    [],
+  ) as Action[];
 
   return (
     <RecoilRoot>
