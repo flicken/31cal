@@ -83,9 +83,17 @@ export default function DateTimeRangeInput({ value, onChange }: Props) {
   const parseDateRange = React.useCallback(
     (e) => {
       const text = e.target.value;
+      console.log('text', text);
       if (isEmpty(text)) {
         onChange({});
       }
+      if (text.match(/^[0-9]{4}$/)) {
+        console.log('matched', text);
+        const start = DateTime.local(parseInt(text));
+        onChange({ start, text, end: start.endOf('year') });
+        return;
+      }
+
       let datetimes = parse(text, new Date(), { forwardDate: true });
       console.log('datetimes', datetimes);
       if (datetimes[0]) {
@@ -95,7 +103,7 @@ export default function DateTimeRangeInput({ value, onChange }: Props) {
           datetimes[0].end || datetimes[1]?.start || datetimes[0].start,
           text,
         );
-        console.log({ start: start, end: end });
+        console.log({ start, text, end: start.endOf('year') });
 
         if (
           !datetimes[0].end &&
