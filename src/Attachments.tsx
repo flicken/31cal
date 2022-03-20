@@ -16,18 +16,32 @@ import { DateTime } from 'luxon';
 import _ from 'lodash';
 
 function ViewAttachmentInner({ url }: { url: string }) {
-  if (url.startsWith('?')) {
+  const [showAnyway, setShowAnyway] = useState(false);
+  const viewShowAnyway = (
+    <a
+      style={{ cursor: 'pointer' }}
+      onClick={(e) => {
+        setShowAnyway(true);
+        e.preventDefault();
+      }}
+    >
+      show anyway
+    </a>
+  );
+  if (url.startsWith('?') && !showAnyway) {
     const maybeUrl = `http://mail.google.com/?${url.replace(/.*\?/, '')}`;
     return (
       <div>
-        Cannot show Gmail attachment <a href={maybeUrl}>{url}</a>
+        Unlikely to be able to Gmail attachment <a href={maybeUrl}>{url}</a>,{' '}
+        {viewShowAnyway}?
       </div>
     );
   }
-  if (url.startsWith('https://mail.google.com')) {
+  if (url.startsWith('https://mail.google.com') && !showAnyway) {
     return (
       <div>
-        Cannot show Gmail attachment <a href={url}>{url}</a>
+        Unlikely to be able to Gmail attachment <a href={url}>{url}</a>,{' '}
+        {viewShowAnyway}?
       </div>
     );
   }
@@ -40,7 +54,7 @@ function ViewAttachmentInner({ url }: { url: string }) {
   );
 }
 
-function ViewAttachment({ attachment }: { attachment: Attachment }) {
+export function ViewAttachment({ attachment }: { attachment: Attachment }) {
   return (
     <div>
       <h1>{attachment.title}</h1>
