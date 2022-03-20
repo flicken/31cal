@@ -44,9 +44,9 @@ export type CalendarEvent = MaybeDirty & {
 export type Attachment = {
   fileUrl: string;
   title?: string;
-  mimeType: string;
+  mimeType?: string;
   iconLink?: string;
-  fileId: string;
+  fileId?: string;
 };
 
 export type ExtendedProperties = {

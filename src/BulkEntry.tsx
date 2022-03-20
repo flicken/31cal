@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, ClipboardEvent } from 'react';
 
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -11,6 +11,7 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import saveEvents from './google/saveEvents';
 
+import { Attachment } from './models/types';
 import { ViewAttachment } from './Attachments';
 
 import _ from 'lodash';
@@ -23,7 +24,9 @@ function BulkEntry() {
   const [eventsText, setEventsText] = useState('');
   const [description, setDescription] = useState('');
   const [prefix, setPrefix] = useState('');
-  const [attachment, setAttachment] = useState(undefined as undefined | string);
+  const [attachment, setAttachment] = useState(
+    undefined as undefined | Attachment,
+  );
 
   const handleAttachmentChange = useCallback(
     (e) => {
@@ -37,21 +40,21 @@ function BulkEntry() {
     },
     [setAttachment],
   );
-  const attachmentEl = React.useRef(null);
+  const attachmentEl = React.useRef<HTMLInputElement>(null);
 
   const onPaste = useCallback(
-    (e) => {
+    (e: ClipboardEvent<HTMLInputElement>) => {
       console.log('onPaste', e);
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
-        e.target.isContentEditable
+        (e.target as HTMLElement).isContentEditable
       ) {
         return;
       }
 
       const text = e.clipboardData.getData('text');
-      if (!_.isEmpty(text)) {
+      if (!_.isEmpty(text) && attachmentEl.current) {
         attachmentEl.current.value = text;
         setAttachment({ fileUrl: text });
       }
@@ -147,7 +150,7 @@ function BulkEntry() {
           ref={attachmentEl}
           name="attachment"
           type="text"
-          size="80"
+          size={80}
           placeholder="Attachment URL"
           onChange={handleAttachmentChange}
         />

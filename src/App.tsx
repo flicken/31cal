@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  Suspense,
+  ClipboardEvent,
+} from 'react';
 import './App.css';
 import { userContext } from './userContext';
 
@@ -195,11 +201,11 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
   );
 }
 
-const onPaste = (e) => {
+const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
   if (
     e.target instanceof HTMLInputElement ||
     e.target instanceof HTMLTextAreaElement ||
-    e.target.isContentEditable
+    (e.target as HTMLElement).isContentEditable
   ) {
     return;
   }

@@ -8,7 +8,7 @@ import { pick } from 'lodash';
 function dateTimeToGoogleTime(
   dateMaybeTime: DateTime,
   components: ParsedComponents,
-) {
+): StartEnd {
   if (!components.isCertain('hour')) {
     return { date: dateMaybeTime.toISODate() };
   }
@@ -82,7 +82,10 @@ const toReferenceDatetime = (startEnd: StartEnd) => {
   }
 };
 
-const parseInput = (s: string, context: CalendarEvent[] = []) => {
+const parseInput = (
+  s: string,
+  context: CalendarEvent[] = [],
+): Partial<CalendarEvent> | undefined => {
   const lastEvent = context[context.length - 1];
   console.log('Last event', lastEvent);
   const referenceDatetime = toReferenceDatetime(lastEvent?.start);
