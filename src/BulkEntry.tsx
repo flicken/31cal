@@ -28,6 +28,7 @@ function BulkEntry() {
   const handleAttachmentChange = useCallback(
     (e) => {
       const value = e.target.value;
+      console.log('attachment change', e);
       if (_.isEmpty(_.trim(value))) {
         setAttachment(undefined);
       } else {
@@ -35,6 +36,27 @@ function BulkEntry() {
       }
     },
     [setAttachment],
+  );
+  const attachmentEl = React.useRef(null);
+
+  const onPaste = useCallback(
+    (e) => {
+      console.log('onPaste', e);
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target.isContentEditable
+      ) {
+        return;
+      }
+
+      const text = e.clipboardData.getData('text');
+      if (!_.isEmpty(text)) {
+        attachmentEl.current.value = text;
+        setAttachment({ fileUrl: text });
+      }
+    },
+    [setAttachment, attachmentEl],
   );
 
   const handlePrefixChange = useCallback(
@@ -90,7 +112,10 @@ function BulkEntry() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+    <div
+      onPaste={onPaste}
+      style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}
+    >
       <div>
         <TextareaAutosize
           name="events"
@@ -119,6 +144,7 @@ function BulkEntry() {
         />
         <EventList events={events} />
         <input
+          ref={attachmentEl}
           name="attachment"
           type="text"
           size="80"

@@ -21,6 +21,12 @@ import { sample } from 'lodash';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import Dropzone, {
+  useDropzone,
+  FileRejection,
+  DropEvent,
+} from 'react-dropzone';
+
 import {
   Outlet,
   Link,
@@ -189,6 +195,21 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
   );
 }
 
+const onPaste = (e) => {
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement ||
+    e.target.isContentEditable
+  ) {
+    return;
+  }
+
+  const myText = e.clipboardData.getData('text');
+  console.log(myText);
+  console.log(e.clipboardData.types);
+  console.log(e);
+};
+
 function App() {
   const [user, setUser] = useState<any>(null);
   const googleButton = useGoogleButton(user, setUser);
@@ -224,7 +245,41 @@ function App() {
             <Suspense fallback={<div>Loading...</div>}>
               <RightBar user={user} googleButton={googleButton} />
             </Suspense>
-            <Suspense fallback={<div>Loading...</div>}>{element}</Suspense>
+            <Dropzone
+              noClick={true}
+              onDrop={(files) => console.log('onDrop', files)}
+              onDragEnter={(e) => {
+                console.log('onDragEnter', e);
+              }}
+              onDragLeave={(e) => {
+                console.log('onDragLeave', e);
+              }}
+              multiple={true}
+            >
+              {({ getRootProps, getInputProps }) => (
+                <div {...getRootProps()}>
+                  <input {...getInputProps()} hidden />
+                  <div
+                    style={{
+                      margin: 0,
+                      padding: 0,
+                      height: '100%',
+                      width: '100%',
+                    }}
+                    onPaste={onPaste}
+                    onDrop={(e) => {
+                      console.log(e);
+                      e.preventDefault();
+                    }}
+                  >
+                    <Suspense fallback={<div>Loading...</div>}>
+                      {element}
+                    </Suspense>
+                  </div>
+                </div>
+              )}
+            </Dropzone>
+
             <ToastContainer />
           </SettingsProvider>
         </KBarProvider>
