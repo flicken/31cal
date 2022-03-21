@@ -1,7 +1,10 @@
 {
   "builds": [{ "src": "*.html", "use": "@vercel/static" }],
-
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "rewrites": [
+    { "source": "/legal/privacy", "destination": "/legal/privacy.html" },
+    { "source": "/legal/terms", "destination": "/legal/terms.html" },
+    { "source": "/(.*)", "destination": "/" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
