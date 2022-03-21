@@ -1,5 +1,4 @@
 {
-  "builds": [{ "src": "*.html", "use": "@vercel/static" }],
   "rewrites": [
     { "source": "/legal/privacy", "destination": "/legal/privacy.html" },
     { "source": "/legal/terms", "destination": "/legal/terms.html" },
