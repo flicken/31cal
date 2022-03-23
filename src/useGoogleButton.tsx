@@ -4,17 +4,22 @@ import { useGoogleLogin, useGoogleLogout } from 'react-google-login';
 
 import { GOOGLE_CLIENT_ID } from './config';
 
-const CALENDAR_READONLY = 'https://www.googleapis.com/auth/calendar.readonly';
-const EVENTS_READONLY =
+export const CALENDAR_READONLY =
+  'https://www.googleapis.com/auth/calendar.readonly';
+export const EVENTS_READONLY =
   'https://www.googleapis.com/auth/calendar.events.readonly';
-const EVENTS_READWRITE = 'https://www.googleapis.com/auth/calendar.events';
-const SCOPES = [
+export const EVENTS_READWRITE =
+  'https://www.googleapis.com/auth/calendar.events';
+export const SCOPES = [
   CALENDAR_READONLY, // not needed until feature for selecting calendar
   EVENTS_READONLY,
   EVENTS_READWRITE,
   'profile',
   'email',
 ].join(' ');
+
+export const DRIVE_APPDATA = 'https://www.googleapis.com/auth/drive.appdata';
+export const DRIVE_FILE = 'https://www.googleapis.com/auth/drive.file';
 
 export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
   const onLogoutSuccess = useCallback(() => {

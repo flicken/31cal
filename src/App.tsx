@@ -11,7 +11,6 @@ import { userContext } from './userContext';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
-import { useGoogleButton } from './useGoogleButton';
 import Attachments from './Attachments';
 import BulkEntry from './BulkEntry';
 import Calendars from './Calendars';
@@ -26,6 +25,7 @@ import { sample } from 'lodash';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import GoogleButton from './GoogleButton';
 
 import Dropzone, {
   useDropzone,
@@ -196,7 +196,7 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
       <Suspense fallback={<span>...</span>}>
         <ShowDefaultCalendar />
       </Suspense>{' '}
-      - {googleButton}
+      - <GoogleButton />
     </div>
   );
 }
@@ -218,7 +218,6 @@ const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
 
 function App() {
   const [user, setUser] = useState<any>(null);
-  const googleButton = useGoogleButton(user, setUser);
   let navigate = useNavigate();
 
   let element = useRoutes(ROUTES);
@@ -249,7 +248,7 @@ function App() {
           <SettingsProvider>
             <CommandBar />
             <Suspense fallback={<div>Loading...</div>}>
-              <RightBar user={user} googleButton={googleButton} />
+              <RightBar user={user} googleButton={<span></span>} />
             </Suspense>
             <Dropzone
               noClick={true}

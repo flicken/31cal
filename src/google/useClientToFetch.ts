@@ -13,6 +13,8 @@ import { DateTime } from 'luxon';
 
 import { eventSchedules } from '../lib/useScheduleList';
 
+import { withGoogleScope } from '../google/useGoogleClient';
+
 const toMillis = (event: any, fieldName: string, timeZone: string) => {
   let value = event[fieldName];
   let date = DateTime.fromISO(value.dateTime || value.date, {
@@ -35,6 +37,8 @@ let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
 function useClientToFetch(user: any) {
   const getCalendars = useCallback(async () => {
     if (!user) return;
+    useGoogleScope(() => {},
+    'https://www.googleapis.com/auth/calendar.readonly');
     const account = user.profileObj.email;
     const resource = 'calendarList';
     const transformation = (calendar: any) => {

@@ -11,7 +11,7 @@ const ensureClient = () => {
   if (!gapi.client) {
     const promise = new Promise(function (resolve, reject) {
       try {
-        gapi.load('auth2:client', resolve);
+        // gapi.load('auth2:client', resolve);
       } catch (e) {
         reject(e);
       }
