@@ -41,3 +41,4 @@ Agenda: 31 different ways to calendar
 5. https://github.com/replit/clui - command line UI for Javascript
 6. https://github.com/asabaylus/react-command-palette - command bar
 7. https://github.com/github/time-elements - time display - relative e.g. 2d
+8. https://github.com/peterbraden/ical.js - ical - for imparting
