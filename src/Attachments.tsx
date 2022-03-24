@@ -84,9 +84,12 @@ function Attachments() {
         Showing {attachmentUrl2Events.size} attachments with{' '}
         {eventsWithAttachments.length} events.
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div>
         {Array.from(attachmentUrl2Events).map(([attachmentUrl, events]) => (
-          <>
+          <div
+            id={attachmentUrl}
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}
+          >
             <div>
               <EventList events={events} />
             </div>
@@ -96,7 +99,7 @@ function Attachments() {
                 attachment={{ fileUrl: attachmentUrl }}
               />
             </div>
-          </>
+          </div>
         ))}
       </div>
     </>
