@@ -3,6 +3,7 @@ import { CalendarEvent, StartEnd } from './models/types';
 
 import { DateTime } from 'luxon';
 import dompurify from 'dompurify';
+import _ from 'lodash';
 
 function timeOf(value: StartEnd) {
   if ('dateTime' in value)
@@ -78,13 +79,48 @@ export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
   }
 }
 
+function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
+  if (_.isEmpty(attachments)) return null;
+
+  return (
+    <>
+      {attachments.map((a) => {
+        const image = a.iconLink ? (
+          <img
+            style={{ display: 'inline-block', verticalAlign: 'bottom' }}
+            width={16}
+            height={16}
+            src={'http://example.com/nothing.png'}
+            onError={({ currentTarget }) => {
+              currentTarget.onerror = null; // prevents looping
+              currentTarget.src = '/unknown-file-16x16.png';
+            }}
+          />
+        ) : (
+          <img
+            style={{ display: 'inline-block', verticalAlign: 'bottom' }}
+            width={16}
+            height={16}
+            src="/unknown-file-16x16.png"
+          />
+        );
+        return (
+          <span>
+            {image}
+            <a href={a.fileUrl}>
+              {_.isEmpty(a.title) ? '(no title)' : a.title}
+            </a>
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 function ViewEvent({ event }: { event: Partial<CalendarEvent> }) {
-  if (event.description) {
+  if (event.description || !_.isEmpty(event.attachments)) {
     return (
-      <details
-        style={{ border: '2px dotted #bbb' }}
-        title={JSON.stringify(event, null, 2)}
-      >
+      <details style={{ border: '2px dotted #bbb' }}>
         <summary style={{ cursor: 'pointer', padding: '.5rem 1rem' }}>
           <ViewStartAndEnd start={event.start} end={event.end} />{' '}
           <b style={{ display: 'inline' }}>{event.summary}</b>
@@ -98,6 +134,7 @@ function ViewEvent({ event }: { event: Partial<CalendarEvent> }) {
             ></span>
           </i>
         </div>
+        <ViewEventAttachments attachments={event.attachments} />
       </details>
     );
   } else {
