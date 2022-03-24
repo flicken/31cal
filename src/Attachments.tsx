@@ -57,7 +57,7 @@ function ViewAttachmentInner({ url }: { url: string }) {
 export function ViewAttachment({ attachment }: { attachment: Attachment }) {
   return (
     <div>
-      <h1>{attachment.title}</h1>
+      {attachment.title ? <h1>{attachment.title}</h1> : undefined}
       <ViewAttachmentInner url={attachment.fileUrl} />
     </div>
   );
