@@ -66,24 +66,35 @@ export function ViewAttachment({ attachment }: { attachment: Attachment }) {
 function Attachments() {
   const events = useRecoilValue(filteredEvents);
   const eventsWithAttachments = events.filter((e) => e.attachments);
+  const attachmentUrl2Events = new Map();
+  eventsWithAttachments.forEach((e) => {
+    e.attachments.forEach((a) => {
+      let events = attachmentUrl2Events.get(a.fileUrl);
+      if (!events) {
+        events = [];
+        attachmentUrl2Events.set(a.fileUrl, events);
+      }
+      events.push(e);
+    });
+  });
 
   return (
     <>
       <div>
-        Showing {eventsWithAttachments.length} events with{' '}
-        {eventsWithAttachments.flatMap((e) => e.attachments).length}{' '}
-        attachments.
+        Showing {attachmentUrl2Events.size} attachments with{' '}
+        {eventsWithAttachments.length} events.
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-        {eventsWithAttachments.map((e) => (
+        {Array.from(attachmentUrl2Events).map(([attachmentUrl, events]) => (
           <>
             <div>
-              <EventList events={[e]} />
+              <EventList events={events} />
             </div>
             <div>
-              {e.attachments.map((a, i) => (
-                <ViewAttachment key={i} attachment={a} />
-              ))}
+              <ViewAttachment
+                key={attachmentUrl}
+                attachment={{ fileUrl: attachmentUrl }}
+              />
             </div>
           </>
         ))}
