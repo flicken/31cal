@@ -15,7 +15,6 @@ import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
 import Attachments from './Attachments';
 import BulkEntry from './BulkEntry';
-import Calendars from './Calendars';
 import Events from './Events';
 import Filters from './Filters';
 import ImportFile from './ImportFile';
@@ -87,11 +86,6 @@ const ROUTES = [
         path: '/bulk',
         shortcut: ['b'],
         element: <BulkEntry />,
-      },
-      {
-        path: '/calendars',
-        shortcut: ['c'],
-        element: <Calendars />,
       },
       {
         path: '/events',
