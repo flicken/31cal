@@ -32,6 +32,11 @@ Agenda: 31 different ways to calendar
 1. Data stored unencrypted in IndexedDB, so others on computer can read / write with browser tools.  
    Perhaps encrypt and load into in-memory database? Note: legendapp does not encrypt IndexedDB contents.
 
+# Inspiration - Search
+1. Slack omni-search
+2. Discord search: drop-down with search options
+3. Gmail search input box
+
 # Potential tech
 
 1. https://react-day-picker.js.org/ - used by LegendApp for date input, their

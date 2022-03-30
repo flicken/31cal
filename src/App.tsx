@@ -1,6 +1,7 @@
 import React, {
   useEffect,
   useState,
+  useRef,
   useMemo,
   Suspense,
   ClipboardEvent,
@@ -16,6 +17,7 @@ import Attachments from './Attachments';
 import BulkEntry from './BulkEntry';
 import Calendars from './Calendars';
 import Events from './Events';
+import Filters from './Filters';
 import ImportFile from './ImportFile';
 import Schedule from './Schedule';
 import Table from './Table';
@@ -45,6 +47,8 @@ import {
 import { KBarProvider, Action } from 'kbar';
 
 import { RecoilRoot } from 'recoil';
+
+import { useEventListener, useOnClickOutside } from 'usehooks-ts';
 
 const SmallLogo = (
   <svg
@@ -160,6 +164,31 @@ const NavLink = ({
 };
 
 function Layout() {
+  const [showFilter, setShowFilter] = useState(false);
+  const hoverRef = useRef(null);
+  const filterRef = useRef(null);
+
+  useEventListener('mouseenter', () => setShowFilter(true), hoverRef);
+  useEventListener(
+    'keydown',
+    (e) => {
+      if (e.code == 'Escape') {
+        setShowFilter(false);
+      }
+    },
+    document,
+  );
+  useEventListener(
+    'keydown',
+    (e) => {
+      if (e.code == 'Enter') {
+        setShowFilter(false);
+      }
+    },
+    filterRef,
+  );
+  useOnClickOutside(filterRef, () => setShowFilter(false));
+
   return (
     <div>
       <nav>
@@ -170,8 +199,27 @@ function Layout() {
             .map((r) => (
               <NavLink key={r.path} {...r} />
             ))}
+          <li
+            ref={hoverRef}
+            style={{ display: 'inline', marginLeft: '0.25em' }}
+          >
+            ↓filters
+          </li>
         </ul>
       </nav>
+      <div
+        ref={filterRef}
+        style={{
+          visibility: showFilter ? undefined : 'hidden',
+          left: '10vw',
+          position: 'fixed',
+          zIndex: 10,
+          top: '1em',
+          width: '80vw',
+        }}
+      >
+        <Filters />
+      </div>
       <hr />
       <Outlet />
     </div>
