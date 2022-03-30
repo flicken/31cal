@@ -214,10 +214,7 @@ const IndeterminateCheckbox = React.forwardRef(
 );
 
 function dateOf(ms: number) {
-  DateTime.fromMillis(ms).toISODate();
-  if (!value) return undefined;
-  if ('dateTime' in value) return value.dateTime?.slice(0, 10);
-  else return value.date;
+  return DateTime.fromMillis(ms).toISODate();
 }
 
 function App() {
@@ -227,7 +224,7 @@ function App() {
       Header: 'When',
       Cell: ({ row }) => {
         return row.original?.start ? (
-          <span>dateOf(row.original.start)</span>
+          <span>{dateOf(row.original.start.ms)}</span>
         ) : null;
       },
     },
