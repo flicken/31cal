@@ -5,6 +5,8 @@ import { DateTime } from 'luxon';
 import dompurify from 'dompurify';
 import _ from 'lodash';
 
+import { Attachment } from './models/types';
+
 function timeOf(value: StartEnd) {
   if ('dateTime' in value)
     return (
@@ -80,7 +82,7 @@ export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
 }
 
 function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
-  if (_.isEmpty(attachments)) return null;
+  if (!attachments || _.isEmpty(attachments)) return null;
 
   return (
     <>
