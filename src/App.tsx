@@ -161,6 +161,7 @@ function Layout() {
   const [showFilter, setShowFilter] = useState(false);
   const hoverRef = useRef(null);
   const filterRef = useRef(null);
+  const bodyRef = useRef(document.body);
 
   useEventListener('mouseenter', () => setShowFilter(true), hoverRef);
   useEventListener(
@@ -170,7 +171,7 @@ function Layout() {
         setShowFilter(false);
       }
     },
-    document,
+    bodyRef,
   );
   useEventListener(
     'keydown',
