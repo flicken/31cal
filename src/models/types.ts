@@ -11,6 +11,10 @@ export type Calendar = {
   backgroundColor: string;
 };
 
+export function isStartEndDate(startEnd: StartEnd): startEnd is StartEndDate {
+  return (<StartEndDate>startEnd).date !== undefined;
+}
+
 export type StartEndDate = {
   date: string;
 };
@@ -34,11 +38,19 @@ export type CalendarEvent = MaybeDirty & {
   location?: string;
   status?: string;
   start: StartEnd & Millis;
-  end?: StartEnd & Millis;
+  end: StartEnd & Millis;
   extendedProperties?: ExtendedProperties;
   updated: string;
   _schedules?: String[];
   attachments: Attachment[];
+  recurringEventId?: string;
+  originalStartTime?: StartEnd;
+  attendees: Attendee[];
+};
+
+export type Attendee = {
+  displayName: string;
+  email: string;
 };
 
 export type Attachment = {

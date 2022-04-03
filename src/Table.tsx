@@ -16,7 +16,7 @@ import makeData from './makeData';
 import { DateTime } from 'luxon';
 import _ from 'lodash';
 
-function* days(start: DateTime, end: DateTime) {
+export function* days(start: DateTime, end: DateTime) {
   let cursor = start.startOf('day');
   while (cursor < end) {
     yield cursor.toISODate();

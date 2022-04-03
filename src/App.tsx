@@ -13,6 +13,7 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
+import Agenda from './Agenda';
 import Attachments from './Attachments';
 import BulkEntry from './BulkEntry';
 import Events from './Events';
@@ -76,6 +77,11 @@ const ROUTES = [
         logo: SmallLogo,
         element: <div> Agenda: 31 different ways to calendar </div>,
         keywords: 'home',
+      },
+      {
+        path: '/agenda',
+        shortcut: ['g'],
+        element: <Agenda />,
       },
       {
         path: '/attachments',
@@ -301,6 +307,8 @@ function App() {
               onDragEnter={(e) => {
                 console.log('onDragEnter', e);
               }}
+              noDragEventsBubbling={true}
+              noKeyboard={true}
               onDragLeave={(e) => {
                 console.log('onDragLeave', e);
               }}
