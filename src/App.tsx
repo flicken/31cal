@@ -196,6 +196,7 @@ function Layout() {
             ))}
           <li
             ref={hoverRef}
+            onClick={() => setShowFilter((show) => !show)}
             style={{ display: 'inline', marginLeft: '0.25em' }}
           >
             ↓filters
