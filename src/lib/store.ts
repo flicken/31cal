@@ -134,3 +134,29 @@ export const defaultCalendar = selector({
     return settingsObject.selectedCalendars?.at(0);
   },
 });
+
+export const paperColumns = atom<string[]>({
+  key: 'paperColumns',
+  default: db.settings.get('paperColumns').then((obj) => obj?.value ?? []),
+  effects: [
+    ({ onSet, setSelf }) => {
+      const updateFunction = (modifications: any, primKey: any) => {
+        if (primKey == 'paperColumns') {
+          setSelf((old: object) => modifications?.value ?? []);
+        }
+      };
+
+      db.settings.hook('updating', updateFunction);
+
+      onSet((newValue, oldValue, isReset) => {
+        if (newValue !== oldValue) {
+          db.settings.put({ id: 'paperColumns', value: newValue });
+        }
+      });
+
+      return () => {
+        db.settings.hook('updating').unsubscribe(updateFunction);
+      };
+    },
+  ],
+});

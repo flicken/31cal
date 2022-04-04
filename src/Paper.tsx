@@ -4,8 +4,8 @@ import { useState } from 'react';
 
 import { DateTime, Interval } from 'luxon';
 
-import { useRecoilValue } from 'recoil';
-import { filteredEvents, allEventFilters } from './lib/store';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { filteredEvents, allEventFilters, paperColumns } from './lib/store';
 import { days } from './Table';
 
 import {
@@ -191,7 +191,7 @@ function search(regex: RegExp, s?: string) {
 
 export default function Paper() {
   const events = useRecoilValue(filteredEvents);
-  const [columns, setColumns] = useState<string[]>([]);
+  const [columns, setColumns] = useRecoilState(paperColumns);
 
   const eventFilters = useRecoilValue(allEventFilters);
   const dates = React.useMemo(
