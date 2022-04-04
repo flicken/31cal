@@ -50,6 +50,7 @@ function ViewAttachmentInner({ url }: { url: string }) {
       style={{ width: '50vw', height: '50vw' }}
       allowFullScreen={true}
       src={url.replaceAll('view', 'preview')}
+      loading="lazy"
     />
   );
 }
