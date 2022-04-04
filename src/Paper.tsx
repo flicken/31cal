@@ -165,9 +165,9 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
 
   return (
     <tr style={{ verticalAlign: 'top', ...style }} {...rest}>
-      <th key="day" style={{ width: 'fit-contents(8em)' }}>
+      <td key="day" style={{ minWidth: '7em', fontWeight: 'bold' }}>
         {day}
-      </th>
+      </td>
       {matched.map((columnEvents, index) => (
         <td key={index}>
           {columnEvents.map((event) => (
@@ -189,7 +189,7 @@ function search(regex: RegExp, s?: string) {
   return s.search(regex) >= 0;
 }
 
-function Agenda() {
+export default function Paper() {
   const events = useRecoilValue(filteredEvents);
   const [columns, setColumns] = useState<string[]>([]);
 
@@ -273,5 +273,3 @@ function Agenda() {
 
   return events?.length ? list : emptyState;
 }
-
-export default Agenda;

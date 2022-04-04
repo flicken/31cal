@@ -13,7 +13,7 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
-import Agenda from './Agenda';
+import Paper from './Paper';
 import Attachments from './Attachments';
 import BulkEntry from './BulkEntry';
 import Events from './Events';
@@ -79,9 +79,9 @@ const ROUTES = [
         keywords: 'home',
       },
       {
-        path: '/agenda',
-        shortcut: ['g'],
-        element: <Agenda />,
+        path: '/paper',
+        shortcut: ['p'],
+        element: <Paper />,
       },
       {
         path: '/attachments',
