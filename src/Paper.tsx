@@ -70,7 +70,12 @@ export const splitByFilters = (
 };
 
 function simple(datetime: DateTime) {
-  return datetime.toLocaleString(DateTime.TIME_SIMPLE);
+  return datetime.toLocaleString(DateTime.TIME_24_SIMPLE);
+}
+
+function tomorrow(day: string) {
+  const today = DateTime.fromISO(day);
+  return today.plus({ days: 1 }).toISODate();
 }
 
 export function showTime(event: CalendarEvent, day: string) {
@@ -79,7 +84,7 @@ export function showTime(event: CalendarEvent, day: string) {
     (!event.end || isStartEndDate(event.end))
   ) {
     const startToday = event.start.date === day;
-    const endToday = event.end.date === day;
+    const endToday = event.end.date === tomorrow(day);
     if (startToday && endToday) {
       return 'All day';
     } else if (startToday && !endToday) {
@@ -95,7 +100,7 @@ export function showTime(event: CalendarEvent, day: string) {
     const startToday = start.toISODate() === day;
     const endToday = end.toISODate() === day;
     if (startToday && endToday) {
-      return `${simple(start)} -> ${simple(end)}`;
+      return `${simple(start)} - ${simple(end)}`;
     } else if (startToday && !endToday) {
       return `${simple(start)} - ${end.toISODate()}`;
     } else if (endToday) {
