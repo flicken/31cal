@@ -137,7 +137,9 @@ export const defaultCalendar = selector({
 
 export const paperColumns = atom<string[]>({
   key: 'paperColumns',
-  default: db.settings.get('paperColumns').then((obj) => obj?.value ?? []),
+  default: db.settings
+    .get('paperColumns')
+    .then((obj) => (obj?.value as string[]) ?? []),
   effects: [
     ({ onSet, setSelf }) => {
       const updateFunction = (modifications: any, primKey: any) => {
