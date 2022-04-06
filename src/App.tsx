@@ -13,14 +13,6 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
 import { useGoogleButton } from './useGoogleButton';
-import Paper from './Paper';
-import Attachments from './Attachments';
-import BulkEntry from './BulkEntry';
-import Events from './Events';
-import Filters from './Filters';
-import ImportFile from './ImportFile';
-import Schedule from './Schedule';
-import Table from './Table';
 import CommandBar from './CommandBar';
 
 import { SettingsProvider } from './lib/settings';
@@ -49,6 +41,15 @@ import { KBarProvider, Action } from 'kbar';
 import { RecoilRoot } from 'recoil';
 
 import { useEventListener, useOnClickOutside } from 'usehooks-ts';
+
+const Paper = React.lazy(() => import('./Paper'));
+const Attachments = React.lazy(() => import('./Attachments'));
+const BulkEntry = React.lazy(() => import('./BulkEntry'));
+const Events = React.lazy(() => import('./Events'));
+const Filters = React.lazy(() => import('./Filters'));
+const ImportFile = React.lazy(() => import('./ImportFile'));
+const Schedule = React.lazy(() => import('./Schedule'));
+const Table = React.lazy(() => import('./Table'));
 
 const SmallLogo = (
   <svg
