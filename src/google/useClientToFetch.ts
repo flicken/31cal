@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { db } from '../models/db';
 import fetchList from './fetchList';
@@ -12,6 +12,8 @@ import { Calendar } from '../models/types';
 import { DateTime } from 'luxon';
 
 import { eventSchedules } from '../lib/useScheduleList';
+
+import { useInterval } from 'usehooks-ts';
 
 const toMillis = (event: any, fieldName: string, timeZone: string) => {
   let value = event[fieldName];
@@ -32,7 +34,13 @@ let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
   // event.id = idFor(event)
 };
 
-function useClientToFetch(user: any) {
+function useClientToFetch(user: any, interval: number) {
+  const [lastFetchDate, setLastFetchDate] = React.useState(DateTime.now());
+
+  useInterval(() => {
+    setLastFetchDate(DateTime.now());
+  }, interval);
+
   const getCalendars = useCallback(async () => {
     if (!user) return;
     const account = user.profileObj.email;
@@ -53,7 +61,7 @@ function useClientToFetch(user: any) {
       googleResource: (gapi) => gapi.client.calendar.calendarList,
       table: db.calendars,
     });
-  }, [user]);
+  }, [user, lastFetchDate]);
 
   const calendarsToFetch = useRecoilValue(selectedCalendars);
 
@@ -84,7 +92,7 @@ function useClientToFetch(user: any) {
       });
     });
     await Promise.all(fetched);
-  }, [user, calendarsToFetch]);
+  }, [user, calendarsToFetch, lastFetchDate]);
 
   useEffect(() => {
     getCalendars();

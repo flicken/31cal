@@ -38,7 +38,6 @@ function Calendars() {
   );
   const selectedMap = _.keyBy(selectedCalendars, (e) => e.id);
 
-  console.log('selecetd', selectedCalendars);
   useInterval(() => {
     setAsOf(DateTime.now());
   }, 1000);
@@ -52,8 +51,9 @@ function Calendars() {
           <th>Updated</th>
           <th>Events</th>
         </tr>
-        {_.sortBy(calList, (e) => e.summary?.toUpperCase()).map((c) => (
+        {_.sortBy(calList, (c) => c.summary?.toUpperCase()).map((c) => (
           <tr
+            key={c.id}
             style={{
               backgroundColor: c.backgroundColor,
               color: c.foregroundColor,

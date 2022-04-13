@@ -246,7 +246,7 @@ function ShowDefaultCalendar() {
 }
 
 function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
-  useClientToFetch(user);
+  useClientToFetch(user, 5 * 60 * 1000);
 
   return (
     <div style={{ float: 'right', clear: 'both' }}>
