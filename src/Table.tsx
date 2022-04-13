@@ -24,7 +24,7 @@ export function* days(start: DateTime, end: DateTime) {
   }
 }
 
-function Table({ columns, data }) {
+function Table_({ columns, data }) {
   const filters = useRecoilValue(allEventFilters);
   const dates = React.useMemo(
     () => Array.from(days(filters.start, filters.end)),
@@ -111,7 +111,6 @@ function Table({ columns, data }) {
     setGroupBy(['date']);
   }, []);
   // We don't want to render all of the rows for this example, so cap
-  const firstPageRows = rows;
 
   const getLeafColumns = function (rootColumns) {
     return rootColumns.reduce((leafColumns, column) => {
@@ -136,16 +135,13 @@ function Table({ columns, data }) {
           ))}
         </thead>
         <tbody {...getTableBodyProps()}>
-          {firstPageRows.map((row, i) => {
+          {rows.map((row, i) => {
             prepareRow(row);
             return (
               <tr {...row.getRowProps()}>
                 {row.cells.map((cell) => {
                   return (
                     <td
-                      // For educational purposes, let's color the
-                      // cell depending on what type it is given
-                      // from the useGroupBy hook
                       {...cell.getCellProps()}
                       style={{
                         fontWeight: cell.isGrouped ? 'bold' : undefined,
@@ -181,21 +177,6 @@ function Table({ columns, data }) {
   );
 }
 
-// This is a custom aggregator that
-// takes in an array of leaf values and
-// returns the rounded median
-function roundedMedian(leafValues) {
-  let min = leafValues[0] || 0;
-  let max = leafValues[0] || 0;
-
-  leafValues.forEach((value) => {
-    min = Math.min(min, value);
-    max = Math.max(max, value);
-  });
-
-  return Math.round((min + max) / 2);
-}
-
 const IndeterminateCheckbox = React.forwardRef(
   ({ indeterminate, ...rest }, ref) => {
     const defaultRef = React.useRef();
@@ -217,7 +198,7 @@ function dateOf(ms: number) {
   return DateTime.fromMillis(ms).toISODate();
 }
 
-function App() {
+export default function Table() {
   const columns = React.useMemo(() => [
     {
       id: 'date',
@@ -253,7 +234,5 @@ function App() {
 
   const events = useRecoilValue(filteredEvents);
 
-  return <Table columns={columns} data={events} />;
+  return <Table_ columns={columns} data={events} />;
 }
-
-export default App;
