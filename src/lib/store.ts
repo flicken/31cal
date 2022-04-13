@@ -67,6 +67,17 @@ export const filteredEvents = selector({
   },
 });
 
+export const countsByCalendar = selector({
+  key: 'countsByCalendar',
+  get: ({ get }) => {
+    const events = get(allEvents);
+    return _.countBy(
+      events.filter((e) => e.status != 'cancelled'),
+      (e) => e.calendarId,
+    );
+  },
+});
+
 const objectDiff = (a: object, b: object) =>
   _.fromPairs(_.differenceWith(_.toPairs(a), _.toPairs(b), _.isEqual));
 

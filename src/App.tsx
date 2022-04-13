@@ -45,6 +45,7 @@ import { useEventListener, useOnClickOutside } from 'usehooks-ts';
 const Paper = React.lazy(() => import('./Paper'));
 const Attachments = React.lazy(() => import('./Attachments'));
 const BulkEntry = React.lazy(() => import('./BulkEntry'));
+const CalendarsStatus = React.lazy(() => import('./CalendarsStatus'));
 const Events = React.lazy(() => import('./Events'));
 const Filters = React.lazy(() => import('./Filters'));
 const ImportFile = React.lazy(() => import('./ImportFile'));
@@ -93,6 +94,11 @@ const ROUTES = [
         path: '/bulk',
         shortcut: ['b'],
         element: <BulkEntry />,
+      },
+      {
+        path: '/status',
+        shortcut: ['s'],
+        element: <CalendarsStatus />,
       },
       {
         path: '/events',
@@ -272,7 +278,6 @@ function App() {
   const googleButton = useGoogleButton(user, setUser);
   let navigate = useNavigate();
 
-  let element = useRoutes(ROUTES);
   const actions = useMemo(
     () =>
       ROUTES[0].children
@@ -299,7 +304,7 @@ function App() {
         >
           <SettingsProvider>
             <CommandBar />
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<div>Loading....</div>}>
               <RightBar user={user} googleButton={googleButton} />
             </Suspense>
             <Dropzone
@@ -332,7 +337,7 @@ function App() {
                     }}
                   >
                     <Suspense fallback={<div>Loading...</div>}>
-                      {element}
+                      {useRoutes(ROUTES)}
                     </Suspense>
                   </div>
                 </div>
