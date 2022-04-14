@@ -27,7 +27,11 @@ function BulkEntry() {
   );
 
   const handleAttachmentChange = useCallback(
-    (e) => {
+    (
+      e: React.FormEvent<HTMLInputElement> & {
+        target: HTMLInputElement;
+      },
+    ) => {
       const value = e.target.value;
       console.log('attachment change', e);
       if (isEmpty(trim(value))) {
@@ -61,14 +65,22 @@ function BulkEntry() {
   );
 
   const handlePrefixChange = useCallback(
-    (e) => {
+    (
+      e: React.FormEvent<HTMLInputElement> & {
+        target: HTMLInputElement;
+      },
+    ) => {
       setPrefix(e.target.value);
     },
     [setPrefix],
   );
 
   const handleEventsChange = useCallback(
-    (e) => {
+    (
+      e: React.FormEvent<HTMLTextAreaElement> & {
+        target: HTMLTextAreaElement;
+      },
+    ) => {
       setEventsText(e.target.value);
     },
     [setEventsText],

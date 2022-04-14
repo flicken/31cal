@@ -10,7 +10,7 @@ const SettingsContext = React.createContext<Object | undefined>(undefined);
 const useSetting = (id: string) => {
   const settings = useContext(SettingsContext);
 
-  const _set = useCallback((value) => {
+  const _set = useCallback((value: string | string[]) => {
     db.settings.put({ id: id, value: value });
   }, []);
 
@@ -21,7 +21,11 @@ const useSetting = (id: string) => {
   }
 };
 
-const SettingsProvider: React.FunctionComponent = (props) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const SettingsProvider: React.FC<Props> = ({ children }) => {
   const settings = useLiveQuery(() =>
     db.settings
       .toArray()
@@ -32,7 +36,7 @@ const SettingsProvider: React.FunctionComponent = (props) => {
 
   return (
     <SettingsContext.Provider value={settings}>
-      {props.children}
+      {children}
     </SettingsContext.Provider>
   );
 };

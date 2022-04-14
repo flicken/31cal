@@ -120,7 +120,11 @@ function parseText(text: string) {
 
 export default function DateTimeRangeInput({ value, onChange }: Props) {
   const parseDateRange = React.useCallback(
-    (e) => {
+    (
+      e: React.FormEvent<HTMLInputElement> & {
+        target: HTMLInputElement;
+      },
+    ) => {
       const parsed = parseText(e.target.value);
       if (parsed) {
         onChange(parsed);
