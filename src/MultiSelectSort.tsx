@@ -47,19 +47,20 @@ const SortableSelect = SortableContainer(Select) as React.ComponentClass<
 >;
 
 export default function MultiSelectSort<T>(props: any) {
-  const { onChange, value, selected, ...rest } = props;
+  const { onChange, value, ...rest } = props;
 
   const doOnChange = (selectedOptions: OnChangeValue<any, true>) => {
     onChange(selectedOptions);
   };
 
   const onSortEnd: SortEndHandler = ({ oldIndex, newIndex }) => {
-    const newValue = arrayMove(selected, oldIndex, newIndex);
+    const newValue = arrayMove(value, oldIndex, newIndex);
     doOnChange(newValue);
   };
 
   return (
     <SortableSelect
+      helperClass="sortableHelper"
       useDragHandle
       // react-sortable-hoc props:
       axis="xy"
