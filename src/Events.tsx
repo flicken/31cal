@@ -11,7 +11,7 @@ function Events() {
 
   return (
     <>
-      <EventList events={eventList.filter((e) => e.status !== 'cancelled')} />
+      <EventList events={eventList} />
     </>
   );
 }

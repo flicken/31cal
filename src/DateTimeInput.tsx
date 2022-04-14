@@ -86,7 +86,11 @@ const dateTimeFrom = (
 
 export default function DateTimeInput({ value, onChange }: Props) {
   const parseDate = React.useCallback(
-    (e) => {
+    (
+      e: React.FormEvent<HTMLInputElement> & {
+        target: HTMLInputElement;
+      },
+    ) => {
       const text = e.target.value;
       if (isEmpty(text)) {
         onChange({});

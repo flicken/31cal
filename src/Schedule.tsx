@@ -39,15 +39,13 @@ function SelectSchedule() {
     }
   }, [selectedSchedules]);
 
-  const onChange = useCallback((e) => {
-    setState(e);
-    setSelectedSchedules(e ? [e.value] : []);
-  }, []);
-
   return (
     <Select
       isClearable={true}
-      onChange={onChange}
+      onChange={(e) => {
+        setState(e ?? undefined);
+        setSelectedSchedules(e ? [e.value] : []);
+      }}
       value={state}
       isLoading={!list || !selectedSchedules}
       options={(list ?? []).map((s) => ({ value: s, label: s })) as any}
@@ -59,7 +57,6 @@ function Schedule() {
   const [selectedSchedules] = useSetting('selectedSchedules');
   const allEventsCount_ = useRecoilValue(allEventsCount);
   let eventList = useRecoilValue(filteredEvents);
-  const filters = useRecoilValue(allEventFilters);
 
   if (!isEmpty(selectedSchedules)) {
     eventList = eventList.filter(
@@ -73,11 +70,10 @@ function Schedule() {
         Schedule: <SelectSchedule />
       </div>
       <br />
-      {JSON.stringify(filters)}
       <div>
         Showing: {eventList && eventList.length} of {allEventsCount_} events
       </div>
-      <EventList events={eventList?.filter((e) => e.status !== 'cancelled')} />
+      <EventList events={eventList} />
     </div>
   );
 }
