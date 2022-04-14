@@ -107,7 +107,7 @@ function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
           />
         );
         return (
-          <span id={a.fileUrl}>
+          <span key={a.fileUrl}>
             {image}
             <a href={a.fileUrl}>
               {_.isEmpty(a.title) ? '(no title)' : a.title}

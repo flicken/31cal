@@ -88,7 +88,7 @@ function Attachments() {
       <div>
         {Array.from(attachmentUrl2Events).map(([attachmentUrl, events]) => (
           <div
-            id={attachmentUrl}
+            key={attachmentUrl}
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}
           >
             <div>
