@@ -93,7 +93,6 @@ export const settings = atom({
       const updateFunction = (modifications: any, primKey: any) => {
         const newSetting = {} as any;
         newSetting[primKey] = modifications.value;
-        console.log('Updating setting', newSetting);
         setSelf((old: object) => {
           return { ...old, ...newSetting };
         });
@@ -113,12 +112,35 @@ export const settings = atom({
   ],
 });
 
-export const selectedCalendarIds = selector({
-  key: 'selectedCalendarIds',
-  get: ({ get }) => {
-    const settingsObject = get(settings) as any;
-    return settingsObject.selectedCalendars ?? [];
-  },
+export const selectedCalendarIds = atom({
+  key: 'selectedCalendarIds ',
+  default: db.settings.get('selectedCalendars').then((v) => (v ? v.value : [])),
+  effects: [
+    ({ onSet, setSelf }) => {
+      const updateFunction = (modifications: any, primKey: any) => {
+        if (primKey !== 'selectedCalendars') return;
+
+        setSelf((old: object) => {
+          return modifications.value;
+        });
+      };
+
+      db.settings.hook('updating', updateFunction);
+
+      onSet(async (newValue, oldValue, isReset) => {
+        if (newValue !== oldValue) {
+          db.settings.put({
+            id: 'selectedCalendars',
+            value: newValue,
+          });
+        }
+      });
+
+      return () => {
+        db.settings.hook('updating').unsubscribe(updateFunction);
+      };
+    },
+  ],
 });
 
 export const selectedCalendars = selector({

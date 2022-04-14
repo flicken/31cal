@@ -11,8 +11,9 @@ import { keyBy } from 'lodash';
 import MultiSelectSort from './MultiSelectSort';
 import { StylesConfig } from 'react-select';
 
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import {
+  selectedCalendarIds,
   selectedCalendars as selectedCalendarsState,
   allCalendars,
 } from './lib/store';
@@ -71,15 +72,13 @@ const colorStyles: StylesConfig<Calendar, true> = {
 function Calendars() {
   const calList = useRecoilValue(allCalendars);
   const selectedCalendars = useRecoilValue(selectedCalendarsState);
+  const setSelectedCalendarIds = useSetRecoilState(selectedCalendarIds);
 
   const onChange = (calendars: Calendar[]) => {
     if (calendars.length > 0 && calendars[0]) {
       db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
     }
-    db.settings.put({
-      id: 'selectedCalendars',
-      value: calendars.filter((c) => c).map((c) => c?.id),
-    });
+    setSelectedCalendarIds(calendars.filter((c) => c).map((c) => c?.id));
   };
 
   return (
@@ -87,7 +86,7 @@ function Calendars() {
       getOptionValue={(c: Calendar) => c.id}
       getOptionLabel={(c: Calendar) => c.summary}
       isClearable={true}
-      defaultValue={selectedCalendars}
+      value={selectedCalendars}
       options={calList}
       onChange={onChange}
       styles={colorStyles}

@@ -47,11 +47,9 @@ const SortableSelect = SortableContainer(Select) as React.ComponentClass<
 >;
 
 export default function MultiSelectSort<T>(props: any) {
-  const { onChange, value, defaultValue, ...rest } = props;
-  const [selected, setSelected] = React.useState<readonly any[]>(defaultValue);
+  const { onChange, value, selected, ...rest } = props;
 
   const doOnChange = (selectedOptions: OnChangeValue<any, true>) => {
-    setSelected(selectedOptions);
     onChange(selectedOptions);
   };
 
@@ -71,7 +69,7 @@ export default function MultiSelectSort<T>(props: any) {
       getHelperDimensions={({ node }) => node.getBoundingClientRect()}
       // react-select props:
       isMulti
-      value={selected}
+      value={value}
       onChange={doOnChange}
       components={{
         // @ts-ignore We're failing to provide a required index prop to SortableElement
@@ -79,7 +77,7 @@ export default function MultiSelectSort<T>(props: any) {
         MultiValueLabel: SortableMultiValueLabel,
       }}
       closeMenuOnSelect={false}
-      defaultValue={defaultValue}
+      defaultValue={value}
       {...rest}
     />
   );
