@@ -3,7 +3,7 @@ import { CalendarEvent, StartEnd } from './models/types';
 
 import { DateTime } from 'luxon';
 import dompurify from 'dompurify';
-import _ from 'lodash';
+import { isEmpty } from 'lodash-es';
 
 import { Attachment } from './models/types';
 
@@ -82,7 +82,7 @@ export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
 }
 
 function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
-  if (!attachments || _.isEmpty(attachments)) return null;
+  if (!attachments || isEmpty(attachments)) return null;
 
   return (
     <>
@@ -109,9 +109,7 @@ function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
         return (
           <span key={a.fileUrl}>
             {image}
-            <a href={a.fileUrl}>
-              {_.isEmpty(a.title) ? '(no title)' : a.title}
-            </a>
+            <a href={a.fileUrl}>{isEmpty(a.title) ? '(no title)' : a.title}</a>
           </span>
         );
       })}
@@ -120,7 +118,7 @@ function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
 }
 
 function ViewEvent({ event }: { event: Partial<CalendarEvent> }) {
-  if (event.description || !_.isEmpty(event.attachments)) {
+  if (event.description || !isEmpty(event.attachments)) {
     return (
       <details style={{ border: '2px dotted #bbb' }}>
         <summary style={{ cursor: 'pointer', padding: '.5rem 1rem' }}>

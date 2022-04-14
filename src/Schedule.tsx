@@ -13,7 +13,7 @@ import EventList from './EventList';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 
 import { DateTime } from 'luxon';
-import _ from 'lodash';
+import { isEmpty, intersection } from 'lodash-es';
 
 import Select from 'react-select';
 
@@ -61,9 +61,9 @@ function Schedule() {
   let eventList = useRecoilValue(filteredEvents);
   const filters = useRecoilValue(allEventFilters);
 
-  if (!_.isEmpty(selectedSchedules)) {
+  if (!isEmpty(selectedSchedules)) {
     eventList = eventList.filter(
-      (e) => !_.isEmpty(_.intersection(selectedSchedules, e._schedules ?? [])),
+      (e) => !isEmpty(intersection(selectedSchedules, e._schedules ?? [])),
     );
   }
 

@@ -13,7 +13,6 @@ import { useSetting } from './lib/settings';
 import EventList from './EventList';
 
 import { DateTime } from 'luxon';
-import _ from 'lodash';
 
 function ViewAttachmentInner({ url }: { url: string }) {
   const [showAnyway, setShowAnyway] = useState(false);

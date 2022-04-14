@@ -14,7 +14,7 @@ import ViewEvent, { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
 
 import makeData from './makeData';
 import { DateTime } from 'luxon';
-import _ from 'lodash';
+import { intersection } from 'lodash-es';
 
 export function* days(start: DateTime, end: DateTime) {
   let cursor = start.startOf('day');
@@ -49,7 +49,7 @@ function Table_({ columns, data }) {
           ? DateTime.fromMillis(row.original.end.ms)
           : undefined;
         if (start && end) {
-          const keys = _.intersection(Array.from(days(start, end)), dates);
+          const keys = intersection(Array.from(days(start, end)), dates);
           for (const resKey of keys) {
             prev[resKey] = Array.isArray(prev[resKey]) ? prev[resKey] : [];
             prev[resKey].push(row);

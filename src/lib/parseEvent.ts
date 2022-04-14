@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 
 import { CalendarEvent, StartEnd, StartEndDate } from '../models/types';
 
-import { pick } from 'lodash';
+import { pick } from 'lodash-es';
 
 function dateTimeToGoogleTime(
   dateMaybeTime: DateTime,

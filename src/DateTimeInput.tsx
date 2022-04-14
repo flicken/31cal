@@ -2,7 +2,7 @@ import React from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
-import { pick, isEmpty } from 'lodash';
+import { pick, isEmpty } from 'lodash-es';
 
 export type DateTimeRange = {
   start?: DateTime;

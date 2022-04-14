@@ -16,7 +16,7 @@ import { useGoogleButton } from './useGoogleButton';
 import CommandBar from './CommandBar';
 
 import { SettingsProvider } from './lib/settings';
-import { sample } from 'lodash';
+import { sample } from 'lodash-es';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

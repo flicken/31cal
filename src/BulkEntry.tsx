@@ -6,15 +6,13 @@ import parseEvent from './lib/parseEvent';
 
 import EventList from './EventList';
 
-import { compact, isEmpty } from 'lodash';
+import { compact, isEmpty, trim } from 'lodash-es';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import saveEvents from './google/saveEvents';
 
 import { Attachment } from './models/types';
 import { ViewAttachment } from './Attachments';
-
-import _ from 'lodash';
 
 const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
 
@@ -32,7 +30,7 @@ function BulkEntry() {
     (e) => {
       const value = e.target.value;
       console.log('attachment change', e);
-      if (_.isEmpty(_.trim(value))) {
+      if (isEmpty(trim(value))) {
         setAttachment(undefined);
       } else {
         setAttachment({ fileUrl: value });
@@ -54,7 +52,7 @@ function BulkEntry() {
       }
 
       const text = e.clipboardData.getData('text');
-      if (!_.isEmpty(text) && attachmentEl.current) {
+      if (!isEmpty(text) && attachmentEl.current) {
         attachmentEl.current.value = text;
         setAttachment({ fileUrl: text });
       }

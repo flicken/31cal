@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
-import { keyBy } from 'lodash';
+import { keyBy } from 'lodash-es';
 
 import MultiSelectSort from './MultiSelectSort';
 import { StylesConfig } from 'react-select';
@@ -17,8 +17,6 @@ import {
   selectedCalendars as selectedCalendarsState,
   allCalendars,
 } from './lib/store';
-
-import _ from 'lodash';
 
 const isDefault = (id: string, defaultId?: string) => {
   return id === defaultId ? { fontWeight: 'bold' } : null;

@@ -13,7 +13,7 @@ import {
   countsByCalendar,
 } from './lib/store';
 
-import _ from 'lodash';
+import { keyBy, sortBy } from 'lodash-es';
 import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';
@@ -33,7 +33,7 @@ function Calendars() {
   const [selectedCalendarIds_, setSelectedCalendarIds] =
     useRecoilState(selectedCalendarIds);
   const updates = useLiveQuery(() => db.updateState.toArray());
-  const updatesMap = _.keyBy(
+  const updatesMap = keyBy(
     updates?.filter((e) => e.resource.startsWith('calendar/')),
     (e) => e.resource.replaceAll(/^calendar\//g, ''),
   );
@@ -68,7 +68,7 @@ function Calendars() {
           </tr>
         </thead>
         <tbody>
-          {_.sortBy(calList, (c) => c.summary?.toUpperCase()).map((c) => (
+          {sortBy(calList, (c) => c.summary?.toUpperCase()).map((c) => (
             <tr
               key={c.id}
               style={{

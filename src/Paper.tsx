@@ -15,7 +15,7 @@ import {
   StartEndDateTime,
 } from './models/types';
 
-import _ from 'lodash';
+import { intersection } from 'lodash-es';
 
 type TextFilterProps = JSX.IntrinsicElements['input'] & {
   filter: string;
@@ -122,7 +122,7 @@ export const byDate = (events: CalendarEvent[], dates: string[]) => {
       : undefined;
     const end = event.end?.ms ? DateTime.fromMillis(event.end.ms) : undefined;
     if (start && end) {
-      const keys = _.intersection(Array.from(days(start, end)), dates);
+      const keys = intersection(Array.from(days(start, end)), dates);
       for (const resKey of keys) {
         let eventsOnDate = eventsByDate.get(resKey);
         if (!Array.isArray(eventsOnDate)) {

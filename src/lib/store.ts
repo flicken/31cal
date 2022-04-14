@@ -2,7 +2,14 @@ import { atom, selector } from 'recoil';
 import { db } from '../models/db';
 import { CalendarEvent } from '../models/types';
 
-import _ from 'lodash';
+import {
+  sortBy,
+  countBy,
+  fromPairs,
+  differenceWith,
+  toPairs,
+  isEqual,
+} from 'lodash-es';
 
 import { DateTime } from 'luxon';
 
@@ -63,7 +70,7 @@ export const filteredEvents = selector({
         (!updatedSinceString || e.updated > updatedSinceString)
       );
     };
-    return _.sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
+    return sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
   },
 });
 
@@ -71,7 +78,7 @@ export const countsByCalendar = selector({
   key: 'countsByCalendar',
   get: ({ get }) => {
     const events = get(allEvents);
-    return _.countBy(
+    return countBy(
       events.filter((e) => e.status != 'cancelled'),
       (e) => e.calendarId,
     );
@@ -79,7 +86,7 @@ export const countsByCalendar = selector({
 });
 
 const objectDiff = (a: object, b: object) =>
-  _.fromPairs(_.differenceWith(_.toPairs(a), _.toPairs(b), _.isEqual));
+  fromPairs(differenceWith(toPairs(a), toPairs(b), isEqual));
 
 export const settings = atom({
   key: 'settings',
