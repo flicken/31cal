@@ -120,7 +120,7 @@ export const selectedCalendarIds = atom({
       const updateFunction = (modifications: any, primKey: any) => {
         if (primKey !== 'selectedCalendars') return;
 
-        setSelf((old: object) => {
+        setSelf((old) => {
           return modifications.value;
         });
       };
@@ -146,7 +146,8 @@ export const selectedCalendarIds = atom({
 export const selectedCalendars = selector({
   key: 'selectedCalendars',
   get: ({ get }) => {
-    const calendarIds = get(selectedCalendarIds);
+    const ids = get(selectedCalendarIds);
+    const calendarIds = Array.isArray(ids) ? ids : [ids];
     const calendars = get(allCalendars);
     return calendarIds.map((id: string) => calendars.find((c) => c.id === id));
   },

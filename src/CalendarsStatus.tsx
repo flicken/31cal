@@ -44,9 +44,10 @@ function Calendars() {
 
   const onToggle = React.useCallback(
     (calendarId) => {
-      setSelectedCalendarIds((oldCalendarIds) => {
+      setSelectedCalendarIds((param) => {
+        const oldCalendarIds = Array.isArray(param) ? param : [param];
         if (oldCalendarIds.includes(calendarId)) {
-          return oldCalendarIds.filter((id) => id !== calendarId);
+          return oldCalendarIds.filter((id: string) => id !== calendarId);
         } else {
           return [...oldCalendarIds, calendarId];
         }

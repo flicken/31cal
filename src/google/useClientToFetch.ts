@@ -68,7 +68,8 @@ function useClientToFetch(user: any, interval: number) {
   const getEvents = useCallback(async () => {
     if (!user) return;
     if (!calendarsToFetch) return;
-    const fetched = calendarsToFetch.map(async (calendar: Calendar) => {
+    const fetched = calendarsToFetch.map(async (calendar) => {
+      if (!calendar) return Promise.resolve(undefined);
       const account = user.profileObj.email;
       const calendarId = calendar.id;
       const timeZone = calendar.timeZone;
