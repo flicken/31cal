@@ -16,7 +16,7 @@ export default async function saveEvents(
   calendar: any,
   events: any[],
   description?: string,
-  user: any,
+  user?: any,
 ) {
   toast(`Saving events to ${calendar.summary}`, { hideProgressBar: true });
   console.log('Saving events to calendar ', calendar?.id);

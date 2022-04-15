@@ -17,6 +17,8 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import { customAlphabet } from 'nanoid';
 
+import { userContext } from './userContext';
+
 /* See https://developers.google.com/calendar/api/v3/reference/events
  * characters allowed in the ID are those used in base32hex encoding, i.e. lowercase letters a-v and digits 0-9, see section 3.1.2 in RFC2938
  * the length of the ID must be between 5 and 1024 characters
@@ -142,6 +144,7 @@ const toEvent = (input: any): Partial<CalendarEvent> => {
 
 function ImportFile() {
   const defaultCalendar = useDefaultCalendar();
+  const user = React.useContext(userContext);
 
   const [events, setEvents] = useState<Array<Partial<CalendarEvent>>>([]);
   const onDrop = useCallback(
@@ -162,7 +165,7 @@ function ImportFile() {
           );
           const data = csvData?.data ?? [];
           const newEvents = data.map(toEvent);
-          saveEvents(defaultCalendar, newEvents);
+          saveEvents(defaultCalendar, newEvents, '', user);
           setEvents((previousEvents) => [...previousEvents, ...newEvents]);
         };
 

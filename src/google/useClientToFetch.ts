@@ -34,7 +34,7 @@ let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
   // event.id = idFor(event)
 };
 
-export const getEvents = async (user: any, calendarsToFetch: Calendar[]) => {
+export const getEvents = async (user: any, calendarsToFetch?: any[]) => {
   if (!user) return;
   if (!calendarsToFetch) return;
   const fetched = calendarsToFetch.map(async (calendar) => {

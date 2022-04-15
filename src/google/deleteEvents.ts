@@ -24,10 +24,12 @@ export default async function deleteEvents(user: any, events: EventToDelete[]) {
         hideProgressBar: true,
       });
       // optimistic update
-      await db.events.update([event.eventId, event.calendarId], {
-        status: 'cancelled',
-        dirty: true,
-      });
+      await db.events
+        .where({ id: event.eventId, calendarId: event.calendarId })
+        .modify({
+          status: 'cancelled',
+          dirty: true,
+        });
       await db.calendars.update(event.calendarId, { dirty: true });
     } catch (e) {
       toast.error(`Error deleting event ${JSON.stringify(event)}`, {
