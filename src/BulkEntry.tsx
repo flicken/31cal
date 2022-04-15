@@ -10,6 +10,7 @@ import { compact, isEmpty, trim } from 'lodash-es';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import saveEvents from './google/saveEvents';
+import { userContext } from './userContext';
 
 import { Attachment } from './models/types';
 import { ViewAttachment } from './Attachments';
@@ -25,6 +26,7 @@ function BulkEntry() {
   const [attachment, setAttachment] = useState(
     undefined as undefined | Attachment,
   );
+  const user = React.useContext(userContext);
 
   const handleAttachmentChange = useCallback(
     (
@@ -106,8 +108,8 @@ function BulkEntry() {
   }, [eventsText, prefix, attachment]);
 
   const handleSaveEvents = useCallback(async () => {
-    saveEvents(defaultCalendar, events, description);
-  }, [defaultCalendar, events, description]);
+    saveEvents(defaultCalendar, events, description, user);
+  }, [defaultCalendar, events, description, user]);
 
   let saveButton = <button disabled>Set default calendar first</button>;
   if (isEmpty(events)) {
