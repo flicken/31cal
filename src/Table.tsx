@@ -14,7 +14,11 @@ import ViewEvent, { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
 
 import makeData from './makeData';
 import { DateTime } from 'luxon';
-import { intersection } from 'lodash-es';
+import { intersection, compact, uniqWith, isEqual } from 'lodash-es';
+
+import deleteEvents from './google/deleteEvents';
+
+import { userContext } from './userContext';
 
 export function* days(start: DateTime, end: DateTime) {
   let cursor = start.startOf('day');
@@ -25,6 +29,7 @@ export function* days(start: DateTime, end: DateTime) {
 }
 
 function Table_({ columns, data }) {
+  const user = React.useContext(userContext);
   const filters = useRecoilValue(allEventFilters);
   const dates = React.useMemo(
     () => Array.from(days(filters.start, filters.end)),
@@ -122,8 +127,34 @@ function Table_({ columns, data }) {
     }, []);
   };
 
+  const onDelete = async (e) => {
+    const eventsToDelete = uniqWith(
+      compact(
+        selectedFlatRows.map((e) => {
+          const event = e.original;
+          if (event) {
+            return {
+              calendarId: event.calendarId,
+              eventId: event.id,
+              summary: event.summary,
+            };
+          }
+        }),
+      ),
+      isEqual,
+    );
+    console.log('eventsToDelete', eventsToDelete);
+    await deleteEvents(user, eventsToDelete);
+  };
+  const IconBar = (
+    <div>
+      <button onClick={onDelete}>Delete</button>
+    </div>
+  );
+
   return (
     <>
+      {IconBar}
       <table {...getTableProps()}>
         <thead>
           {headerGroups.map((headerGroup) => (

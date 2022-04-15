@@ -4,6 +4,8 @@ import { DateTime } from 'luxon';
 
 import ensureClient from './ensureClient';
 
+import { getEvents } from './useClientToFetch';
+
 function googleTimeToDateTime(value: any, timeZone: any) {
   return DateTime.fromISO(value.dateTime || value.date, {
     zone: value.timeZone || timeZone,
@@ -14,12 +16,13 @@ export default async function saveEvents(
   calendar: any,
   events: any[],
   description?: string,
+  user: any,
 ) {
   toast(`Saving events to ${calendar.summary}`, { hideProgressBar: true });
   console.log('Saving events to calendar ', calendar?.id);
   await ensureClient();
   const gapi: any = (window as any).gapi;
-  events.forEach(async (event: any) => {
+  for (const event of events) {
     try {
       if (!event.end) {
         if (event.start.date) {
@@ -46,5 +49,7 @@ export default async function saveEvents(
         hideProgressBar: true,
       });
     }
-  });
+  }
+
+  await getEvents(user, [calendar]);
 }

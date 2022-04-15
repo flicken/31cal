@@ -34,6 +34,37 @@ let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
   // event.id = idFor(event)
 };
 
+export const getEvents = async (user: any, calendarsToFetch: Calendar[]) => {
+  if (!user) return;
+  if (!calendarsToFetch) return;
+  const fetched = calendarsToFetch.map(async (calendar) => {
+    if (!calendar) return Promise.resolve(undefined);
+    console.log('Fetching calendar', calendar);
+    const account = user.profileObj.email;
+    const calendarId = calendar.id;
+    const timeZone = calendar.timeZone;
+    const resource = `calendar/${calendarId}`;
+    const transformation = (event: any) => {
+      mutateEvent(event, calendarId, timeZone);
+      return event;
+    };
+    const request = {
+      calendarId,
+      showDeleted: true,
+      singleEvents: true,
+    };
+    return fetchList({
+      account,
+      request,
+      resource,
+      transformation,
+      googleResource: (gapi) => gapi.client.calendar.events,
+      table: db.events,
+    });
+  });
+  await Promise.all(fetched);
+};
+
 function useClientToFetch(user: any, interval: number) {
   const [lastFetchDate, setLastFetchDate] = React.useState(DateTime.now());
 
@@ -65,43 +96,13 @@ function useClientToFetch(user: any, interval: number) {
 
   const calendarsToFetch = useRecoilValue(selectedCalendars);
 
-  const getEvents = useCallback(async () => {
-    if (!user) return;
-    if (!calendarsToFetch) return;
-    const fetched = calendarsToFetch.map(async (calendar) => {
-      if (!calendar) return Promise.resolve(undefined);
-      const account = user.profileObj.email;
-      const calendarId = calendar.id;
-      const timeZone = calendar.timeZone;
-      const resource = `calendar/${calendarId}`;
-      const transformation = (event: any) => {
-        mutateEvent(event, calendarId, timeZone);
-        return event;
-      };
-      const request = {
-        calendarId,
-        showDeleted: true,
-        singleEvents: true,
-      };
-      fetchList({
-        account,
-        request,
-        resource,
-        transformation,
-        googleResource: (gapi) => gapi.client.calendar.events,
-        table: db.events,
-      });
-    });
-    await Promise.all(fetched);
-  }, [user, calendarsToFetch, lastFetchDate]);
-
   useEffect(() => {
     getCalendars();
   }, [getCalendars]);
 
   useEffect(() => {
-    getEvents();
-  }, [getEvents]);
+    getEvents(user, calendarsToFetch);
+  }, [user, calendarsToFetch, lastFetchDate]);
 }
 
 export default useClientToFetch;
