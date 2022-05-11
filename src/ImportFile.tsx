@@ -181,7 +181,7 @@ function ImportFile() {
     isDragAccept,
     isDragReject,
     isDragActive,
-  } = useDropzone({ accept: 'text/*', onDrop });
+  } = useDropzone({ accept: { 'text/*': ['.csv', '.tsv'] }, onDrop });
 
   const style = useMemo(
     () => ({
