@@ -47,3 +47,12 @@ Agenda: 31 different ways to calendar
 6. https://github.com/asabaylus/react-command-palette - command bar
 7. https://github.com/github/time-elements - time display - relative e.g. 2d
 8. https://github.com/peterbraden/ical.js - ical - for imparting
+
+# Potential databases
+
+Comparison: https://github.com/pubkey/client-side-databaseS
+
+1. https://github.com/Nozbe/WatermelonDB - db - offline first, backed by pluggable backend
+2. https://github.com/tonsky/datascript - db - in-memory 
+3. https://rxdb.info/
+4. https://github.com/techfort/LokiJS
