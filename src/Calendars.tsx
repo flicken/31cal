@@ -10,6 +10,7 @@ import { keyBy } from 'lodash-es';
 
 import MultiSelectSort from './MultiSelectSort';
 import { StylesConfig } from 'react-select';
+import makeAnimated from 'react-select/animated';
 
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import {
@@ -21,6 +22,8 @@ import {
 const isDefault = (id: string, defaultId?: string) => {
   return id === defaultId ? { fontWeight: 'bold' } : null;
 };
+
+const animatedComponents = makeAnimated();
 
 const colorStyles: StylesConfig<Calendar, true> = {
   control: (styles) => ({ ...styles, backgroundColor: 'white' }),
@@ -83,6 +86,7 @@ function Calendars() {
     <MultiSelectSort
       getOptionValue={(c: Calendar) => c.id}
       getOptionLabel={(c: Calendar) => c.summary}
+      components={animatedComponents}
       isClearable={true}
       value={selectedCalendars}
       options={calList}
