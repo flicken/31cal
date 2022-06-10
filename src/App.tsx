@@ -42,15 +42,15 @@ import { RecoilRoot } from 'recoil';
 
 import { useEventListener, useOnClickOutside } from 'usehooks-ts';
 
-const Paper = React.lazy(() => import('./Paper'));
-const Attachments = React.lazy(() => import('./Attachments'));
-const BulkEntry = React.lazy(() => import('./BulkEntry'));
-const CalendarsStatus = React.lazy(() => import('./CalendarsStatus'));
-const Events = React.lazy(() => import('./Events'));
-const Filters = React.lazy(() => import('./Filters'));
-const ImportFile = React.lazy(() => import('./ImportFile'));
-const Schedule = React.lazy(() => import('./Schedule'));
-const Table = React.lazy(() => import('./Table'));
+import Paper from './Paper';
+import Attachments from './Attachments';
+import BulkEntry from './BulkEntry';
+import CalendarsStatus from './CalendarsStatus';
+import Events from './Events';
+import Filters from './Filters';
+import ImportFile from './ImportFile';
+import Schedule from './Schedule';
+import Table from './Table';
 
 const SmallLogo = (
   <svg
