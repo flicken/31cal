@@ -853,10 +853,10 @@
     jest-matcher-utils "^27.0.0"
     pretty-format "^27.0.0"
 
-"@types/jest@28.1.2":
-  version "28.1.2"
-  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-28.1.2.tgz#c678569bb2d8e5474dd88f0851613611aeed9809"
-  integrity sha512-5dNM7mMuIrCtNJsFfvUO/5xCrG8swuT2c7ND+sl3XwlwxJf3k7e7o+PRvcFN/iIm8XhCqHqxLOj9yutDDOJoRg==
+"@types/jest@28.1.3":
+  version "28.1.3"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-28.1.3.tgz#52f3f3e50ce59191ff5fbb1084896cc0cf30c9ce"
+  integrity sha512-Tsbjk8Y2hkBaY/gJsataeb4q9Mubw9EOz7+4RjPkzD5KjTvHHs7cpws22InaoXxAVAhF5HfFbzJjo6oKWqSZLw==
   dependencies:
     jest-matcher-utils "^28.0.0"
     pretty-format "^28.0.0"
@@ -2338,10 +2338,10 @@ react-textarea-autosize@8.3.4:
     use-composed-ref "^1.3.0"
     use-latest "^1.2.1"
 
-react-toastify@9.0.4:
-  version "9.0.4"
-  resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-9.0.4.tgz#016d0f3dae2f6e9c01eb36bd1d2c31b0a6de4434"
-  integrity sha512-MYmJ1V5F6DEU+TFxBb+pGGsveFPt4tjr4yK+TopXkU3sXPD9F2tFhX+G2HBLZpqObT2O6Z9jbXSg3JpaxuWtWw==
+react-toastify@9.0.5:
+  version "9.0.5"
+  resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-9.0.5.tgz#310d7bcfcf3887c0e8461ac6068fe1abb8d720e1"
+  integrity sha512-dszPCeQINY+Nm6HmsiAXT/7wsazPqv0S/RuhIYLAW+fTKcd3T1iRjZG0XqrN9nvAzqaE5J6uxMaiBrOevxjY8g==
   dependencies:
     clsx "^1.1.1"
 
@@ -2369,10 +2369,10 @@ react@18.2.0:
   dependencies:
     loose-envify "^1.1.0"
 
-recoil@0.7.3:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.7.3.tgz#b674f5d9ceddb24f53dcb089731ec939d9e87cfc"
-  integrity sha512-WaPppk3Hz5/V9nOVmu1X/o3cJyf/rLXw/YsEENvMzEDk+LKqMiGfFgZ3Gg51TKWccpCZCyrSBXn2O4L1E2WDPQ==
+recoil@0.7.4:
+  version "0.7.4"
+  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.7.4.tgz#d6508fa656d9c93e66fdf334e1f723a9e98801cf"
+  integrity sha512-sCXvQGMfSprkNU4ZRkJV4B0qFQSURJMgsICqY1952WRlg66NMwYqi6n67vhnhn0qw4zHU1gHXJuMvRDaiRNFZw==
   dependencies:
     hamt_plus "1.0.2"
 
@@ -2696,15 +2696,15 @@ use-latest@^1.2.1:
   dependencies:
     use-isomorphic-layout-effect "^1.1.1"
 
-usehooks-ts@2.5.4:
-  version "2.5.4"
-  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.5.4.tgz#e28ce0c1140e3ae172d9b8d2fca07dff68a476ab"
-  integrity sha512-NG4XKLh7csTFFtUgtUuR72zlJ1Bpt4+nDAnKQqcQcpxYnwAZZv3RpksKvxBIusPCHUL3NuC0xLwwJCpPxIuknQ==
+usehooks-ts@2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.6.0.tgz#aebab367da2350a0bee1c3749bc6dd4bcce3eaae"
+  integrity sha512-Kj/4oc2nOxRDGTDb2v1ZulF7+tpeXFuqI6cUesM0Vic7TPPDlFORxKh4ivsYg+NTvX/YbM+lhqqkfFTiIt23eg==
 
-vite-plugin-svgr@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/vite-plugin-svgr/-/vite-plugin-svgr-2.1.0.tgz#cd66862da737949383e6d8f12d981958b9a65cc5"
-  integrity sha512-3J19p8pmGfRt297yvc8Fd36+0AC0sLgA/gZYQDjotNAhv3CmSTQyviXIrDbwiRFVrsZjSlHJH1vca7OGFmjDcA==
+vite-plugin-svgr@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/vite-plugin-svgr/-/vite-plugin-svgr-2.1.1.tgz#99551e4518fed82ada83a685e3686b68c64c8281"
+  integrity sha512-RWuUgp37kNx5bbBcG/RdbUMW90fcEZWyZGtDJTOlNrFxDsJDNfg0GS4YSTLon6/JLsBR2TG2WvTN8k+MnH4YhA==
   dependencies:
     "@svgr/core" "^6.2.1"
 
