@@ -149,7 +149,7 @@ const EL = ({ event, day }: ELProps) => {
       (event.start as StartEndDateTime).dateTime;
 
   return (
-    <span style={{ color: recurring ? '#888' : '#000' }}>
+    <span style={{ color: recurring ? 'green' : 'blue' }}>
       <b>{showTime(event, day)}</b>
       <br />
       {event.summary || event.description || JSON.stringify(event)}
@@ -164,14 +164,48 @@ type RowProps = JSX.IntrinsicElements['tr'] & {
   events: CalendarEvent[];
 };
 
+const dayNames = ['Sun', 'Mon', 'Tues', 'Wed', 'Thur', 'Fri', 'Sat'];
+
 const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
+  const [hover, setHover] = useState(false);
   const split = splitByFilters(events, filters);
   const { unmatched, matched } = split;
 
+  const hoverStyle = hover
+    ? {
+        outline: 'none',
+        borderColor: 'red',
+        boxShadow: '0 0 10px red',
+        filter: 'brightness(.9)',
+      }
+    : null;
+
+  const dayOfWeek = new Date(day).getDay();
+  const dayStyle =
+    dayOfWeek == 1
+      ? {
+          borderTop: 'thin dashed grey',
+        }
+      : null;
+
   return (
-    <tr style={{ verticalAlign: 'top', ...style }} {...rest}>
+    <tr
+      onMouseEnter={() => {
+        setHover(true);
+      }}
+      onMouseLeave={() => {
+        setHover(false);
+      }}
+      style={{
+        verticalAlign: 'top',
+        ...style,
+        ...hoverStyle,
+        ...dayStyle,
+      }}
+      {...rest}
+    >
       <td key="day" style={{ minWidth: '7em', fontWeight: 'bold' }}>
-        {day}
+        {day} {dayNames[dayOfWeek]}
       </td>
       {matched.map((columnEvents, index) => (
         <td key={index}>
@@ -225,7 +259,14 @@ export default function Paper() {
 
   const columnsToShow = [...columns, ''];
   let list = (
-    <table style={{ margin: '0px', textAlign: 'left' }} width="100%">
+    <table
+      style={{
+        margin: '0px',
+        textAlign: 'left',
+        borderCollapse: 'collapse',
+      }}
+      width="100%"
+    >
       <thead>
         <tr>
           <th key="day" style={{ minWidth: '100px' }}>
