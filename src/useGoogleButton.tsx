@@ -38,6 +38,7 @@ export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
     discoveryDocs:
       'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
     isSignedIn: true,
+    prompt: 'consent',
     onFailure,
     onSuccess,
     scope: SCOPES,
