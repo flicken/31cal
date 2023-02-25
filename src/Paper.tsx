@@ -84,7 +84,7 @@ export function showTime(event: CalendarEvent, day: string) {
     (!event.end || isStartEndDate(event.end))
   ) {
     const startToday = event.start.date === day;
-    const endToday = event.end.date === tomorrow(day);
+    const endToday = event.end.date === day;
     if (startToday && endToday) {
       return 'All day';
     } else if (startToday && !endToday) {
