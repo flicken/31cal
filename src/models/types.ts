@@ -9,6 +9,7 @@ export type Calendar = {
   timeZone: string;
   foregroundColor: string;
   backgroundColor: string;
+  primary: boolean;
 };
 
 export function isStartEndDate(startEnd: StartEnd): startEnd is StartEndDate {
@@ -74,6 +75,8 @@ export type UpdateState = {
   etag?: string;
   updatedAt: number;
   requestedAt?: number;
+  requesting?: boolean;
+  error?: string;
 };
 
 export type Setting = {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Calendar } from './models/types';
+import { Calendar, UpdateState } from './models/types';
 import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
@@ -22,7 +22,42 @@ function showDate(millis?: number) {
   if (!millis) return undefined;
 
   const date = DateTime.fromMillis(millis);
-  return <span title={date.toString()}>{date.toRelative()}</span>;
+  return (
+    <span title={date.toString()}>{date.toRelative({ style: 'narrow' })}</span>
+  );
+}
+
+function sortKey(c: Calendar): string {
+  if (c.primary) {
+    return `000_${c.summary?.toUpperCase()}`;
+  }
+  if (c.id === 'addressbook#contacts@group.v.calendar.google.com') {
+    return `001_${c.summary?.toUpperCase()}`;
+  }
+  return c.summary?.toUpperCase();
+}
+
+function UpdateStatus({ update }: { update?: UpdateState }) {
+  if (!update) {
+    return null;
+  }
+  if (update.error) {
+    return (
+      <>
+        Error {update.error} {showDate(update.updatedAt)}
+      </>
+    );
+  }
+
+  if (update.requesting) {
+    return <>Requesting since {showDate(update.updatedAt)}</>;
+  }
+
+  if (update.updatedAt) {
+    return <>Successfully updated {showDate(update.updatedAt)}</>;
+  }
+
+  return null;
 }
 
 function Calendars() {
@@ -33,10 +68,11 @@ function Calendars() {
   const [selectedCalendarIds_, setSelectedCalendarIds] =
     useRecoilState(selectedCalendarIds);
   const updates = useLiveQuery(() => db.updateState.toArray());
-  const updatesMap = keyBy(
-    updates?.filter((e) => e.resource.startsWith('calendar/')),
-    (e) => e.resource.replaceAll(/^calendar\//g, ''),
+  const updatesMap = keyBy(updates, (e) =>
+    e.resource.replaceAll(/^calendar\//g, ''),
   );
+
+  const listUpdate = updatesMap['calendarList'];
 
   useInterval(() => {
     setAsOf(DateTime.now());
@@ -63,12 +99,12 @@ function Calendars() {
           <tr>
             <th></th>
             <th>Name</th>
-            <th>Updated</th>
             <th>Events</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {sortBy(calList, (c) => c.summary?.toUpperCase()).map((c) => (
+          {sortBy(calList, sortKey).map((c) => (
             <tr
               key={c.id}
               style={{
@@ -87,15 +123,21 @@ function Calendars() {
                 />
               </td>
               <td>{c.summary}</td>
-              <td>{showDate(updatesMap[c.id]?.updatedAt)}</td>
               <td>{counts[c.id]}</td>
+              <td>
+                <UpdateStatus update={updatesMap[c.id]} />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-      As of {asOf.toLocaleString(DateTime.TIME_SIMPLE)}
+      Calendar list: <UpdateStatus update={updatesMap['calendarList']} />
     </>
   );
+}
+
+function run<T>(f: () => T): T {
+  return f();
 }
 
 export default Calendars;
