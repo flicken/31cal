@@ -46,14 +46,44 @@ export const getEvents = async (user: any, calendarsToFetch?: any[]) => {
   if (!user) return;
   if (!calendarsToFetch) return;
   const fetched = calendarsToFetch.map(async (calendar) => {
-    if (!calendar) return Promise.resolve(undefined);
-    console.log('Fetching calendar', calendar);
+    if (!calendar) return undefined;
+
     const account = user.profileObj.email;
     const calendarId = calendar.id;
-    const timeZone = calendar.timeZone;
     const resource = `calendar/${calendarId}`;
+    console.log('Fetching calendar', calendar);
+
+    await fetchResource(account, resource);
+  });
+  await Promise.all(fetched);
+};
+
+export async function fetchResource(account: string, resource: string) {
+  if (resource === 'calendarList') {
+    const transformation = (calendar: any) => {
+      if (calendar.summaryOverride) {
+        calendar.originalSummary = calendar.summary;
+        calendar.summary = calendar.summaryOverride;
+      }
+      return calendar;
+    };
+
+    return await fetchList({
+      account,
+      resource,
+      transformation,
+      request: {},
+      googleResource: (gapi) => gapi.client.calendar.calendarList,
+      table: db.calendars,
+    });
+  } else if (resource.startsWith('calendar/')) {
+    const calendarId = resource.replace('calendar/', '');
+    const calendar = await db.calendars.get(calendarId);
+    if (!calendar) {
+      throw new Error(`Cannot find calendar ${calendarId}`);
+    }
     const transformation = (event: any) => {
-      mutateEvent(event, calendarId, timeZone);
+      mutateEvent(event, calendarId, calendar.timeZone);
       return event;
     };
     const request = {
@@ -61,7 +91,7 @@ export const getEvents = async (user: any, calendarsToFetch?: any[]) => {
       showDeleted: true,
       singleEvents: true,
     };
-    return fetchList({
+    return await fetchList({
       account,
       request,
       resource,
@@ -69,9 +99,10 @@ export const getEvents = async (user: any, calendarsToFetch?: any[]) => {
       googleResource: (gapi) => gapi.client.calendar.events,
       table: db.events,
     });
-  });
-  await Promise.all(fetched);
-};
+  } else {
+    throw new Error(`Unknown resource type`);
+  }
+}
 
 function useClientToFetch(user: any, interval: number) {
   const [lastFetchDate, setLastFetchDate] = React.useState(DateTime.now());
@@ -82,24 +113,7 @@ function useClientToFetch(user: any, interval: number) {
 
   const getCalendars = useCallback(async () => {
     if (!user) return;
-    const account = user.profileObj.email;
-    const resource = 'calendarList';
-    const transformation = (calendar: any) => {
-      if (calendar.summaryOverride) {
-        calendar.originalSummary = calendar.summary;
-        calendar.summary = calendar.summaryOverride;
-      }
-      return calendar;
-    };
-
-    await fetchList({
-      account,
-      resource,
-      transformation,
-      request: {},
-      googleResource: (gapi) => gapi.client.calendar.calendarList,
-      table: db.calendars,
-    });
+    await fetchResource(user.profileObj.email, 'calendarList');
   }, [user, lastFetchDate]);
 
   const calendarsToFetch = useRecoilValue(selectedCalendars);

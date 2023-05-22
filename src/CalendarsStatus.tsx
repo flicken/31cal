@@ -18,6 +18,8 @@ import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';
 
+import { fetchResource } from './google/useClientToFetch';
+
 function showDate(millis?: number) {
   if (!millis) return undefined;
 
@@ -44,7 +46,19 @@ function UpdateStatus({ update }: { update?: UpdateState }) {
   if (update.error) {
     return (
       <>
-        Error {update.error} {showDate(update.updatedAt)}
+        Error {update.error} {showDate(update.updatedAt)}{' '}
+        <button
+          onClick={async () => {
+            await db.updateState.update([update.account, update.resource], {
+              nextSyncToken: undefined,
+              nextPageToken: undefined,
+              etag: undefined,
+            });
+            await fetchResource(update.account, update.resource);
+          }}
+        >
+          Retry
+        </button>
       </>
     );
   }
