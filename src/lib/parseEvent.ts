@@ -39,7 +39,7 @@ const dateTimeFromAll = (components: any) => {
   return DateTime.fromObject(fields);
 };
 
-const toGoogleTime = (components?: ParsedComponents) => {
+const toGoogleTime = (components: ParsedComponents): StartEnd | undefined => {
   if (!components) return undefined;
   console.log('toGoogleTime', components);
 
@@ -100,14 +100,29 @@ const parseInput = (
     let values = { ...components.impliedValues, ...components.knownValues };
     let rest = s.replace(datetimes[0].text, '').trim();
     console.log('values', values);
+    const start = toGoogleTime(datetimes[0].start);
+    const maybeEnd = toGoogleTime(datetimes[0].end ?? datetimes[0].start);
+    // End of full-day calendar events must be on the next day.
+    // For example, an event on "Saturday", would have e.g.
+    //    start: {date: "2023-05-27"}
+    //    end:   {date: "2023-05-28"}
+    const end = maybeEnd && 'date' in maybeEnd ? addOneDay(maybeEnd) : maybeEnd;
+
     return {
       summary: rest,
-      start: toGoogleTime(datetimes[0].start),
-      end: toGoogleTime(datetimes[0].end),
+      start,
+      end,
     };
   } else {
     return undefined;
   }
 };
+
+function addOneDay(maybeEnd: StartEndDate) {
+  return {
+    ...maybeEnd,
+    date: DateTime.fromISO(maybeEnd.date).plus({ days: 1 }).toISODate(),
+  };
+}
 
 export default parseInput;
