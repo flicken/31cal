@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarEvent, StartEnd } from './models/types';
+import { CalendarEvent, StartEnd, isStartEndDate } from './models/types';
 
 import { DateTime } from 'luxon';
 import dompurify from 'dompurify';
@@ -21,6 +21,10 @@ function dateOf(value: StartEnd) {
   else return value.date;
 }
 
+function minusOneDay(date: string): string {
+  return DateTime.fromISO(date).minus({ days: 1 }).toISODate();
+}
+
 export function ViewStartAndEnd({
   start,
   end,
@@ -31,19 +35,35 @@ export function ViewStartAndEnd({
   showDate?: boolean;
 }) {
   if (start && end) {
-    if (dateOf(start) === dateOf(end)) {
-      return (
-        <>
-          {showDate ? dateOf(start) : null} {timeOf(start)} - {timeOf(end)}
-        </>
-      );
+    const startDate = dateOf(start);
+    const isAllDayEvent = isStartEndDate(start) && isStartEndDate(end);
+    const endDate = isAllDayEvent ? minusOneDay(dateOf(end)) : dateOf(end);
+
+    if (startDate === endDate) {
+      if (isAllDayEvent) {
+        return showDate ? startDate : null;
+      } else {
+        return (
+          <>
+            {showDate ? startDate : null} {timeOf(start)} - {timeOf(end)}
+          </>
+        );
+      }
     } else {
-      return (
-        <>
-          {showDate ? dateOf(start) : null} {timeOf(start)} - {dateOf(end)}{' '}
-          {timeOf(end)}
-        </>
-      );
+      if (isAllDayEvent) {
+        return (
+          <>
+            {showDate ? startDate : null} - {endDate}
+          </>
+        );
+      } else {
+        return (
+          <>
+            {showDate ? startDate : null} {timeOf(start)} - {endDate}{' '}
+            {timeOf(end)}
+          </>
+        );
+      }
     }
   } else if (start) {
     return (
