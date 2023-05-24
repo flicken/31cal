@@ -7,6 +7,7 @@ import useDefaultCalendar from '../lib/useDefaultCalendar';
 
 import { useRecoilValue } from 'recoil';
 import { selectedCalendars } from '../lib/store';
+import { Calendar } from '../models/types';
 
 import { DateTime } from 'luxon';
 
@@ -14,22 +15,25 @@ import { eventSchedules } from '../lib/useScheduleList';
 
 import { useInterval } from 'usehooks-ts';
 
-function toMillis(
-  event: { start: any; end: any },
-  fieldName: 'end' | 'start',
+const toMillis = (
+  event: any,
+  fieldName: 'start' | 'end',
   timeZone: string,
-) {
-  let value = event[fieldName];
-  let date = DateTime.fromISO(value.dateTime ?? value.date, {
-    zone: value.timeZone ?? timeZone,
+): number => {
+  const value = event[fieldName];
+  const date = DateTime.fromISO(value.dateTime || value.date, {
+    zone: value.timeZone || timeZone,
   });
-
-  if ('date' in value && fieldName === 'end') {
-    date = date.plus({ days: 1 });
+  if (
+    fieldName === 'end' &&
+    event.start?.date &&
+    event.start?.date === event.end?.date
+  ) {
+    return date.plus({ days: 1 }).toMillis();
   }
 
   return date.toMillis();
-}
+};
 
 let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
   let start = toMillis(event, 'start', timeZone);

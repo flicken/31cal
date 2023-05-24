@@ -13,7 +13,7 @@ export type Calendar = {
 };
 
 export function isStartEndDate(startEnd: StartEnd): startEnd is StartEndDate {
-  return (<StartEndDate>startEnd).date !== undefined;
+  return 'date' in startEnd && startEnd.date !== undefined;
 }
 
 export type StartEndDate = {
