@@ -41,7 +41,7 @@ export function ViewStartAndEnd({
 
     if (startDate === endDate) {
       if (isAllDayEvent) {
-        return showDate ? startDate : null;
+        return <>{showDate ? startDate : timeOf(start date)</>;
       } else {
         return (
           <>
