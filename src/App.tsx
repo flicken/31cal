@@ -51,6 +51,7 @@ import Filters from './Filters';
 import ImportFile from './ImportFile';
 import Schedule from './Schedule';
 import Table from './Table';
+import CalendarUpdateStatus from './CalendarUpdateStatus';
 
 const SmallLogo = (
   <svg
@@ -252,6 +253,9 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
     <div style={{ float: 'right', clear: 'both' }}>
       <Suspense fallback={<span>...</span>}>
         <ShowDefaultCalendar />
+        <a href="/status">
+          <CalendarUpdateStatus />
+        </a>
       </Suspense>{' '}
       - {googleButton}
     </div>

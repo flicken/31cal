@@ -20,14 +20,8 @@ import { useInterval } from 'usehooks-ts';
 
 import { fetchResource } from './google/useClientToFetch';
 
-function showDate(millis?: number) {
-  if (!millis) return undefined;
-
-  const date = DateTime.fromMillis(millis);
-  return (
-    <span title={date.toString()}>{date.toRelative({ style: 'narrow' })}</span>
-  );
-}
+import { showDate } from './utils';
+import { UpdateStatus, UpdateStatusIcon } from './CalendarUpdateStatus';
 
 function sortKey(c: Calendar): string {
   if (c.primary) {
@@ -39,41 +33,6 @@ function sortKey(c: Calendar): string {
   return c.summary?.toUpperCase();
 }
 
-function UpdateStatus({ update }: { update?: UpdateState }) {
-  if (!update) {
-    return null;
-  }
-  if (update.error) {
-    return (
-      <>
-        Error {update.error} {showDate(update.updatedAt)}{' '}
-        <button
-          onClick={async () => {
-            await db.updateState.update([update.account, update.resource], {
-              nextSyncToken: undefined,
-              nextPageToken: undefined,
-              etag: undefined,
-            });
-            await fetchResource(update.account, update.resource);
-          }}
-        >
-          Retry
-        </button>
-      </>
-    );
-  }
-
-  if (update.requesting) {
-    return <>Requesting since {showDate(update.updatedAt)}</>;
-  }
-
-  if (update.updatedAt) {
-    return <>Successfully updated {showDate(update.updatedAt)}</>;
-  }
-
-  return null;
-}
-
 function Calendars() {
   const [asOf, setAsOf] = React.useState(DateTime.now());
   const defaultCalendar = useDefaultCalendar();
@@ -82,9 +41,7 @@ function Calendars() {
   const [selectedCalendarIds_, setSelectedCalendarIds] =
     useRecoilState(selectedCalendarIds);
   const updates = useLiveQuery(() => db.updateState.toArray());
-  const updatesMap = keyBy(updates, (e) =>
-    e.resource.replaceAll(/^calendar\//g, ''),
-  );
+  const updatesMap = keyBy(updates, 'resource');
 
   const listUpdate = updatesMap['calendarList'];
 
@@ -139,7 +96,7 @@ function Calendars() {
               <td>{c.summary}</td>
               <td>{counts[c.id]}</td>
               <td>
-                <UpdateStatus update={updatesMap[c.id]} />
+                <UpdateStatusIcon update={updatesMap[`calendar/${c.id}`]} />
               </td>
             </tr>
           ))}
