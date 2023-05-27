@@ -308,9 +308,7 @@ function App() {
         >
           <SettingsProvider>
             <CommandBar />
-            <Suspense fallback={<div>Loading....</div>}>
-              <RightBar user={user} googleButton={googleButton} />
-            </Suspense>
+            <RightBar user={user} googleButton={googleButton} />
             <Dropzone
               noClick={true}
               onDrop={(files) => console.log('onDrop', files)}
@@ -340,9 +338,7 @@ function App() {
                       e.preventDefault();
                     }}
                   >
-                    <Suspense fallback={<div>Loading...</div>}>
-                      {useRoutes(ROUTES)}
-                    </Suspense>
+                    {useRoutes(ROUTES)}
                   </div>
                 </div>
               )}
