@@ -51,6 +51,7 @@ function RenderResults() {
           <div style={groupNameStyle}>{item}</div>
         ) : (
           <ResultItem
+            key={item.id}
             action={item}
             active={active}
             currentRootActionId={rootActionId || undefined}
@@ -88,6 +89,7 @@ const ResultItem = React.forwardRef(
 
     return (
       <div
+        key={action.id}
         ref={ref}
         style={{
           padding: '12px 16px',
