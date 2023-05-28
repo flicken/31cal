@@ -22,7 +22,7 @@ function dateOf(value: StartEnd) {
 }
 
 function minusOneDay(date: string): string {
-  return DateTime.fromISO(date).minus({ days: 1 }).toISODate();
+  return DateTime.fromISO(date).minus({ days: 1 }).toISODate()!;
 }
 
 export function ViewStartAndEnd({

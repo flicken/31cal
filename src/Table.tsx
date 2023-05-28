@@ -20,10 +20,13 @@ import deleteEvents from './google/deleteEvents';
 
 import { userContext } from './userContext';
 
-export function* days(start: DateTime, end: DateTime) {
+export function* days(
+  start: DateTime,
+  end: DateTime,
+): Generator<string, void, unknown> {
   let cursor = start.startOf('day');
   while (cursor < end) {
-    yield cursor.toISODate();
+    yield cursor.toISODate()!;
     cursor = cursor.plus({ days: 1 });
   }
 }

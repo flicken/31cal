@@ -10,12 +10,12 @@ function dateTimeToGoogleTime(
   components: ParsedComponents,
 ): StartEnd {
   if (!components.isCertain('hour')) {
-    return { date: dateMaybeTime.toISODate() };
+    return { date: dateMaybeTime.toISODate()! };
   }
 
   return {
     dateTime: dateMaybeTime.toString(),
-    timeZone: dateMaybeTime.zoneName,
+    timeZone: dateMaybeTime.zoneName!,
   };
 }
 
@@ -118,10 +118,10 @@ const parseInput = (
   }
 };
 
-function addOneDay(maybeEnd: StartEndDate) {
+function addOneDay(maybeEnd: StartEndDate): StartEndDate {
   return {
     ...maybeEnd,
-    date: DateTime.fromISO(maybeEnd.date).plus({ days: 1 }).toISODate(),
+    date: DateTime.fromISO(maybeEnd.date).plus({ days: 1 }).toISODate()!,
   };
 }
 

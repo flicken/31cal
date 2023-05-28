@@ -106,22 +106,31 @@ const parseTime = (time?: string) => {
   };
 };
 
-const toGoogleDateTime = (date?: string, time?: string) => {
+const toGoogleDateTime = (
+  date?: string,
+  time?: string,
+): { dateTime: string; ms: number } | undefined => {
   const dateParts = parseDate(date);
   const timeParts = parseTime(time);
 
   if (dateParts && timeParts) {
     const dateTime = DateTime.fromObject({ ...dateParts, ...timeParts });
-    return {
-      dateTime: dateTime.toISO(),
-      ms: dateTime.toMillis(),
-    };
+    const dateTimeIso = dateTime.toISO();
+    return dateTimeIso
+      ? {
+          dateTime: dateTimeIso,
+          ms: dateTime.toMillis(),
+        }
+      : undefined;
   } else if (dateParts) {
     const date = DateTime.fromObject({ ...dateParts });
-    return {
-      date: date.toISODate(),
-      ms: date.toMillis(),
-    };
+    const dateIso = date.toISO();
+    return dateIso
+      ? {
+          dateTime: dateIso,
+          ms: date.toMillis(),
+        }
+      : undefined;
   }
 
   return;
