@@ -253,9 +253,9 @@ function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
     <div style={{ float: 'right', clear: 'both' }}>
       <Suspense fallback={<span>...</span>}>
         <ShowDefaultCalendar />
-        <a href="/status">
+        <Link to="/status">
           <CalendarUpdateStatus />
-        </a>
+        </Link>
       </Suspense>{' '}
       - {googleButton}
     </div>
