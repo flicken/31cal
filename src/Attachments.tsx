@@ -31,15 +31,15 @@ function ViewAttachmentInner({ url }: { url: string }) {
     const maybeUrl = `http://mail.google.com/?${url.replace(/.*\?/, '')}`;
     return (
       <div>
-        Unlikely to be able to Gmail attachment <a href={maybeUrl}>{url}</a>,{' '}
-        {viewShowAnyway}?
+        Unlikely to be able to view Gmail attachment{' '}
+        <a href={maybeUrl}>{url}</a>, {viewShowAnyway}?
       </div>
     );
   }
   if (url.startsWith('https://mail.google.com') && !showAnyway) {
     return (
       <div>
-        Unlikely to be able to Gmail attachment <a href={url}>{url}</a>,{' '}
+        Unlikely to be able to view Gmail attachment <a href={url}>{url}</a>,{' '}
         {viewShowAnyway}?
       </div>
     );
