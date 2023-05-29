@@ -1,4 +1,5 @@
 const ensureClient = () => {
+  console.log('Ensuring client');
   const gapi: any = (window as any).gapi;
   const initClient = () => {
     return gapi.client.init({
@@ -8,10 +9,12 @@ const ensureClient = () => {
     });
   };
 
-  if (!gapi.client) {
+  console.log('gapi', gapi);
+
+  if (!gapi?.client) {
     const promise = new Promise(function (resolve, reject) {
       try {
-        gapi.load('auth2:client', resolve);
+        gapi.load('client', resolve);
       } catch (e) {
         reject(e);
       }

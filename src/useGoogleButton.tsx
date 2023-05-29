@@ -1,8 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useEffect } from 'react';
 
-import { useGoogleLogin, useGoogleLogout } from 'react-google-login';
+import { useGoogleLogin, TokenResponse } from '@react-oauth/google';
 
-import { GOOGLE_CLIENT_ID } from './config';
+import { useLocalStorage, useScript } from 'usehooks-ts';
+import ensureClient from './google/ensureClient';
+import { Link } from 'react-router-dom';
 
 const CALENDAR_READONLY = 'https://www.googleapis.com/auth/calendar.readonly';
 const EVENTS_READONLY =
@@ -16,55 +18,94 @@ const SCOPES = [
   'email',
 ].join(' ');
 
-export function useGoogleButton(user: any, setUser: (arg0: any) => void) {
-  const onLogoutSuccess = useCallback(() => {
-    setUser(null);
-  }, [setUser]);
-  const onFailure = useCallback(() => {
-    console.log('failure');
-  }, []);
-  const onSuccess = useCallback(
-    (e: any) => {
-      console.log('success', e);
-      setUser(e);
-    },
-    [setUser],
-  );
+export type GoogleUser = {
+  email: string;
+  locale: string;
+  name: string;
+  picture: string;
+  sub: string;
+};
 
-  console.log('Google', GOOGLE_CLIENT_ID);
-  const { signIn, loaded } = useGoogleLogin({
-    clientId: GOOGLE_CLIENT_ID,
-    cookiePolicy: 'single_host_origin',
-    discoveryDocs:
-      'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
-    isSignedIn: true,
-    prompt: 'consent',
-    onFailure,
-    onSuccess,
+export function useGoogleButton(
+  user: GoogleUser | null,
+  setUser: (arg0: GoogleUser | null) => void,
+) {
+  const status = useScript('https://apis.google.com/js/api.js', {
+    removeOnUnmount: false,
+  });
+  const [tokenResponse, setTokenResponse] =
+    useLocalStorage<TokenResponse | null>('googleToken', null);
+
+  useEffect(() => {
+    async function t() {
+      try {
+        if (tokenResponse && status === 'ready') {
+          await ensureClient();
+          if (window.gapi?.client) {
+            window.gapi?.client?.setToken({
+              access_token: tokenResponse.access_token,
+            });
+          }
+
+          console.log('User', user?.email);
+          // if (user) {
+          //   await fetchResource(user?.email, 'calendarList');
+          //   await getEvents(user);
+          // }
+        }
+      } catch (e) {
+        console.log('Error', e);
+      }
+    }
+    t();
+  }, [status, tokenResponse]);
+
+  const googleLogin = useGoogleLogin({
     scope: SCOPES,
+    // flow: 'implicit',
+    onSuccess: async (tokenResponse) => {
+      setTokenResponse(tokenResponse);
+      const result = await fetch(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        },
+      );
+      const body = await result.text();
+      const userInfo = JSON.parse(body);
+      setUser(userInfo);
+    },
+    onError: (errorResponse) => console.log(errorResponse),
   });
 
-  const { signOut } = useGoogleLogout({
-    clientId: GOOGLE_CLIENT_ID,
-    onFailure,
-    onLogoutSuccess,
-  });
-
-  if (!loaded) return <>Loading...</>;
   if (user) {
-    const logoutText = user?.profileObj?.email
-      ? `Logout (${user.profileObj.email})`
-      : 'Logout';
+    const logoutText = user?.email ? `Logout (${user.email})` : 'Logout';
     return (
-      <a href="/" onClick={signOut}>
+      <Link
+        to="/"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          setTokenResponse(null);
+          setUser(null);
+        }}
+      >
         {logoutText}
-      </a>
+      </Link>
     );
   } else {
     return (
-      <a href="/" onClick={signIn}>
-        Login
-      </a>
+      <Link
+        to="#"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          googleLogin();
+        }}
+      >
+        Login with Google
+      </Link>
     );
   }
 }

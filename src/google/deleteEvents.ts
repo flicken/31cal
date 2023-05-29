@@ -5,13 +5,17 @@ import ensureClient from './ensureClient';
 import { getEvents } from './useClientToFetch';
 
 import { uniq } from 'lodash';
+import { GoogleUser } from '../useGoogleButton';
 
 type EventToDelete = {
   eventId: string;
   calendarId: string;
 };
 
-export default async function deleteEvents(user: any, events: EventToDelete[]) {
+export default async function deleteEvents(
+  user: GoogleUser | null,
+  events: EventToDelete[],
+) {
   toast(`Deleting ${events.length} events`, { hideProgressBar: true });
 
   await ensureClient();

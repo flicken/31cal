@@ -9,10 +9,12 @@ import React, {
 import './App.css';
 import { userContext } from './userContext';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
-import { useGoogleButton } from './useGoogleButton';
+import { GoogleUser, useGoogleButton } from './useGoogleButton';
 import CommandBar from './CommandBar';
 
 import { SettingsProvider } from './lib/settings';
@@ -40,7 +42,11 @@ import { KBarProvider, Action } from 'kbar';
 
 import { RecoilRoot } from 'recoil';
 
-import { useEventListener, useOnClickOutside } from 'usehooks-ts';
+import {
+  useEventListener,
+  useLocalStorage,
+  useOnClickOutside,
+} from 'usehooks-ts';
 
 import Paper from './Paper';
 import Attachments from './Attachments';
@@ -52,6 +58,7 @@ import ImportFile from './ImportFile';
 import Schedule from './Schedule';
 import Table from './Table';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
+import { GOOGLE_CLIENT_ID } from './config';
 
 const SmallLogo = (
   <svg
@@ -246,7 +253,13 @@ function ShowDefaultCalendar() {
   );
 }
 
-function RightBar({ user, googleButton }: { user: any; googleButton: any }) {
+function RightBar({
+  user,
+  googleButton,
+}: {
+  user: GoogleUser | null;
+  googleButton: any;
+}) {
   useClientToFetch(user, 5 * 60 * 1000);
 
   return (
@@ -278,7 +291,10 @@ const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
 };
 
 function App() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useLocalStorage<GoogleUser | null>(
+    'googleUser',
+    null,
+  );
   const googleButton = useGoogleButton(user, setUser);
   let navigate = useNavigate();
 

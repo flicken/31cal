@@ -14,6 +14,7 @@ import { DateTime } from 'luxon';
 import { eventSchedules } from '../lib/useScheduleList';
 
 import { useInterval } from 'usehooks-ts';
+import { GoogleUser } from '../useGoogleButton';
 
 const toMillis = (
   event: any,
@@ -46,13 +47,16 @@ let mutateEvent = (event: any, calendarId: string, timeZone: string) => {
   // event.id = idFor(event)
 };
 
-export const getEvents = async (user: any, calendarsToFetch?: any[]) => {
+export const getEvents = async (
+  user: GoogleUser | null,
+  calendarsToFetch?: any[],
+) => {
   if (!user) return;
   if (!calendarsToFetch) return;
   const fetched = calendarsToFetch.map(async (calendar) => {
     if (!calendar) return undefined;
 
-    const account = user.profileObj.email;
+    const account = user.email;
     const calendarId = calendar.id;
     const resource = `calendar/${calendarId}`;
     console.log('Fetching calendar', calendar);
@@ -108,7 +112,7 @@ export async function fetchResource(account: string, resource: string) {
   }
 }
 
-function useClientToFetch(user: any, interval: number) {
+function useClientToFetch(user: GoogleUser | null, interval: number) {
   const [lastFetchDate, setLastFetchDate] = React.useState(DateTime.now());
 
   useInterval(() => {
@@ -117,7 +121,7 @@ function useClientToFetch(user: any, interval: number) {
 
   const getCalendars = useCallback(async () => {
     if (!user) return;
-    await fetchResource(user.profileObj.email, 'calendarList');
+    await fetchResource(user.email, 'calendarList');
   }, [user, lastFetchDate]);
 
   const calendarsToFetch = useRecoilValue(selectedCalendars);
