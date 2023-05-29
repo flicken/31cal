@@ -33,39 +33,37 @@ export function useGoogleButton(
   const status = useScript('https://apis.google.com/js/api.js', {
     removeOnUnmount: false,
   });
-  const [tokenResponse, setTokenResponse] =
-    useLocalStorage<TokenResponse | null>('googleToken', null);
+  const [googleToken, setGoogleToken] = useLocalStorage<TokenResponse | null>(
+    'googleToken',
+    null,
+  );
 
   useEffect(() => {
     async function t() {
       try {
         const gapi = (window as any).gapi;
-        if (tokenResponse && status === 'ready') {
+        if (googleToken && status === 'ready') {
           await ensureClient();
           if (gapi?.client) {
             gapi?.client?.setToken({
-              access_token: tokenResponse.access_token,
+              access_token: googleToken.access_token,
             });
           }
 
           console.log('User', user?.email);
-          // if (user) {
-          //   await fetchResource(user?.email, 'calendarList');
-          //   await getEvents(user);
-          // }
         }
       } catch (e) {
         console.log('Error', e);
       }
     }
     t();
-  }, [status, tokenResponse]);
+  }, [status, googleToken]);
 
   const googleLogin = useGoogleLogin({
     scope: SCOPES,
     // flow: 'implicit',
     onSuccess: async (tokenResponse) => {
-      setTokenResponse(tokenResponse);
+      setGoogleToken(tokenResponse);
       const result = await fetch(
         'https://www.googleapis.com/oauth2/v3/userinfo',
         {
@@ -77,9 +75,10 @@ export function useGoogleButton(
       setUser(userInfo);
     },
     onError: (errorResponse) => console.log(errorResponse),
+    hint: user?.email,
   });
 
-  if (user) {
+  if (googleToken) {
     const logoutText = user?.email ? `Logout (${user.email})` : 'Logout';
     return (
       <Link
@@ -88,8 +87,7 @@ export function useGoogleButton(
           e.preventDefault();
           e.stopPropagation();
 
-          setTokenResponse(null);
-          setUser(null);
+          setGoogleToken(null);
         }}
       >
         {logoutText}
