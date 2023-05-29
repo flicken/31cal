@@ -72,6 +72,7 @@ export function UpdateStatus({ update }: { update?: UpdateState }) {
           }}
         >
           <UpdateStatusIcon update={update} />
+          {update.error}
         </button>
       </>
     );
