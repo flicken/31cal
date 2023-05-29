@@ -315,7 +315,7 @@ function App() {
 
   return (
     <RecoilRoot>
-      <userContext.Provider value={user}>
+      <userContext.Provider value={{ user }}>
         <KBarProvider
           actions={actions}
           options={{

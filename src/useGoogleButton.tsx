@@ -39,10 +39,11 @@ export function useGoogleButton(
   useEffect(() => {
     async function t() {
       try {
+        const gapi = (window as any).gapi;
         if (tokenResponse && status === 'ready') {
           await ensureClient();
-          if (window.gapi?.client) {
-            window.gapi?.client?.setToken({
+          if (gapi?.client) {
+            gapi?.client?.setToken({
               access_token: tokenResponse.access_token,
             });
           }
