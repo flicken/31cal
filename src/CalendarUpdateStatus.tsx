@@ -38,7 +38,10 @@ function CalendarUpdateStatus() {
 export function UpdateStatusIcon({
   update,
 }: {
-  update?: Pick<UpdateState, 'updatedAt' | 'requesting' | 'error'>;
+  update?: Pick<
+    UpdateState,
+    'updatedAt' | 'requesting' | 'error' | 'nextPageToken'
+  >;
 }) {
   if (!update) {
     return null;
@@ -49,7 +52,13 @@ export function UpdateStatusIcon({
       style={{ verticalAlign: 'middle', display: 'inline' }}
       height={20}
       width={20}
-      src={update.requesting ? Loading : update.error ? Error : Ok}
+      src={
+        update.requesting || update.nextPageToken
+          ? Loading
+          : update.error
+          ? Error
+          : Ok
+      }
     />
   );
 }
