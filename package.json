@@ -66,7 +66,7 @@
     "husky": "8.0.3",
     "lint-staged": "13.2.2",
     "patch-package": "7.0.0",
-    "prettier": "2.8.8"
+    "prettier": "3.0.3"
   },
   "lint-staged": {
     "*.{tsx,ts,js,jsx,json}": [
