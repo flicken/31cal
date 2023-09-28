@@ -47,7 +47,6 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "configure-husky": "npx husky install && npx husky add .husky/pre-commit \"npx --no-install lint-staged\"",
-    "postinstall": "patch-package"
   },
   "browserslist": {
     "production": [
@@ -65,7 +64,6 @@
     "@babel/core": "7.23.0",
     "husky": "8.0.3",
     "lint-staged": "13.3.0",
-    "patch-package": "8.0.0",
     "prettier": "3.0.3"
   },
   "lint-staged": {
