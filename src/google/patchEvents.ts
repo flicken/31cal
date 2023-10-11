@@ -18,6 +18,7 @@ export default async function patchEvents(patches: EventPatch[]) {
       const response = await gapi.client.calendar.events.patch({
         calendarId: patch.calendarId,
         eventId: patch.eventId,
+        supportsAttachments: true,
         resource: omit(patch, ['eventId', 'calendarId']),
       });
       console.log('Response', response);
