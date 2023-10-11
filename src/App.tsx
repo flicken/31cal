@@ -55,6 +55,7 @@ import CalendarsStatus from './CalendarsStatus';
 import Events from './Events';
 import Filters from './Filters';
 import ImportFile from './ImportFile';
+import ModMany from './ModMany';
 import Schedule from './Schedule';
 import Table from './Table';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
@@ -102,6 +103,11 @@ const ROUTES = [
         path: '/bulk',
         shortcut: ['b'],
         element: <BulkEntry />,
+      },
+      {
+        path: '/mod',
+        shortcut: ['m'],
+        element: <ModMany />,
       },
       {
         path: '/status',
