@@ -52,7 +52,10 @@ Agenda: 31 different ways to calendar
 
 Comparison: https://github.com/pubkey/client-side-databaseS
 
+0. https://localfirstweb.dev/ - list of dbs and other related local-first libraries
 1. https://github.com/Nozbe/WatermelonDB - db - offline first, backed by pluggable backend
 2. https://github.com/tonsky/datascript - db - in-memory 
 3. https://rxdb.info/
 4. https://github.com/techfort/LokiJS
+5. https://tinybase.org/ - db - multiple persister backends (sqlite wasm, "remote", indexdb, etc)
+6. https://syncedstore.org/docs/ - db - 
