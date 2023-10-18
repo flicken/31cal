@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useGoogleLogin, TokenResponse } from '@react-oauth/google';
 
@@ -26,23 +26,57 @@ export type GoogleUser = {
   sub: string;
 };
 
-export function useGoogleButton(
-  user: GoogleUser | null,
-  setUser: (arg0: GoogleUser | null) => void,
-) {
-  const status = useScript('https://apis.google.com/js/api.js', {
-    removeOnUnmount: false,
-  });
+function use31CalGoogleLogin() {
+  const [user, setUser] = useLocalStorage<GoogleUser | null>(
+    'googleUser',
+    null,
+  );
+
   const [googleToken, setGoogleToken] = useLocalStorage<TokenResponse | null>(
     'googleToken',
     null,
   );
 
+  const [error, setError] = useState<boolean>(false);
+
+  const status = useScript('https://apis.google.com/js/api.js', {
+    removeOnUnmount: false,
+  });
+
+  useEffect(() => {
+    async function requestGoogleAccessToken() {
+      if (googleToken?.error) {
+        setError(true);
+        return;
+      }
+
+      setError(false);
+
+      try {
+        const gapi = (window as any).gapi;
+        if (googleToken?.access_token && status === 'ready') {
+          await ensureClient();
+          if (gapi?.client) {
+            gapi?.client?.setToken({
+              access_token: googleToken.access_token,
+            });
+          }
+
+          console.log('User', user?.email);
+        }
+      } catch (e) {
+        console.log('Error', e);
+      }
+    }
+
+    requestGoogleAccessToken();
+  }, [status, googleToken]);
+
   useEffect(() => {
     async function t() {
       try {
         const gapi = (window as any).gapi;
-        if (googleToken && status === 'ready') {
+        if (googleToken?.access_token && status === 'ready') {
           await ensureClient();
           if (gapi?.client) {
             gapi?.client?.setToken({
@@ -78,7 +112,26 @@ export function useGoogleButton(
     hint: user?.email,
   });
 
-  if (googleToken) {
+  useEffect(() => {
+    if (error) {
+      googleLogin({ prompt: 'none' });
+    }
+  }, [error]);
+
+  return {
+    googleLogin,
+    user,
+    googleToken,
+    clearGoogleToken: () => setGoogleToken(null),
+    isLoggedIn: Boolean(googleToken?.access_token),
+  };
+}
+
+export function useGoogleButton() {
+  const { user, googleLogin, isLoggedIn, clearGoogleToken } =
+    use31CalGoogleLogin();
+
+  if (isLoggedIn) {
     const logoutText = user?.email ? `Logout (${user.email})` : 'Logout';
     return (
       <Link
@@ -87,7 +140,7 @@ export function useGoogleButton(
           e.preventDefault();
           e.stopPropagation();
 
-          setGoogleToken(null);
+          clearGoogleToken();
         }}
       >
         {logoutText}

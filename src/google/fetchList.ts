@@ -10,6 +10,7 @@ interface Props {
   transformation: (arg0: any) => any;
   table: any;
   request: Object;
+  callback?: (a: any[]) => void;
 }
 
 async function fetchList({
@@ -19,6 +20,7 @@ async function fetchList({
   transformation,
   table,
   request,
+  callback,
 }: Props) {
   const key = [account, resource];
 
@@ -50,16 +52,22 @@ async function fetchList({
       const transformed = result.items.map(transformation);
       console.log(`${resource} found new ${transformed.length}`);
 
-      await table.bulkPut(transformed);
-      console.log(`${resource} updating state`, Date.now());
+      await db.transaction('rw', [table, db.updateState], async (tx) => {
+        await table.bulkPut(transformed);
+        console.log(`${resource} updating state`, Date.now());
 
-      await db.updateState.put({
-        account: account,
-        resource: resource,
-        nextSyncToken: result?.nextSyncToken,
-        nextPageToken: result?.nextPageToken,
-        etag: result?.etag,
-        updatedAt: Date.now(),
+        await db.updateState.put({
+          account: account,
+          resource: resource,
+          nextSyncToken: result?.nextSyncToken,
+          nextPageToken: result?.nextPageToken,
+          etag: result?.etag,
+          updatedAt: Date.now(),
+        });
+
+        if (callback) {
+          callback(transformed);
+        }
       });
 
       currentRequest.pageToken = result.nextPageToken;
@@ -72,11 +80,22 @@ async function fetchList({
       updatedAt: Date.now(),
     });
   } catch (e) {
+    console.log('Error', e);
+
     await db.updateState.update(key, {
       requesting: false,
       error: (e as any)?.message ?? `An error occured ${JSON.stringify(e)}`,
       updatedAt: Date.now(),
     });
+
+    if ([401, 403].includes((e as any)?.result?.error?.code)) {
+      console.log('Authentication', e);
+      window.localStorage.setItem(
+        'googleToken',
+        JSON.stringify((e as any).result),
+      );
+    }
+
     throw e;
   }
 }
