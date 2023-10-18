@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 import { useRecoilState } from 'recoil';
 import { eventFilters } from './lib/store';
-import { useLiveQuery } from 'dexie-react-hooks';
 
 import Calendars from './Calendars';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';

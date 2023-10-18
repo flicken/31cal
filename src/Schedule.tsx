@@ -1,18 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
-
-import { db } from './models/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import React, { useEffect, useState } from 'react';
 
 import { useRecoilValue } from 'recoil';
-import { filteredEvents, allEventFilters, allEventsCount } from './lib/store';
+import { filteredEvents, allEventsCount } from './lib/store';
 
-import useDefaultCalendar from './lib/useDefaultCalendar';
-import { useScheduleList, eventSchedules } from './lib/useScheduleList';
+import { useScheduleList } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
 import EventList from './EventList';
-import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 
-import { DateTime } from 'luxon';
 import { isEmpty, intersection } from 'lodash-es';
 
 import Select from 'react-select';

@@ -2,10 +2,9 @@ import React, { useCallback, useEffect } from 'react';
 
 import { db } from '../models/db';
 import fetchList from './fetchList';
-import { useLiveQuery } from 'dexie-react-hooks';
 import useDefaultCalendar from '../lib/useDefaultCalendar';
 
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useResetRecoilState } from 'recoil';
 import { selectedCalendars } from '../lib/store';
 import { Calendar } from '../models/types';
 
