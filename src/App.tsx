@@ -29,6 +29,8 @@ import Dropzone, {
   DropEvent,
 } from 'react-dropzone';
 
+import EventsContext from './EventsContext';
+
 import {
   Outlet,
   Link,
@@ -297,11 +299,8 @@ const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
 };
 
 function App() {
-  const [user, setUser] = useLocalStorage<GoogleUser | null>(
-    'googleUser',
-    null,
-  );
-  const googleButton = useGoogleButton(user, setUser);
+  const [user] = useLocalStorage<GoogleUser | null>('googleUser', null);
+  const googleButton = useGoogleButton();
   let navigate = useNavigate();
 
   const actions = useMemo(
@@ -321,6 +320,7 @@ function App() {
 
   return (
     <RecoilRoot>
+      <EventsContext />
       <userContext.Provider value={{ user }}>
         <KBarProvider
           actions={actions}
