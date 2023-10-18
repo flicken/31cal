@@ -6,14 +6,7 @@ import React, {
   useRef,
 } from 'react';
 
-import TextareaAutosize from 'react-textarea-autosize';
-
-import parseEvent from './lib/parseEvent';
-
 import EventList from './EventList';
-
-import { compact, isEmpty, pick, trim } from 'lodash-es';
-import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import saveEvents from './google/saveEvents';
 import { userContext } from './userContext';
@@ -21,23 +14,27 @@ import { userContext } from './userContext';
 import { Attachment } from './models/types';
 import { ViewAttachment } from './Attachments';
 import { useRecoilValue } from 'recoil';
-import { filteredEvents } from './lib/store';
+import { filteredEvents, allCalendars } from './lib/store';
 import patchEvents, { EventPatch } from './google/patchEvents';
+
+import { getEvents } from './google/useClientToFetch';
 
 const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
 
 function ModMany() {
-  const defaultCalendar = useDefaultCalendar();
+  const calendars = useRecoilValue(allCalendars);
   const events = useRecoilValue(filteredEvents);
   const [eventsToShow, setEventsToShow] = useState(events);
   const user = React.useContext(userContext);
 
   const searchRef = useRef<HTMLInputElement | null>(null);
   const replaceRef = useRef<HTMLInputElement | null>(null);
+  const attachmentRef = useRef<HTMLInputElement | null>(null);
 
   function updateFilters() {
     const searchText = searchRef.current?.value;
     const replaceText = replaceRef.current?.value;
+    const attachmentUrl = attachmentRef.current?.value;
 
     if (searchText && searchText.length) {
       const searchRegex = new RegExp(searchText, 'i');
@@ -45,12 +42,19 @@ function ModMany() {
       const eventsMatchingSearch = events.filter(
         (e) => !!e.summary?.match(searchRegex),
       );
-      const eventsWithPossibleReplacements = replaceText
-        ? eventsMatchingSearch.map((e) => ({
-            ...e,
-            summary: e.summary?.replace(searchRegex, replaceText),
-          }))
-        : eventsMatchingSearch;
+      const eventsWithPossibleReplacements = eventsMatchingSearch.map((e) => {
+        const r = { ...e };
+
+        if (replaceText) {
+          r.summary = e.summary?.replace(searchRegex, replaceText);
+        }
+
+        if (attachmentUrl) {
+          r.attachments = [...r.attachments, { fileUrl: attachmentUrl }];
+        }
+
+        return r;
+      });
       setEventsToShow(eventsWithPossibleReplacements);
     } else {
       setEventsToShow(events);
@@ -69,7 +73,6 @@ function ModMany() {
           size={80}
           placeholder="Search"
           onChange={(e) => {
-            console.log(e);
             updateFilters();
           }}
         />
@@ -82,11 +85,23 @@ function ModMany() {
           size={80}
           placeholder="Replace"
           onChange={(e) => {
-            console.log(e);
             updateFilters();
           }}
         />
       </div>
+      <div>
+        <input
+          ref={attachmentRef}
+          name="attachment"
+          type="text"
+          size={80}
+          placeholder="attachment"
+          onChange={(e) => {
+            updateFilters();
+          }}
+        />
+      </div>
+
       <div>
         <button
           disabled={!replaceRef.current?.value || eventsToShow.length === 0}
@@ -98,6 +113,11 @@ function ModMany() {
             }));
             console.log(patches);
             await patchEvents(patches);
+            const calendarIds = new Set(patches.map((p) => p.calendarId));
+            await getEvents(
+              user.user,
+              calendars.filter((c) => calendarIds.has(c.id)),
+            );
           }}
         >
           Modify {eventsToShow.length} events
