@@ -9,6 +9,7 @@ export type EventPatch = {
   calendarId: string;
   [key: string]: any;
 };
+
 export default async function patchEvents(patches: EventPatch[]) {
   toast(`Updating ${patches.length} events`, { hideProgressBar: true });
   await ensureClient();

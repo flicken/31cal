@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import ensureClient from './ensureClient';
 
 import { getEvents } from './useClientToFetch';
+import { GoogleUser } from '../useGoogleButton';
 
 function googleTimeToDateTime(value: any, timeZone: any) {
   return DateTime.fromISO(value.dateTime || value.date, {
@@ -16,7 +17,7 @@ export default async function saveEvents(
   calendar: any,
   events: any[],
   description?: string,
-  user?: any,
+  user?: GoogleUser | null,
 ) {
   toast(`Saving events to ${calendar.summary}`, { hideProgressBar: true });
   console.log('Saving events to calendar ', calendar?.id);

@@ -1,25 +1,24 @@
-import React, {
-  useState,
-  useCallback,
-  useEffect,
-  ClipboardEvent,
-  useRef,
-} from 'react';
+import React, { useState, useEffect, useRef, ChangeEventHandler } from 'react';
 
-import EventList from './EventList';
-
-import saveEvents from './google/saveEvents';
 import { userContext } from './userContext';
 
-import { Attachment } from './models/types';
-import { ViewAttachment } from './Attachments';
+import { Calendar, CalendarEvent } from './models/types';
 import { useRecoilValue } from 'recoil';
 import { filteredEvents, allCalendars } from './lib/store';
 import patchEvents, { EventPatch } from './google/patchEvents';
 
 import { getEvents } from './google/useClientToFetch';
 
-const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
+import { ViewStartAndEnd } from './ViewEvent';
+import { keyBy } from 'lodash-es';
+
+type Action = {
+  name: string;
+  Component: (props: {
+    events: CalendarEvent[];
+    calendars: Calendar[];
+  }) => JSX.Element;
+};
 
 function ModMany() {
   const calendars = useRecoilValue(allCalendars);
@@ -27,11 +26,21 @@ function ModMany() {
   const [eventsToShow, setEventsToShow] = useState(events);
   const user = React.useContext(userContext);
 
+  const [count, setCount] = useState(0);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const replaceRef = useRef<HTMLInputElement | null>(null);
   const attachmentRef = useRef<HTMLInputElement | null>(null);
 
-  function updateFilters() {
+  const actions: {
+    name: string;
+    modifyEvents: (events: CalendarEvent[]) => CalendarEvent[];
+    component: (props: {
+      events: CalendarEvent[];
+      calendars: Calendar[];
+    }) => JSX.Element;
+  }[] = [];
+
+  useEffect(() => {
     const searchText = searchRef.current?.value;
     const replaceText = replaceRef.current?.value;
     const attachmentUrl = attachmentRef.current?.value;
@@ -59,9 +68,39 @@ function ModMany() {
     } else {
       setEventsToShow(events);
     }
+  }, [
+    events,
+    count,
+    searchRef.current?.value,
+    replaceRef.current?.value,
+    attachmentRef.current?.value,
+  ]);
+
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const isChecked = (event: CalendarEvent) => checked.has(keyFor(event));
+
+  async function applyPatches(
+    f: (e: CalendarEvent) => Omit<EventPatch, 'eventId' | 'calendarId'>,
+  ) {
+    const patches = eventsToShow.filter(isChecked).map((e) => ({
+      eventId: e.id,
+      calendarId: e.calendarId,
+      ...f(e),
+    }));
+    console.log(patches);
+    await patchEvents(patches);
+
+    const calendarIds = new Set(patches.map((p) => p.calendarId));
+    await getEvents(
+      user,
+      calendars.filter((c) => calendarIds.has(c.id)),
+    );
   }
 
-  useEffect(() => {}, [searchRef.current?.value, replaceRef.current?.value]);
+  function updateFilters() {
+    setCount((oldCount) => oldCount + 1);
+  }
 
   return (
     <div>
@@ -104,26 +143,132 @@ function ModMany() {
 
       <div>
         <button
-          disabled={!replaceRef.current?.value || eventsToShow.length === 0}
+          disabled={
+            !replaceRef.current?.value ||
+            eventsToShow.length === 0 ||
+            checked.size === 0
+          }
           onClick={async () => {
-            const patches: EventPatch[] = eventsToShow.map((e) => ({
-              eventId: e.id,
-              calendarId: e.calendarId,
-              summary: e.summary,
-            }));
-            console.log(patches);
-            await patchEvents(patches);
-            const calendarIds = new Set(patches.map((p) => p.calendarId));
-            await getEvents(
-              user.user,
-              calendars.filter((c) => calendarIds.has(c.id)),
-            );
+            await applyPatches((e) => ({ summary: e.summary }));
           }}
         >
-          Modify {eventsToShow.length} events
+          Modify
+        </button>
+
+        <button
+          disabled={eventsToShow.length === 0 || checked.size < 1}
+          onClick={async () => {
+            await applyPatches(() => ({ status: 'cancelled' }));
+          }}
+        >
+          Delete
         </button>
       </div>
-      <EventList events={eventsToShow} />
+      <EventCheckList
+        calendars={keyBy(calendars, 'id')}
+        events={eventsToShow}
+        setChecked={(event, checked) => {
+          setChecked((oldChecked) => {
+            const newChecked = new Set(oldChecked);
+            if (checked) {
+              newChecked.add(keyFor(event));
+            } else {
+              newChecked.delete(keyFor(event));
+            }
+            return newChecked;
+          });
+        }}
+        isChecked={isChecked}
+        onAllCheckedSelected={() => {
+          if (eventsToShow.every((e) => checked.has(keyFor(e)))) {
+            setChecked(new Set());
+          } else {
+            setChecked(new Set(eventsToShow.map(keyFor)));
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+function EventCheckList({
+  events,
+  setChecked,
+  isChecked,
+  onAllCheckedSelected,
+  calendars,
+}: {
+  events: CalendarEvent[];
+  calendars: Record<string, Calendar>;
+  setChecked: (event: CalendarEvent, checked: boolean) => void;
+  isChecked: (event: CalendarEvent) => boolean;
+  onAllCheckedSelected: () => void;
+}) {
+  if (!events) {
+    return null;
+  }
+
+  const allChecked = events.length > 0 && events.every(isChecked);
+
+  return (
+    <div>
+      <input
+        type="checkbox"
+        checked={allChecked}
+        onChange={() => {
+          onAllCheckedSelected();
+        }}
+      />
+      {events.map((e, i) => {
+        const checked = isChecked(e);
+        return (
+          <>
+            <ViewCheckEvent
+              key={keyFor(e)}
+              event={e}
+              calendar={calendars[e.calendarId]}
+              checked={checked}
+              onChange={() => {
+                setChecked(e, !checked);
+              }}
+            />
+          </>
+        );
+      })}
+    </div>
+  );
+}
+
+export function keyFor(event: CalendarEvent) {
+  return `${event.calendarId}/${event.id}`;
+}
+
+function ViewCheckEvent({
+  calendar,
+  event,
+  checked,
+  onChange,
+}: {
+  calendar: Calendar;
+  event: Partial<CalendarEvent>;
+  checked: boolean;
+  onChange: ChangeEventHandler;
+}) {
+  return (
+    <div
+      style={{ border: '2px dotted #bbb, padding: ', padding: '.5rem 1rem' }}
+    >
+      <span
+        style={{
+          color: calendar.foregroundColor,
+          backgroundColor: calendar.backgroundColor,
+        }}
+      >
+        &nbsp;
+      </span>
+      <input type="checkbox" checked={checked} onChange={onChange} />
+      <ViewStartAndEnd start={event.start} end={event.end} />{' '}
+      <b style={{ display: 'inline' }}>{event.summary}</b>
     </div>
   );
 }

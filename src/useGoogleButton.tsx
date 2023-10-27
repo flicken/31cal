@@ -106,6 +106,7 @@ function use31CalGoogleLogin() {
       );
       const body = await result.text();
       const userInfo = JSON.parse(body);
+      console.log(`Have user info ${JSON.stringify(userInfo)}`);
       setUser(userInfo);
     },
     onError: (errorResponse) => console.log(errorResponse),
@@ -153,7 +154,7 @@ export function useGoogleButton() {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          googleLogin();
+          googleLogin({ prompt: 'none' });
         }}
       >
         Login with Google

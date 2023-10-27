@@ -4,7 +4,7 @@ import { db } from '../models/db';
 import ensureClient from './ensureClient';
 import { getEvents } from './useClientToFetch';
 
-import { uniq } from 'lodash';
+import { uniq } from 'lodash-es';
 import { GoogleUser } from '../useGoogleButton';
 
 type EventToDelete = {

@@ -76,7 +76,7 @@ export function ViewStartAndEnd({
   }
 }
 
-const sanitizer = dompurify.sanitize;
+export const sanitizer = dompurify.sanitize;
 
 export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
   if (event.description) {
@@ -101,7 +101,11 @@ export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
   }
 }
 
-function ViewEventAttachments({ attachments }: { attachments?: Attachment[] }) {
+export function ViewEventAttachments({
+  attachments,
+}: {
+  attachments?: Attachment[];
+}) {
   if (!attachments || isEmpty(attachments)) return null;
 
   return (

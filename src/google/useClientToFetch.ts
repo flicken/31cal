@@ -51,11 +51,15 @@ export const getEvents = async (
   calendarsToFetch?: any[],
 ) => {
   if (!user) return;
+  if (!user.email)
+    throw new Error(`Cannot find user email in ${JSON.stringify(user)}}`);
   if (!calendarsToFetch) return;
   const fetched = calendarsToFetch.map(async (calendar) => {
     if (!calendar) return undefined;
 
+    console.log(`User ${JSON.stringify(user)}`);
     const account = user.email;
+    console.log(`User.email ${JSON.stringify(user.email)}`);
     const calendarId = calendar.id;
     const resource = `calendar/${calendarId}`;
     console.log('Fetching calendar', calendar);
@@ -98,6 +102,7 @@ export async function fetchResource(account: string, resource: string) {
       showDeleted: true,
       singleEvents: true,
     };
+    console.log(`Request: ${account} ${JSON.stringify(request)}`);
     return await fetchList({
       account,
       request,

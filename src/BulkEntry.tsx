@@ -14,6 +14,7 @@ import { userContext } from './userContext';
 
 import { Attachment } from './models/types';
 import { ViewAttachment } from './Attachments';
+import { toast } from 'react-toastify';
 
 const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
 
@@ -108,6 +109,11 @@ function BulkEntry() {
   }, [eventsText, prefix, attachment]);
 
   const handleSaveEvents = useCallback(async () => {
+    if (!user?.email) {
+      toast(`Must be logged in to save. ${JSON.stringify(user)}`);
+      return;
+    }
+
     saveEvents(defaultCalendar, events, description, user);
   }, [defaultCalendar, events, description, user]);
 

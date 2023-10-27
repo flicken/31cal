@@ -23,6 +23,7 @@ async function fetchList({
   callback,
 }: Props) {
   const key = [account, resource];
+  console.log(`Attempting fetch key ${key}`);
 
   const updateState =
     (await db.updateState.get(key)) ||
@@ -36,6 +37,7 @@ async function fetchList({
 
   try {
     do {
+      console.log(`Attempting to fetch key ${key}`);
       await db.updateState.update(key, {
         requestedAt: Date.now(),
         requesting: true,
