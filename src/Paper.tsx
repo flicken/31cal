@@ -229,8 +229,7 @@ function search(regex: RegExp, s?: string) {
 }
 
 export default function Paper() {
-  Event;
-  const events = useRecoilValue(filtereds);
+  const events = useRecoilValue(filteredEvents);
   const [columns, setColumns] = useRecoilState(paperColumns);
 
   const eventFilters = useRecoilValue(allEventFilters);
