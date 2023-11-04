@@ -9,8 +9,6 @@ import React, {
 import './App.css';
 import { userContext } from './userContext';
 
-import { GoogleOAuthProvider } from '@react-oauth/google';
-
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';

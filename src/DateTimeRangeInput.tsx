@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
-import { pick, isEmpty } from 'lodash-es';
+import { pick, isEmpty, omit } from 'lodash-es';
 
 export type DateTimeRange = {
   start?: DateTime;
@@ -135,13 +135,13 @@ export default function DateTimeRangeInput({ value, onChange }: Props) {
   return (
     <>
       <input
+        title={JSON.stringify(omit(value, 'text'), null, 2)}
         type="text"
         style={{ width: '40em' }}
         placeholder="next week"
         defaultValue={value?.text}
         onChange={parseDateRange}
       />
-      <br />
     </>
   );
 }

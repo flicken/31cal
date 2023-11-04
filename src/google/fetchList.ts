@@ -2,6 +2,7 @@ import ensureClient from './ensureClient';
 
 import { db } from '../models/db';
 import { UpdateState } from '../models/types';
+import { trigger } from '../lib/dispatcher';
 
 interface Props {
   account: string;
@@ -10,7 +11,6 @@ interface Props {
   transformation: (arg0: any) => any;
   table: any;
   request: Object;
-  callback?: (a: any[]) => void;
 }
 
 async function fetchList({
@@ -20,12 +20,11 @@ async function fetchList({
   transformation,
   table,
   request,
-  callback,
 }: Props) {
   const key = [account, resource];
   console.log(`Attempting fetch key ${key}`);
 
-  const updateState =
+  let updateState =
     (await db.updateState.get(key)) ||
     ({ account: account, resource: resource } as UpdateState);
 
@@ -58,18 +57,23 @@ async function fetchList({
         await table.bulkPut(transformed);
         console.log(`${resource} updating state`, Date.now());
 
-        await db.updateState.put({
+        const newUpdateState = {
           account: account,
           resource: resource,
           nextSyncToken: result?.nextSyncToken,
           nextPageToken: result?.nextPageToken,
           etag: result?.etag,
           updatedAt: Date.now(),
+        };
+        await db.updateState.put(newUpdateState);
+
+        trigger('fetchList:update', {
+          newUpdateState,
+          previousUpdateState: updateState,
+          pageResponse: transformed,
         });
 
-        if (callback) {
-          callback(transformed);
-        }
+        updateState = newUpdateState;
       });
 
       currentRequest.pageToken = result.nextPageToken;
@@ -84,10 +88,20 @@ async function fetchList({
   } catch (e) {
     console.log('Error', e);
 
-    await db.updateState.update(key, {
+    const newUpdatePartial = {
       requesting: false,
       error: (e as any)?.message ?? `An error occured ${JSON.stringify(e)}`,
       updatedAt: Date.now(),
+    };
+    await db.updateState.update(key, newUpdatePartial);
+
+    trigger('fetchList:update', {
+      previousUpdateState: updateState,
+      newUpdateState: {
+        ...updateState,
+        ...newUpdatePartial,
+      },
+      error: e,
     });
 
     if ([401, 403].includes((e as any)?.result?.error?.code)) {

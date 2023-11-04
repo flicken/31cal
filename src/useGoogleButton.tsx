@@ -154,7 +154,7 @@ export function useGoogleButton() {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          googleLogin({ prompt: 'none' });
+          googleLogin();
         }}
       >
         Login with Google

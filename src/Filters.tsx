@@ -1,16 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { useRecoilState } from 'recoil';
-import { eventFilters } from './lib/store';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  allCalendars,
+  eventFilters,
+  selectedCalendarIds,
+  selectedCalendars,
+} from './lib/store';
 
 import Calendars from './Calendars';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 import DateTimeInput from './DateTimeInput';
 
-import { DateTime } from 'luxon';
+import { Calendar, CalendarEvent } from './models/types';
+import { db } from './models/db';
 
 function Filters() {
   const [filters_, setFilters] = useRecoilState(eventFilters);
+
+  const calOptions = useRecoilValue(allCalendars);
+  const calValue = useRecoilValue(selectedCalendars);
+  const setSelectedCalendarIds = useSetRecoilState(selectedCalendarIds);
+
+  const onCalendarChange = (calendars: Calendar[]) => {
+    if (calendars.length > 0 && calendars[0]) {
+      db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
+    }
+    setSelectedCalendarIds(calendars.filter((c) => c).map((c) => c?.id));
+  };
 
   const setRange = (newRange: DateTimeRange) => {
     setFilters((f: any) => {
@@ -53,11 +70,16 @@ function Filters() {
         background: '#fff',
       }}
     >
-      <Calendars />
+      <Calendars
+        options={calOptions}
+        value={calValue}
+        onChange={onCalendarChange}
+      />
       <DateTimeRangeInput
         value={{ ...filters_, text: filters_.rangeText }}
         onChange={setRange}
       />
+      <br />
       Updated since{' '}
       <DateTimeInput
         value={{ text: filters_.updatedSinceText, date: filters_.updatedSince }}

@@ -1,6 +1,6 @@
-import { atom, selector } from 'recoil';
+import { RecoilValueReadOnly, atom, selector } from 'recoil';
 import { db } from '../models/db';
-import { CalendarEvent } from '../models/types';
+import { Calendar, CalendarEvent } from '../models/types';
 
 import {
   sortBy,
@@ -12,6 +12,8 @@ import {
 } from 'lodash-es';
 
 import { DateTime } from 'luxon';
+import { filterForFilters } from './filters';
+import { asArray } from '../utils';
 
 export const allCalendars = atom({
   key: 'allCalendars',
@@ -48,7 +50,8 @@ export const allEventFilters = selector({
   key: 'allEventFilters',
   get: ({ get }) => {
     const otherFilters = get(eventFilters);
-    return { ...otherFilters, selectedCalendarIds: get(selectedCalendarIds) };
+    const calendarIds = asArray(get(selectedCalendarIds));
+    return { ...otherFilters, calendarIds };
   },
 });
 
@@ -56,21 +59,11 @@ export const filteredEvents = selector({
   key: 'filteredEvents',
   get: ({ get }) => {
     const events = get(allEvents);
-    const filters = get(allEventFilters);
-    const startMs = filters.start.toMillis();
-    const endMs = filters.end.toMillis();
-    const updatedSinceString = filters.updatedSince?.toUTC()?.toISO();
-    const filter = (e: CalendarEvent) => {
-      return (
-        (filters.showCancelled || e.status != 'cancelled') &&
-        (!e.end?.ms || startMs < e.end?.ms) &&
-        (!e.start?.ms || e.start?.ms <= endMs) &&
-        (!filters.selectedCalendarIds ||
-          filters.selectedCalendarIds.includes(e.calendarId)) &&
-        (!updatedSinceString || e.updated > updatedSinceString)
-      );
-    };
-    return sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
+    const filter = filterForFilters(get(allEventFilters));
+    return sortBy(get(allEvents).filter(filter), (e) => [
+      e.start.ms,
+      e.end?.ms,
+    ]);
   },
 });
 
@@ -150,13 +143,15 @@ export const selectedCalendarIds = atom({
   ],
 });
 
-export const selectedCalendars = selector({
+export const selectedCalendars: RecoilValueReadOnly<Calendar[]> = selector({
   key: 'selectedCalendars',
   get: ({ get }) => {
     const ids = get(selectedCalendarIds);
     const calendarIds = Array.isArray(ids) ? ids : [ids];
     const calendars = get(allCalendars);
-    return calendarIds.map((id: string) => calendars.find((c) => c.id === id));
+    return calendarIds
+      .map((id: string) => calendars.find((c) => c.id === id)!)
+      .filter((c) => Boolean(c));
   },
 });
 

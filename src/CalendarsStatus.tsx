@@ -18,9 +18,6 @@ import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';
 
-import { fetchResource } from './google/useClientToFetch';
-
-import { showDate } from './utils';
 import { UpdateStatus, UpdateStatusIcon } from './CalendarUpdateStatus';
 
 function sortKey(c: Calendar): string {

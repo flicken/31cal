@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 
 import { db } from '../models/db';
-import fetchList from './fetchList';
+import fetchList, { FetchListCallback } from './fetchList';
 import useDefaultCalendar from '../lib/useDefaultCalendar';
 
 import { useRecoilValue, useResetRecoilState } from 'recoil';

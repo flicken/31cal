@@ -70,26 +70,23 @@ const colorStyles: StylesConfig<Calendar, true> = {
   }),
 };
 
-function Calendars() {
-  const calList = useRecoilValue(allCalendars);
-  const selectedCalendars = useRecoilValue(selectedCalendarsState);
-  const setSelectedCalendarIds = useSetRecoilState(selectedCalendarIds);
-
-  const onChange = (calendars: Calendar[]) => {
-    if (calendars.length > 0 && calendars[0]) {
-      db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
-    }
-    setSelectedCalendarIds(calendars.filter((c) => c).map((c) => c?.id));
-  };
-
+function Calendars({
+  options,
+  value,
+  onChange,
+}: {
+  options: Calendar[];
+  value: Calendar[] | undefined;
+  onChange: (c: Calendar[]) => void;
+}) {
   return (
     <MultiSelectSort
       getOptionValue={(c: Calendar) => c.id}
       getOptionLabel={(c: Calendar) => c.summary}
       components={animatedComponents}
       isClearable={true}
-      value={selectedCalendars}
-      options={calList}
+      value={value}
+      options={options}
       onChange={onChange}
       styles={colorStyles}
     />

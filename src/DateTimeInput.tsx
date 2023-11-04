@@ -2,7 +2,7 @@ import React from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
-import { pick, isEmpty } from 'lodash-es';
+import { pick, isEmpty, omit } from 'lodash-es';
 
 export type DateTimeRange = {
   start?: DateTime;
@@ -94,6 +94,7 @@ export default function DateTimeInput({ value, onChange }: Props) {
       const text = e.target.value;
       if (isEmpty(text)) {
         onChange({});
+        return;
       }
       let datetimes = parse(text, new Date(), { forwardDate: false });
       console.log('datetimes', datetimes);
@@ -108,6 +109,7 @@ export default function DateTimeInput({ value, onChange }: Props) {
   return (
     <>
       <input
+        title={value && value?.date?.toString()}
         type="text"
         defaultValue={value?.text}
         placeholder="e.g. last week"
