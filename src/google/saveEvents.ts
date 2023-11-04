@@ -52,5 +52,5 @@ export default async function saveEvents(
     }
   }
 
-  await getEvents(user, [calendar]);
+  await getEvents(user ? user : null, [calendar]);
 }
