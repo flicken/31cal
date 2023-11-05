@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
 
 import { db } from '../models/db';
-import fetchList, { FetchListCallback } from './fetchList';
-import useDefaultCalendar from '../lib/useDefaultCalendar';
+import fetchList from './fetchList';
 
-import { useRecoilValue, useResetRecoilState } from 'recoil';
+import { useRecoilValue } from 'recoil';
 import { selectedCalendars } from '../lib/store';
-import { Calendar } from '../models/types';
 
 import { DateTime } from 'luxon';
 
