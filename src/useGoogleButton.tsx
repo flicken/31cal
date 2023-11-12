@@ -109,7 +109,9 @@ function use31CalGoogleLogin() {
       console.log(`Have user info ${JSON.stringify(userInfo)}`);
       setUser(userInfo);
     },
-    onError: (errorResponse) => console.log(errorResponse),
+    onError: (errorResponse) => {
+      console.log(errorResponse);
+    },
     hint: user?.email,
   });
 

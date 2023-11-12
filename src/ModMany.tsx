@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, ChangeEventHandler } from 'react';
 
 import { userContext } from './userContext';
 
+import TextareaAutosize from 'react-textarea-autosize';
+
 import { Calendar, CalendarEvent } from './models/types';
 import { atom, selector, useRecoilState, useRecoilValue } from 'recoil';
 import { allCalendars, allEvents, allEventFilters } from './lib/store';
@@ -15,6 +17,8 @@ import Filters2 from './Filters2';
 import _ from 'lodash';
 import { FilterInputs, FilterValues, filterForFilters } from './lib/filters';
 import { DateTime } from 'luxon';
+import VanillaJSONEditor from './VanillaJSONEditor';
+import { Mode, Content } from 'vanilla-jsoneditor';
 
 type Action = {
   name: string;
@@ -35,10 +39,16 @@ const modEventFilters = atom<FilterValues & FilterInputs>({
   },
 });
 
+const modEventMods = atom<Partial<CalendarEvent>>({
+  key: 'modEventMods',
+  default: {},
+});
+
 const modFilteredEvents = selector({
   key: 'modFilteredEvents',
   get: ({ get }) => {
     const filters = get(modEventFilters);
+    const mods = get(modEventMods);
     const filter = filterForFilters(filters);
     const searchRegex = new RegExp(filters.searchText ?? '', 'i');
     const searchFilter = filters.searchText
@@ -63,10 +73,15 @@ const modFilteredEvents = selector({
 function ModMany() {
   const calendars = useRecoilValue(allCalendars);
   const events = useRecoilValue(modFilteredEvents);
+  const [showEditor, setShowEditor] = useState(false);
+  const [content, setContent] = useState<Content>({
+    json: null,
+  });
 
   try {
     const globalFilters = useRecoilValue(allEventFilters);
     const [filters, setFilters] = useRecoilState(modEventFilters);
+    const [mods, setMods] = useRecoilState(modEventMods);
 
     useEffect(() => {
       // default to global filters
@@ -106,9 +121,6 @@ function ModMany() {
       );
     }
 
-    console.log('Filters', filters);
-    console.log('Events count', events.length);
-
     return (
       <div>
         <div>
@@ -146,7 +158,60 @@ function ModMany() {
           >
             Delete
           </button>
+          <button
+            disabled={events.length === 0 || checked.size < 1}
+            onClick={() => {
+              setShowEditor((show) => !show);
+              const firstEvent = events.find(isChecked)!;
+              setContent({
+                json: _.omit(
+                  firstEvent as any,
+                  'id',
+                  'eventId',
+                  'iCalUID',
+                  'recurringEventId',
+                  'originalStartTime',
+                  'sequence',
+                  'created',
+                  'updated',
+                  '_schedules',
+                  'eventType',
+                  'etag',
+                  'kind',
+                  'start.ms',
+                  'end.ms',
+                  'htmlLink',
+                ),
+              });
+            }}
+          >
+            JSON
+          </button>
+          {showEditor ? (
+            <button
+              disabled={events.length === 0 || checked.size < 1}
+              onClick={() => {
+                const json =
+                  'json' in content ? content.json : JSON.parse(content.text);
+
+                applyPatches((e) => json);
+
+                setShowEditor((show) => !show);
+              }}
+            >
+              Save
+            </button>
+          ) : null}
         </div>
+        {showEditor ? (
+          <div>
+            <VanillaJSONEditor
+              defaultMode={Mode.text}
+              content={content}
+              onChange={setContent}
+            />
+          </div>
+        ) : null}
         <EventCheckList
           calendars={keyBy(calendars, 'id')}
           events={events}

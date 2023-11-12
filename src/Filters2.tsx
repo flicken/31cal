@@ -73,7 +73,6 @@ function Filters2({
         value={{ ...filters, text: filters.rangeText }}
         onChange={setRange}
       />
-      <span title={JSON.stringify(filters, null, 2)}>?</span>
       <br />
       Updated since{' '}
       <DateTimeInput
