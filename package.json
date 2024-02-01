@@ -4,16 +4,16 @@
   "private": true,
   "dependencies": {
     "@react-oauth/google": "0.12.1",
-    "@testing-library/jest-dom": "6.3.0",
-    "@testing-library/react": "14.1.2",
+    "@testing-library/jest-dom": "6.4.1",
+    "@testing-library/react": "14.2.0",
     "@testing-library/user-event": "14.5.2",
     "@types/dompurify": "3.0.5",
     "@types/jest": "29.5.11",
     "@types/lodash-es": "4.17.12",
     "@types/luxon": "3.4.2",
-    "@types/node": "20.11.6",
+    "@types/node": "20.11.14",
     "@types/papaparse": "5.3.14",
-    "@types/react": "18.2.48",
+    "@types/react": "18.2.50",
     "@types/react-dom": "18.2.18",
     "@vitejs/plugin-react": "4.2.1",
     "chrono-node": "2.7.5",
@@ -37,11 +37,11 @@
     "react-toastify": "10.0.4",
     "recoil": "0.7.7",
     "typescript": "5.3.3",
-    "usehooks-ts": "2.9.5",
+    "usehooks-ts": "2.11.0",
     "vanilla-jsoneditor": "0.21.4",
     "vite": "5.0.12",
     "vite-plugin-svgr": "4.2.0",
-    "web-vitals": "3.5.1"
+    "web-vitals": "3.5.2"
   },
   "scripts": {
     "start": "vite",
@@ -62,9 +62,9 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "7.23.7",
-    "husky": "9.0.6",
-    "lint-staged": "15.2.0",
+    "@babel/core": "7.23.9",
+    "husky": "9.0.7",
+    "lint-staged": "15.2.1",
     "prettier": "3.2.4"
   },
   "lint-staged": {
