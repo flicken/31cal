@@ -60,6 +60,7 @@ import Schedule from './Schedule';
 import Table from './Table';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
 import { GOOGLE_CLIENT_ID } from './config';
+import CopyFrom from './CopyFrom';
 
 const SmallLogo = (
   <svg
@@ -103,6 +104,11 @@ const ROUTES = [
         path: '/bulk',
         shortcut: ['b'],
         element: <BulkEntry />,
+      },
+      {
+        path: '/copy',
+        shortcut: ['c'],
+        element: <CopyFrom />,
       },
       {
         path: '/mod',

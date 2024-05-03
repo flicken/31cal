@@ -114,7 +114,7 @@ function BulkEntry() {
       return;
     }
 
-    saveEvents(defaultCalendar, events, description, user);
+    await saveEvents(defaultCalendar!, events, description, user);
   }, [defaultCalendar, events, description, user]);
 
   let saveButton = <button disabled>Set default calendar first</button>;

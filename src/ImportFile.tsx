@@ -174,7 +174,7 @@ function ImportFile() {
           );
           const data = csvData?.data ?? [];
           const newEvents = data.map(toEvent);
-          saveEvents(defaultCalendar, newEvents, '', user);
+          saveEvents(defaultCalendar!, newEvents, '', user).catch(console.log);
           setEvents((previousEvents) => [...previousEvents, ...newEvents]);
         };
 

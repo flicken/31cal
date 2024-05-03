@@ -6,6 +6,7 @@ import ensureClient from './ensureClient';
 
 import { getEvents } from './useClientToFetch';
 import { GoogleUser } from '../useGoogleButton';
+import { Calendar } from '../models/types';
 
 function googleTimeToDateTime(value: any, timeZone: any) {
   return DateTime.fromISO(value.dateTime || value.date, {
@@ -14,7 +15,7 @@ function googleTimeToDateTime(value: any, timeZone: any) {
 }
 
 export default async function saveEvents(
-  calendar: any,
+  calendar: Calendar,
   events: any[],
   description?: string,
   user?: GoogleUser | null,
