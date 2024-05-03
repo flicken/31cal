@@ -40,7 +40,7 @@ async function fetchList({
       await db.updateState.update(key, {
         requestedAt: Date.now(),
         requesting: true,
-        error: null,
+        error: undefined,
       });
       await ensureClient();
       const gapi: any = (window as any).gapi;
@@ -53,7 +53,7 @@ async function fetchList({
       const transformed = result.items.map(transformation);
       console.log(`${resource} found new ${transformed.length}`);
 
-      await db.transaction('rw', [table, db.updateState], async (tx) => {
+      await db.transaction('rw', [table, db.updateState], async (_tx) => {
         await table.bulkPut(transformed);
         console.log(`${resource} updating state`, Date.now());
 
@@ -82,7 +82,7 @@ async function fetchList({
     } while (currentRequest.pageToken != null);
     await db.updateState.update(key, {
       requesting: false,
-      error: null,
+      error: undefined,
       updatedAt: Date.now(),
     });
   } catch (e) {

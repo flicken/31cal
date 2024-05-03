@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, ChangeEventHandler } from 'react';
+import React, { useState, useEffect, ChangeEventHandler } from 'react';
 
 import { userContext } from './userContext';
 
@@ -255,7 +255,7 @@ function EventCheckList({
   calendars,
 }: {
   events: CalendarEvent[];
-  calendars: Record<string, Calendar>;
+  calendars: Record<string, Calendar & { dirty?: boolean }>;
   setChecked: (event: CalendarEvent, checked: boolean) => void;
   isChecked: (event: CalendarEvent) => boolean;
   onAllCheckedSelected: () => void;
