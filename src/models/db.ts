@@ -3,7 +3,7 @@ import Dexie, { Table } from 'dexie';
 import { Calendar, CalendarEvent, Setting, UpdateState } from './types';
 
 export class DB extends Dexie {
-  calendars!: Table<Calendar, string>;
+  calendars!: Table<Calendar & { dirty?: boolean }, string>;
   events!: Table<CalendarEvent, string>;
   updateState!: Table<UpdateState, string[]>;
   settings!: Table<Setting, string>;
