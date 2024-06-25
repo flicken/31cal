@@ -32,7 +32,32 @@ async function fetchList({
     ...request,
     pageToken: updateState.nextPageToken,
     syncToken: updateState.nextSyncToken,
+    resyncRequired: undefined,
   };
+
+  await ensureClient();
+  const gapi: any = (window as any).gapi;
+
+  async function doRequest(req: typeof currentRequest) {
+    try {
+      return await googleResource(gapi).list(currentRequest);
+    } catch (e) {
+      if ([410].includes((e as any)?.result?.error?.code)) {
+        console.log(`Full sync required ${key}`, e);
+        return {
+          result: {
+            items: [],
+            nextSyncToken: undefined,
+            nextPageToken: undefined,
+            etag: undefined,
+            resyncRequired: true,
+          },
+        };
+      }
+
+      throw e;
+    }
+  }
 
   try {
     do {
@@ -42,11 +67,9 @@ async function fetchList({
         requesting: true,
         error: undefined,
       });
-      await ensureClient();
-      const gapi: any = (window as any).gapi;
 
       console.log(`${resource} requesting`, JSON.stringify(currentRequest));
-      let response = await googleResource(gapi).list(currentRequest);
+      let response = await doRequest(currentRequest);
       console.log(`${resource} response`, response);
       const result = response.result;
 
@@ -60,9 +83,10 @@ async function fetchList({
         const newUpdateState = {
           account: account,
           resource: resource,
-          nextSyncToken: result?.nextSyncToken,
-          nextPageToken: result?.nextPageToken,
-          etag: result?.etag,
+          resyncRequired: result.resyncRequired,
+          nextSyncToken: result.nextSyncToken,
+          nextPageToken: result.nextPageToken,
+          etag: result.etag,
           updatedAt: Date.now(),
         };
         await db.updateState.put(newUpdateState);
@@ -78,8 +102,9 @@ async function fetchList({
 
       currentRequest.pageToken = result.nextPageToken;
       currentRequest.syncToken = result.nextSyncToken;
+      currentRequest.resyncRequired = result.resyncRequired;
       console.log(`${resource} next request`, currentRequest);
-    } while (currentRequest.pageToken != null);
+    } while (currentRequest.pageToken != null || currentRequest.resyncRequired);
     await db.updateState.update(key, {
       requesting: false,
       error: undefined,
