@@ -10,7 +10,7 @@ import { parse } from 'chrono-node';
 import { DateTime } from 'luxon';
 
 import EventList from './EventList';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import saveEvents from './google/saveEvents';
 import useDefaultCalendar from './lib/useDefaultCalendar';

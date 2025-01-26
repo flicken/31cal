@@ -4,7 +4,7 @@ import { useGoogleLogin, TokenResponse } from '@react-oauth/google';
 
 import { useLocalStorage, useScript } from 'usehooks-ts';
 import ensureClient from './google/ensureClient';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 const CALENDAR_READONLY = 'https://www.googleapis.com/auth/calendar.readonly';
 const EVENTS_READONLY =

@@ -36,7 +36,7 @@ import {
   useNavigate,
   useMatch,
   useResolvedPath,
-} from 'react-router-dom';
+} from 'react-router';
 
 import { KBarProvider, Action } from 'kbar';
 
