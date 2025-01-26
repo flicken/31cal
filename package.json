@@ -30,7 +30,7 @@
     "recoil": "0.7.7",
     "usehooks-ts": "3.1.0",
     "vanilla-jsoneditor": "0.23.8",
-    "vite": "5.4.14",
+    "vite": "6.0.11",
     "web-vitals": "4.2.4"
   },
   "scripts": {
