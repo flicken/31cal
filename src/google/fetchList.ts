@@ -78,7 +78,6 @@ async function fetchList({
 
       await db.transaction('rw', [table, db.updateState], async (_tx) => {
         await table.bulkPut(transformed);
-        console.log(`${resource} updating state`, Date.now());
 
         const newUpdateState = {
           account: account,
@@ -89,6 +88,8 @@ async function fetchList({
           etag: result.etag,
           updatedAt: Date.now(),
         };
+
+        console.log(`${resource} updating state`, newUpdateState);
         await db.updateState.put(newUpdateState);
 
         trigger('fetchList:update', {
