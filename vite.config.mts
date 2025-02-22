@@ -7,6 +7,7 @@ import svgrPlugin from 'vite-plugin-svgr';
 export default defineConfig({
   server: {
     port: 3000,
+    strictPort: true,
   },
   // This changes the out put dir from dist to build
   // comment this out if that isn't relevant for your project
