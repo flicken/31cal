@@ -52,6 +52,7 @@ export const getEvents = async (
   if (!user.email)
     throw new Error(`Cannot find user email in ${JSON.stringify(user)}}`);
   if (!calendarsToFetch) return;
+
   const fetched = calendarsToFetch.map(async (calendar) => {
     if (!calendar) return undefined;
 
@@ -134,7 +135,7 @@ function useClientToFetch(user: GoogleUser | null, interval: number) {
 
   useEffect(() => {
     getEvents(user, calendarsToFetch);
-  }, [user, calendarsToFetch, lastFetchDate]);
+  }, [user?.email, lastFetchDate, ...calendarsToFetch.map(c => c.id)]);
 }
 
 export default useClientToFetch;
