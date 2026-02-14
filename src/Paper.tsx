@@ -42,7 +42,7 @@ const TextFilter = ({
       {...rest}
       value={value || ''}
       onChange={(e) => {
-        let v = e.target.value;
+        const v = e.target.value;
         setValue(v);
         onValueChange(v);
       }}
@@ -289,13 +289,14 @@ export default function Paper() {
                 placeholder="Search events..."
                 autoFocus={index === 0}
                 onValueChange={(v) => {
-                  if (index === columns.length) {
-                    setColumns([...columns, v]);
-                  } else {
-                    const c = [...columns];
-                    c[index] = v;
-                    setColumns(c);
+                  const c = [...columns];
+                  c[index] = v;
+
+                  // delete empty items at end
+                  while (c.length > 0 && !c[c.length - 1]) {
+                    c.pop();
                   }
+                  setColumns(c);
                 }}
               />
             </th>
