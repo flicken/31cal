@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { DateTime, Interval } from 'luxon';
 
@@ -32,6 +32,10 @@ const TextFilter = ({
   ...rest
 }: TextFilterProps) => {
   const [value, setValue] = useState(filter);
+
+  useEffect(() => {
+    setValue(filter);
+  }, [filter]);
 
   return (
     <input
