@@ -215,13 +215,13 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
       {matched.map((columnEvents, index) => (
         <td key={index}>
           {columnEvents.map((event) => (
-            <EL key={`${index}/${event.id}`} event={event} day={day} />
+            <EL key={`${index}/${event.calendarId}/${event.id}`} event={event} day={day} />
           ))}
         </td>
       ))}
       <td key="unmatched">
         {unmatched.map((event) => (
-          <EL key={`unmatched/${event.id}`} event={event} day={day} />
+          <EL key={`unmatched/${event.calendarId}/${event.id}`} event={event} day={day} />
         ))}
       </td>
     </tr>
