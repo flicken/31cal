@@ -1,19 +1,21 @@
-// @ts-nocheck
 import React, { useMemo } from 'react';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
 import { asArray } from './utils';
 import {
-  useTable,
-  useGroupBy,
-  useExpanded,
-  useRowSelect,
-  useFlexLayout,
-} from 'react-table';
+  useReactTable,
+  getCoreRowModel,
+  getGroupedRowModel,
+  getExpandedRowModel,
+  flexRender,
+  ColumnDef,
+  GroupingState,
+  ExpandedState,
+  RowSelectionState,
+} from '@tanstack/react-table';
 
-import ViewEvent, { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
+import { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
 
-import makeData from './makeData';
 import { DateTime } from 'luxon';
 import { intersection, compact, uniqWith, isEqual } from 'lodash-es';
 
@@ -34,7 +36,15 @@ export function* days(
   }
 }
 
-function Table_({ columns, data, filters }) {
+function Table_({
+  columns,
+  data,
+  filters,
+}: {
+  columns: ColumnDef<any, any>[];
+  data: any[];
+  filters: any;
+}) {
   const user = React.useContext(userContext);
   const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
   const dates = React.useMemo(
@@ -43,105 +53,111 @@ function Table_({ columns, data, filters }) {
   );
   const initialExpanded = React.useMemo(
     () =>
-      dates.reduce((prev, date) => {
-        prev[`date:${date}`] = true;
-        return prev;
-      }, {}),
-    [dates],
-  );
-
-  const groupByFn = React.useCallback(
-    (rows, columnId) => {
-      return rows.reduce((prev, row, i) => {
-        const start = row.original?.start?.ms
-          ? DateTime.fromMillis(row.original.start.ms)
-          : undefined;
-        const end = row.original?.end?.ms
-          ? DateTime.fromMillis(row.original.end.ms)
-          : undefined;
-        if (start && end) {
-          const keys = intersection(Array.from(days(start, end)), dates);
-          for (const resKey of keys) {
-            prev[resKey] = Array.isArray(prev[resKey]) ? prev[resKey] : [];
-            prev[resKey].push(row);
-          }
-        }
-        return prev;
-      }, {});
-    },
-    [dates],
-  );
-
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    setGroupBy,
-    prepareRow,
-    state: { groupBy, expanded, selectedRowIds },
-    selectedFlatRows,
-  } = useTable(
-    {
-      columns,
-      data,
-      groupByFn,
-      initialState: {
-        expanded: initialExpanded,
-      },
-    },
-    useGroupBy,
-    useExpanded, // useGroupBy would be pretty useless without useExpanded ;)
-    useRowSelect,
-    (hooks) => {
-      hooks.visibleColumns.push((columns) => [
-        // Let's make a column for selection
-        {
-          id: 'selection',
-          // The header can use the table's getToggleAllRowsSelectedProps method
-          // to render a checkbox
-          Header: ({ getToggleAllRowsSelectedProps }) => (
-            <div>
-              <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
-            </div>
-          ),
-          // The cell can use the individual row's getToggleRowSelectedProps method
-          // to the render a checkbox
-          Cell: ({ row }) => (
-            <div>
-              <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
-            </div>
-          ),
+      dates.reduce(
+        (prev, date) => {
+          prev[`date:${date}`] = true;
+          return prev;
         },
-        ...columns,
-      ]);
-    },
+        {} as Record<string, boolean>,
+      ),
+    [dates],
   );
 
+  const [grouping] = React.useState<GroupingState>(['date']);
+  const [expanded, setExpanded] = React.useState<ExpandedState>(initialExpanded);
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+
+  // Reset expanded state when dates change
   React.useEffect(() => {
-    setGroupBy(['date']);
-  }, []);
-  // We don't want to render all of the rows for this example, so cap
+    setExpanded(initialExpanded);
+  }, [initialExpanded]);
 
-  const getLeafColumns = function (rootColumns) {
-    return rootColumns.reduce((leafColumns, column) => {
-      if (column.columns) {
-        return [...leafColumns, ...getLeafColumns(column.columns)];
-      } else {
-        return [...leafColumns, column];
+  const allColumns = React.useMemo<ColumnDef<any, any>[]>(
+    () => [
+      {
+        id: 'selection',
+        header: ({ table }) => (
+          <div>
+            <IndeterminateCheckbox
+              checked={table.getIsAllRowsSelected()}
+              indeterminate={table.getIsSomeRowsSelected()}
+              onChange={table.getToggleAllRowsSelectedHandler()}
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div>
+            <IndeterminateCheckbox
+              checked={row.getIsSelected()}
+              indeterminate={row.getIsSomeSelected()}
+              onChange={row.getToggleSelectedHandler()}
+            />
+          </div>
+        ),
+      },
+      ...columns,
+    ],
+    [columns],
+  );
+
+  const table = useReactTable({
+    columns: allColumns,
+    data,
+    state: {
+      grouping,
+      expanded,
+      rowSelection,
+    },
+    onExpandedChange: setExpanded,
+    onRowSelectionChange: setRowSelection,
+    getGroupedRowModel: getGroupedRowModel(),
+    getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    enableGrouping: true,
+    enableExpanding: true,
+    enableRowSelection: true,
+    groupedColumnMode: false,
+    getGroupingRowCanSelect: () => true,
+    columnResizeMode: undefined as any,
+    meta: {
+      dates,
+    },
+  });
+
+  // Custom grouping: assign rows to date buckets based on event start/end
+  const customGroupedRows = React.useMemo(() => {
+    const flatRows = table.getPreGroupedRowModel().rows;
+    const grouped: Record<string, typeof flatRows> = {};
+    for (const row of flatRows) {
+      const start = row.original?.start?.ms
+        ? DateTime.fromMillis(row.original.start.ms)
+        : undefined;
+      const end = row.original?.end?.ms
+        ? DateTime.fromMillis(row.original.end.ms)
+        : undefined;
+      if (start && end) {
+        const keys = intersection(Array.from(days(start, end)), dates);
+        for (const key of keys) {
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(row);
+        }
       }
-    }, []);
-  };
+    }
+    return grouped;
+  }, [table.getPreGroupedRowModel().rows, dates]);
 
-  const onDelete = async (e) => {
+  const onDelete = async () => {
     if (!hasWriteAccess) {
       toast('Write permission needed. Please grant access in the popup.');
       await requestWriteAccess();
     }
 
+    const selectedRows = table
+      .getSelectedRowModel()
+      .flatRows.filter((r) => r.original);
     const eventsToDelete = uniqWith(
       compact(
-        selectedFlatRows.map((e) => {
+        selectedRows.map((e) => {
           const event = e.original;
           if (event) {
             return {
@@ -157,59 +173,84 @@ function Table_({ columns, data, filters }) {
     console.log('eventsToDelete', eventsToDelete);
     await deleteEvents(user, eventsToDelete);
   };
-  const IconBar = (
-    <div>
-      <button onClick={onDelete}>Delete</button>
-    </div>
-  );
+
+  const headerGroups = table.getHeaderGroups();
+
+  // Build display rows: date group headers + their child rows
+  const displayRows = React.useMemo(() => {
+    const result: Array<
+      | { type: 'group'; date: string; rowCount: number }
+      | { type: 'row'; row: (typeof table extends { getRowModel: () => { rows: (infer R)[] } } ? R : never) }
+    > = [];
+    const sortedDates = Object.keys(customGroupedRows).sort();
+    for (const date of sortedDates) {
+      const isExpanded = expanded === true || (expanded as Record<string, boolean>)[`date:${date}`];
+      result.push({ type: 'group', date, rowCount: customGroupedRows[date].length });
+      if (isExpanded) {
+        for (const row of customGroupedRows[date]) {
+          result.push({ type: 'row', row: row as any });
+        }
+      }
+    }
+    return result;
+  }, [customGroupedRows, expanded]);
+
+  const toggleDateExpanded = (date: string) => {
+    setExpanded((prev) => {
+      if (prev === true) return { [`date:${date}`]: false };
+      const p = prev as Record<string, boolean>;
+      return { ...p, [`date:${date}`]: !p[`date:${date}`] };
+    });
+  };
 
   return (
     <>
-      {IconBar}
-      <table {...getTableProps()}>
+      <div>
+        <button onClick={onDelete}>Delete</button>
+      </div>
+      <table>
         <thead>
           {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </th>
               ))}
             </tr>
           ))}
         </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
-            prepareRow(row);
+        <tbody>
+          {displayRows.map((item, i) => {
+            if (item.type === 'group') {
+              return (
+                <tr
+                  key={`group-${item.date}`}
+                  onClick={() => toggleDateExpanded(item.date)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td
+                    colSpan={allColumns.length}
+                    style={{ fontWeight: 'bold' }}
+                  >
+                    {item.date}
+                  </td>
+                </tr>
+              );
+            }
+            const row = item.row;
             return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => {
-                  return (
-                    <td
-                      {...cell.getCellProps()}
-                      style={{
-                        fontWeight: cell.isGrouped ? 'bold' : undefined,
-                        background: cell.isGrouped
-                          ? 'bold'
-                          : cell.isAggregated
-                          ? 'white'
-                          : cell.isPlaceholder
-                          ? ''
-                          : 'white',
-                      }}
-                    >
-                      {cell.isGrouped ? (
-                        // If it's a grouped cell, add an expander and row count
-                        <> {row.groupByVal} </>
-                      ) : cell.isAggregated ? (
-                        // If the cell is aggregated, use the Aggregated
-                        // renderer for cell
-                        cell.render('Cell')
-                      ) : cell.isPlaceholder ? null : ( // For cells with repeated values, render null
-                        // Otherwise, just render the regular cell
-                        cell.render('Cell')
-                      )}
-                    </td>
-                  );
-                })}
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} style={{ background: 'white' }}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
               </tr>
             );
           })}
@@ -219,60 +260,63 @@ function Table_({ columns, data, filters }) {
   );
 }
 
-const IndeterminateCheckbox = React.forwardRef(
-  ({ indeterminate, ...rest }, ref) => {
-    const defaultRef = React.useRef();
-    const resolvedRef = ref || defaultRef;
+function IndeterminateCheckbox({
+  indeterminate,
+  ...rest
+}: {
+  indeterminate?: boolean;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
+  const ref = React.useRef<HTMLInputElement>(null);
 
-    React.useEffect(() => {
-      resolvedRef.current.indeterminate = indeterminate;
-    }, [resolvedRef, indeterminate]);
+  React.useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = !!indeterminate;
+    }
+  }, [indeterminate]);
 
-    return (
-      <>
-        <input type="checkbox" ref={resolvedRef} {...rest} />
-      </>
-    );
-  },
-);
+  return <input type="checkbox" ref={ref} {...rest} />;
+}
 
 function dateOf(ms: number) {
   return DateTime.fromMillis(ms).toISODate();
 }
 
 export default function Table() {
-  const columns = React.useMemo(() => [
-    {
-      id: 'date',
-      Header: 'When',
-      Cell: ({ row }) => {
-        return row.original?.start ? (
-          <span>{dateOf(row.original.start.ms)}</span>
-        ) : null;
+  const columns = React.useMemo<ColumnDef<any, any>[]>(
+    () => [
+      {
+        id: 'date',
+        header: 'When',
+        cell: ({ row }) => {
+          return row.original?.start ? (
+            <span>{dateOf(row.original.start.ms)}</span>
+          ) : null;
+        },
       },
-    },
-    {
-      id: 'time',
-      Header: 'Time',
-      Cell: ({ row }) => {
-        return (
-          <ViewStartAndEnd
-            start={row.original?.start}
-            end={row.original?.end}
-            showDate={!row.groupByID}
-          />
-        );
+      {
+        id: 'time',
+        header: 'Time',
+        cell: ({ row }) => {
+          return (
+            <ViewStartAndEnd
+              start={row.original?.start}
+              end={row.original?.end}
+              showDate={false}
+            />
+          );
+        },
       },
-    },
-    {
-      id: 'summary',
-      Header: 'What',
-      Cell: ({ row }) => {
-        if (!row.original) return null;
-        return <ViewEventSummary event={row.original} />;
+      {
+        id: 'summary',
+        header: 'What',
+        cell: ({ row }) => {
+          if (!row.original) return null;
+          return <ViewEventSummary event={row.original} />;
+        },
       },
-    },
-  ]);
+    ],
+    [],
+  );
 
   const { eventFilters } = useFilterState();
   const [selectedCalendarIds] = useSelectedCalendarIds();
