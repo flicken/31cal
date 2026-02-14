@@ -13,9 +13,8 @@ import patchEvents, { EventPatch } from './google/patchEvents';
 import { getEvents } from './google/useClientToFetch';
 
 import { ViewStartAndEnd } from './ViewEvent';
-import { keyBy, sortBy } from 'lodash-es';
+import { keyBy, omit, sortBy } from 'lodash-es';
 import Filters2 from './Filters2';
-import _ from 'lodash';
 import { FilterInputs, FilterValues, filterForFilters } from './lib/filters';
 import { DateTime } from 'luxon';
 import VanillaJSONEditor from './VanillaJSONEditor';
@@ -140,7 +139,7 @@ function ModMany() {
               setShowEditor((show) => !show);
               const firstEvent = events.find(isChecked)!;
               setContent({
-                json: _.omit(
+                json: omit(
                   firstEvent as any,
                   'id',
                   'eventId',

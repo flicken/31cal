@@ -3,7 +3,7 @@ import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
 import { useFilterState } from './lib/FilterStateContext';
 import { asArray } from './utils';
 import { Calendar, CalendarEvent } from './models/types';
-import { keyBy, sortBy } from 'lodash-es';
+import { keyBy, pick, sortBy } from 'lodash-es';
 import { userContext } from './userContext';
 import Filters2 from './Filters2';
 import { EventCheckList } from './EventCheckList';
@@ -13,7 +13,6 @@ import { DateTime } from 'luxon';
 import { useInterval } from 'usehooks-ts';
 import Calendars from './Calendars';
 import saveEvents from './google/saveEvents';
-import _ from 'lodash';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 import { filterForFilters } from './lib/filters';
 
@@ -80,7 +79,7 @@ function CopyFrom() {
 
   async function copyEvents(calendar: Calendar, events: CalendarEvent[]) {
     const eventsToSave = events.map((e) => ({
-      ..._.pick(
+      ...pick(
         e,
         'attachments',
         'end',
@@ -91,7 +90,7 @@ function CopyFrom() {
       summary: `${prefix ?? ''}${e.summary ?? ''}`,
       extendedProperties: {
         private: {
-          original: _.pick(
+          original: pick(
             e,
             'id',
             'calendarId',
