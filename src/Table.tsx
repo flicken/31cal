@@ -117,7 +117,6 @@ function Table_({
     enableExpanding: true,
     enableRowSelection: true,
     groupedColumnMode: false,
-    getGroupingRowCanSelect: () => true,
     columnResizeMode: undefined as any,
     meta: {
       dates,
