@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import './App.css';
 import { userContext } from './userContext';
+import { authContext } from './authContext';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
@@ -302,7 +303,8 @@ const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
 
 function App() {
   const [user] = useLocalStorage<GoogleUser | null>('googleUser', null);
-  const googleButton = useGoogleButton();
+  const { button: googleButton, hasWriteAccess, requestWriteAccess } =
+    useGoogleButton();
   let navigate = useNavigate();
 
   const actions = useMemo(
@@ -323,6 +325,7 @@ function App() {
   return (
     <FilterStateProvider>
       <userContext.Provider value={user}>
+        <authContext.Provider value={{ hasWriteAccess, requestWriteAccess }}>
         <KBarProvider
           actions={actions}
           options={{
@@ -370,6 +373,7 @@ function App() {
             <ToastContainer />
           </SettingsProvider>
         </KBarProvider>
+        </authContext.Provider>
       </userContext.Provider>
     </FilterStateProvider>
   );

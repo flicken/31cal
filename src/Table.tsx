@@ -20,6 +20,8 @@ import { intersection, compact, uniqWith, isEqual } from 'lodash-es';
 import deleteEvents from './google/deleteEvents';
 
 import { userContext } from './userContext';
+import { authContext } from './authContext';
+import { toast } from 'react-toastify';
 
 export function* days(
   start: DateTime,
@@ -34,6 +36,7 @@ export function* days(
 
 function Table_({ columns, data, filters }) {
   const user = React.useContext(userContext);
+  const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
   const dates = React.useMemo(
     () => Array.from(days(filters.start, filters.end)),
     [filters.start, filters.end],
@@ -131,6 +134,11 @@ function Table_({ columns, data, filters }) {
   };
 
   const onDelete = async (e) => {
+    if (!hasWriteAccess) {
+      toast('Write permission needed. Please grant access in the popup.');
+      await requestWriteAccess();
+    }
+
     const eventsToDelete = uniqWith(
       compact(
         selectedFlatRows.map((e) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 import { userContext } from './userContext';
+import { authContext } from './authContext';
 
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -17,6 +18,7 @@ import { keyBy, omit, sortBy } from 'lodash-es';
 import Filters2 from './Filters2';
 import { FilterInputs, FilterValues, filterForFilters } from './lib/filters';
 import { DateTime } from 'luxon';
+import { toast } from 'react-toastify';
 import VanillaJSONEditor from './VanillaJSONEditor';
 import { Mode, Content } from 'vanilla-jsoneditor';
 import { EventCheckList } from './EventCheckList';
@@ -73,6 +75,7 @@ function ModMany() {
     }, []);
 
     const user = React.useContext(userContext);
+    const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
 
     const [checked, setChecked] = useState<Set<string>>(new Set());
 
@@ -81,6 +84,11 @@ function ModMany() {
     async function applyPatches(
       f: (e: CalendarEvent) => Omit<EventPatch, 'eventId' | 'calendarId'>,
     ) {
+      if (!hasWriteAccess) {
+        toast('Write permission needed. Please grant access in the popup.');
+        await requestWriteAccess();
+      }
+
       const patches = events.filter(isChecked).map((e) => ({
         eventId: e.id,
         calendarId: e.calendarId,

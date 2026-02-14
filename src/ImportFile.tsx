@@ -18,6 +18,8 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 import { customAlphabet } from 'nanoid';
 
 import { userContext } from './userContext';
+import { authContext } from './authContext';
+import { toast } from 'react-toastify';
 
 /* See https://developers.google.com/calendar/api/v3/reference/events
  * characters allowed in the ID are those used in base32hex encoding, i.e. lowercase letters a-v and digits 0-9, see section 3.1.2 in RFC2938
@@ -154,10 +156,16 @@ const toEvent = (input: any): Partial<CalendarEvent> => {
 function ImportFile() {
   const defaultCalendar = useDefaultCalendar();
   const user = React.useContext(userContext);
+  const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
 
   const [events, setEvents] = useState<Array<Partial<CalendarEvent>>>([]);
   const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: FileRejection[], e: DropEvent) => {
+    async (acceptedFiles: File[], fileRejections: FileRejection[], e: DropEvent) => {
+      if (!hasWriteAccess) {
+        toast('Write permission needed. Please grant access in the popup.');
+        await requestWriteAccess();
+      }
+
       const fileEncoding = 'UTF-8';
       const onError = (error: any) => {
         console.log(onError);
@@ -181,7 +189,7 @@ function ImportFile() {
         reader.readAsText(file, fileEncoding);
       });
     },
-    [setEvents, defaultCalendar],
+    [setEvents, defaultCalendar, hasWriteAccess, requestWriteAccess],
   );
 
   const {

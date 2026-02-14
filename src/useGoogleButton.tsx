@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useGoogleLogin, TokenResponse } from '@react-oauth/google';
+import {
+  useGoogleLogin,
+  hasGrantedAllScopesGoogle,
+  TokenResponse,
+} from '@react-oauth/google';
 
 import { useLocalStorage, useScript } from 'usehooks-ts';
 import ensureClient from './google/ensureClient';
@@ -10,8 +14,16 @@ const CALENDAR_READONLY = 'https://www.googleapis.com/auth/calendar.readonly';
 const EVENTS_READONLY =
   'https://www.googleapis.com/auth/calendar.events.readonly';
 const EVENTS_READWRITE = 'https://www.googleapis.com/auth/calendar.events';
-const SCOPES = [
-  CALENDAR_READONLY, // not needed until feature for selecting calendar
+
+const READ_SCOPES = [
+  CALENDAR_READONLY,
+  EVENTS_READONLY,
+  'profile',
+  'email',
+].join(' ');
+
+const WRITE_SCOPES = [
+  CALENDAR_READONLY,
   EVENTS_READONLY,
   EVENTS_READWRITE,
   'profile',
@@ -93,10 +105,11 @@ function use31CalGoogleLogin() {
     t();
   }, [status, googleToken]);
 
-  const googleLogin = useGoogleLogin({
-    scope: SCOPES,
-    // flow: 'implicit',
-    onSuccess: async (tokenResponse) => {
+  const writeResolveRef = useRef<((value: void) => void) | null>(null);
+  const writeRejectRef = useRef<((reason: any) => void) | null>(null);
+
+  const handleSuccess = useCallback(
+    async (tokenResponse: TokenResponse) => {
       setGoogleToken(tokenResponse);
       const result = await fetch(
         'https://www.googleapis.com/oauth2/v3/userinfo',
@@ -109,11 +122,48 @@ function use31CalGoogleLogin() {
       console.log(`Have user info ${JSON.stringify(userInfo)}`);
       setUser(userInfo);
     },
+    [setGoogleToken, setUser],
+  );
+
+  const handleError = useCallback((errorResponse: any) => {
+    console.log(errorResponse);
+  }, []);
+
+  const googleLogin = useGoogleLogin({
+    scope: READ_SCOPES,
+    onSuccess: handleSuccess,
+    onError: handleError,
+    hint: user?.email,
+  });
+
+  const googleLoginWrite = useGoogleLogin({
+    scope: WRITE_SCOPES,
+    onSuccess: async (tokenResponse) => {
+      await handleSuccess(tokenResponse);
+      writeResolveRef.current?.(undefined);
+      writeResolveRef.current = null;
+      writeRejectRef.current = null;
+    },
     onError: (errorResponse) => {
-      console.log(errorResponse);
+      handleError(errorResponse);
+      writeRejectRef.current?.(errorResponse);
+      writeResolveRef.current = null;
+      writeRejectRef.current = null;
     },
     hint: user?.email,
   });
+
+  const hasWriteAccess = googleToken
+    ? hasGrantedAllScopesGoogle(googleToken, EVENTS_READWRITE)
+    : false;
+
+  const requestWriteAccess = useCallback((): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      writeResolveRef.current = resolve;
+      writeRejectRef.current = reject;
+      googleLoginWrite();
+    });
+  }, [googleLoginWrite]);
 
   // Proactively refresh token before it expires
   useEffect(() => {
@@ -121,6 +171,7 @@ function use31CalGoogleLogin() {
 
     // Refresh 5 minutes before expiry (or immediately if less than 5 min left)
     const refreshMs = Math.max((googleToken.expires_in - 300) * 1000, 0);
+    const refreshScopes = hasWriteAccess ? WRITE_SCOPES : READ_SCOPES;
     const timer = setTimeout(() => {
       console.log('Proactively refreshing Google token');
       googleLogin({ prompt: 'none' });
@@ -142,40 +193,45 @@ function use31CalGoogleLogin() {
     googleToken,
     clearGoogleToken: () => setGoogleToken(null),
     isLoggedIn: Boolean(googleToken?.access_token),
+    hasWriteAccess,
+    requestWriteAccess,
   };
 }
 
 export function useGoogleButton() {
-  const { user, googleLogin, isLoggedIn, clearGoogleToken } =
-    use31CalGoogleLogin();
+  const {
+    user,
+    googleLogin,
+    isLoggedIn,
+    clearGoogleToken,
+    hasWriteAccess,
+    requestWriteAccess,
+  } = use31CalGoogleLogin();
 
-  if (isLoggedIn) {
-    const logoutText = user?.email ? `Logout (${user.email})` : 'Logout';
-    return (
-      <Link
-        to="/"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+  const button = isLoggedIn ? (
+    <Link
+      to="/"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-          clearGoogleToken();
-        }}
-      >
-        {logoutText}
-      </Link>
-    );
-  } else {
-    return (
-      <Link
-        to="#"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          googleLogin();
-        }}
-      >
-        Login with Google
-      </Link>
-    );
-  }
+        clearGoogleToken();
+      }}
+    >
+      {user?.email ? `Logout (${user.email})` : 'Logout'}
+    </Link>
+  ) : (
+    <Link
+      to="#"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        googleLogin();
+      }}
+    >
+      Login with Google
+    </Link>
+  );
+
+  return { button, hasWriteAccess, requestWriteAccess };
 }

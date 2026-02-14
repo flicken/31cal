@@ -11,6 +11,7 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import saveEvents from './google/saveEvents';
 import { userContext } from './userContext';
+import { authContext } from './authContext';
 
 import { Attachment } from './models/types';
 import { ViewAttachment } from './Attachments';
@@ -28,6 +29,7 @@ function BulkEntry() {
     undefined as undefined | Attachment,
   );
   const user = React.useContext(userContext);
+  const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
 
   const handleAttachmentChange = useCallback(
     (
@@ -114,8 +116,13 @@ function BulkEntry() {
       return;
     }
 
+    if (!hasWriteAccess) {
+      toast('Write permission needed. Please grant access in the popup.');
+      await requestWriteAccess();
+    }
+
     await saveEvents(defaultCalendar!, events, description, user);
-  }, [defaultCalendar, events, description, user]);
+  }, [defaultCalendar, events, description, user, hasWriteAccess, requestWriteAccess]);
 
   let saveButton = <button disabled>Set default calendar first</button>;
   if (isEmpty(events)) {
