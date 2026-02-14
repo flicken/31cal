@@ -22,12 +22,6 @@ import { sample } from 'lodash-es';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import Dropzone, {
-  useDropzone,
-  FileRejection,
-  DropEvent,
-} from 'react-dropzone';
-
 import { FilterStateProvider } from './lib/FilterStateContext';
 
 import {
@@ -335,41 +329,7 @@ function App() {
           <SettingsProvider>
             <CommandBar />
             <RightBar user={user} googleButton={googleButton} />
-            <Dropzone
-              noClick={true}
-              onDrop={(files) => console.log('onDrop', files)}
-              onDragEnter={(e) => {
-                console.log('onDragEnter', e);
-              }}
-              noDragEventsBubbling={true}
-              noKeyboard={true}
-              onDragLeave={(e) => {
-                console.log('onDragLeave', e);
-              }}
-              multiple={true}
-            >
-              {({ getRootProps, getInputProps }) => (
-                <div {...getRootProps()}>
-                  <input {...getInputProps()} hidden />
-                  <div
-                    style={{
-                      margin: 0,
-                      padding: 0,
-                      height: '100%',
-                      width: '100%',
-                    }}
-                    onPaste={onPaste}
-                    onDrop={(e) => {
-                      console.log(e);
-                      e.preventDefault();
-                    }}
-                  >
-                    {useRoutes(ROUTES)}
-                  </div>
-                </div>
-              )}
-            </Dropzone>
-
+                {useRoutes(ROUTES)}
             <ToastContainer />
           </SettingsProvider>
         </KBarProvider>
