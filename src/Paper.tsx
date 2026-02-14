@@ -20,14 +20,14 @@ import { intersection } from 'lodash-es';
 
 type TextFilterProps = JSX.IntrinsicElements['input'] & {
   filter: string;
-  placeholder: string;
+  placeholder?: string;
   onValueChange: (arg0: string) => void;
 };
 
 const TextFilter = ({
   filter,
   onValueChange,
-  placeholder = 'Search events...',
+  placeholder = 'Filter...',
   onFocus,
   ...rest
 }: TextFilterProps) => {
@@ -286,6 +286,7 @@ export default function Paper() {
               <TextFilter
                 key={`filter-${index}`}
                 filter={column}
+                placeholder="Search events..."
                 autoFocus={index === 0}
                 onValueChange={(v) => {
                   if (index === columns.length) {
