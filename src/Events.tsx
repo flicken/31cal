@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 
-import { useRecoilValue } from 'recoil';
-import { filteredEvents } from './lib/store';
+import { useFilterState } from './lib/FilterStateContext';
+import { useFilteredEvents } from './lib/hooks';
+import { useSelectedCalendarIds } from './lib/hooks';
+import { asArray } from './utils';
 
 import EventList from './EventList';
-import Filters from './Filters';
 
 function Events() {
-  const eventList = useRecoilValue(filteredEvents);
+  const { eventFilters } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
+
+  const filters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
+
+  const eventList = useFilteredEvents(filters);
 
   return (
     <>

@@ -12,12 +12,6 @@ import MultiSelectSort from './MultiSelectSort';
 import { StylesConfig } from 'react-select';
 import makeAnimated from 'react-select/animated';
 
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import {
-  selectedCalendarIds,
-  selectedCalendars as selectedCalendarsState,
-  allCalendars,
-} from './lib/store';
 
 const isDefault = (id: string, defaultId?: string) => {
   return id === defaultId ? { fontWeight: 'bold' } : null;

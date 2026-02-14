@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 
-import { useRecoilValue } from 'recoil';
-import { filteredEvents } from './lib/store';
+import { useFilterState } from './lib/FilterStateContext';
+import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
+import { asArray } from './utils';
 
 import { db } from './models/db';
 import { Attachment } from './models/types';
@@ -15,7 +16,7 @@ import EventList from './EventList';
 import { DateTime } from 'luxon';
 
 function ViewAttachmentInner({ url }: { url: string }) {
-  const [showAnyway, setShowAnyway] = useState(false);
+  const [showAnyway, setShowAnyway] = React.useState(false);
   const viewShowAnyway = (
     <a
       style={{ cursor: 'pointer' }}
@@ -64,7 +65,15 @@ export function ViewAttachment({ attachment }: { attachment: Attachment }) {
 }
 
 function Attachments() {
-  const events = useRecoilValue(filteredEvents);
+  const { eventFilters } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
+
+  const filters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
+
+  const events = useFilteredEvents(filters);
   const eventsWithAttachments = events.filter((e) => e.attachments);
   const attachmentUrl2Events = new Map();
   eventsWithAttachments.forEach((e) => {

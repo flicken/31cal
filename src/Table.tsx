@@ -1,7 +1,8 @@
 // @ts-nocheck
-import React from 'react';
-import { useRecoilValue } from 'recoil';
-import { filteredEvents, allEventFilters } from './lib/store';
+import React, { useMemo } from 'react';
+import { useFilterState } from './lib/FilterStateContext';
+import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
+import { asArray } from './utils';
 import {
   useTable,
   useGroupBy,
@@ -31,9 +32,8 @@ export function* days(
   }
 }
 
-function Table_({ columns, data }) {
+function Table_({ columns, data, filters }) {
   const user = React.useContext(userContext);
-  const filters = useRecoilValue(allEventFilters);
   const dates = React.useMemo(
     () => Array.from(days(filters.start, filters.end)),
     [filters.start, filters.end],
@@ -266,7 +266,15 @@ export default function Table() {
     },
   ]);
 
-  const events = useRecoilValue(filteredEvents);
+  const { eventFilters } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
 
-  return <Table_ columns={columns} data={events} />;
+  const allFilters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
+
+  const events = useFilteredEvents(allFilters);
+
+  return <Table_ columns={columns} data={events} filters={allFilters} />;
 }

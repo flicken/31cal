@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { allCalendars, allEventFilters } from './lib/store';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
+import { useFilterState } from './lib/FilterStateContext';
+import { asArray } from './utils';
 import { Calendar, CalendarEvent } from './models/types';
-import { keyBy } from 'lodash-es';
-import { modEventFilters, modEventMods, modFilteredEvents } from './ModMany';
+import { keyBy, sortBy } from 'lodash-es';
 import { userContext } from './userContext';
 import Filters2 from './Filters2';
 import { EventCheckList } from './EventCheckList';
@@ -15,14 +15,40 @@ import Calendars from './Calendars';
 import saveEvents from './google/saveEvents';
 import _ from 'lodash';
 import useDefaultCalendar from './lib/useDefaultCalendar';
+import { filterForFilters } from './lib/filters';
 
 function CopyFrom() {
-  const calendars = useRecoilValue(allCalendars);
-  const events = useRecoilValue(modFilteredEvents);
+  const calendars = useCalendars();
+  const allEventsArray = useEvents();
   const user = React.useContext(userContext);
-  const globalFilters = useRecoilValue(allEventFilters);
-  const [filters, setFilters] = useRecoilState(modEventFilters);
-  const [mods, setMods] = useRecoilState(modEventMods);
+  const { eventFilters, modEventFilters: filters, setModEventFilters: setFilters, modEventMods: mods, setModEventMods: setMods } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
+
+  const globalFilters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
+
+  const events = useMemo(() => {
+    const filter = filterForFilters(filters);
+    const searchRegex = new RegExp(filters.searchText ?? '', 'i');
+    const searchFilter = filters.searchText
+      ? (e: CalendarEvent) => !!e.summary?.match(searchRegex)
+      : () => true;
+    const modifications = filters.replaceText
+      ? (e: CalendarEvent) => {
+          return {
+            ...e,
+            summary: e.summary?.replace(searchRegex, filters.replaceText!),
+          };
+        }
+      : (e: CalendarEvent) => e;
+    return sortBy(
+      allEventsArray.filter(filter).filter(searchFilter).map(modifications),
+      (e) => [e.start.ms, e.end?.ms],
+    );
+  }, [allEventsArray, filters]);
+
   const [lastFetchDate, setLastFetchDate] = React.useState(DateTime.now());
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [prefix, setPrefix] = useState<string>('');

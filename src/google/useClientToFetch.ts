@@ -3,8 +3,7 @@ import React, { useCallback, useEffect } from 'react';
 import { db } from '../models/db';
 import fetchList from './fetchList';
 
-import { useRecoilValue } from 'recoil';
-import { selectedCalendars } from '../lib/store';
+import { useSelectedCalendars } from '../lib/hooks';
 
 import { DateTime } from 'luxon';
 
@@ -127,15 +126,17 @@ function useClientToFetch(user: GoogleUser | null, interval: number) {
     await fetchResource(user.email, 'calendarList');
   }, [user, lastFetchDate]);
 
-  const calendarsToFetch = useRecoilValue(selectedCalendars);
+  const calendarsToFetch = useSelectedCalendars();
 
   useEffect(() => {
     getCalendars();
   }, [getCalendars]);
 
+  const calendarIds = calendarsToFetch.map(c => c.id).join(',');
+
   useEffect(() => {
     getEvents(user, calendarsToFetch);
-  }, [user?.email, lastFetchDate, ...calendarsToFetch.map(c => c.id)]);
+  }, [user?.email, lastFetchDate, calendarIds]);
 }
 
 export default useClientToFetch;

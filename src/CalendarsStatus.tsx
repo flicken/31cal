@@ -6,12 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
-import { useRecoilState, useRecoilValue } from 'recoil';
-import {
-  selectedCalendarIds,
-  allCalendars,
-  countsByCalendar,
-} from './lib/store';
+import { useCalendars, useSelectedCalendarIds, useCountsByCalendar } from './lib/hooks';
 
 import { keyBy, sortBy } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -33,10 +28,9 @@ function sortKey(c: Calendar): string {
 function Calendars() {
   const [asOf, setAsOf] = React.useState(DateTime.now());
   const defaultCalendar = useDefaultCalendar();
-  const calList = useRecoilValue(allCalendars);
-  const counts = useRecoilValue(countsByCalendar);
-  const [selectedCalendarIds_, setSelectedCalendarIds] =
-    useRecoilState(selectedCalendarIds);
+  const calList = useCalendars();
+  const counts = useCountsByCalendar();
+  const [selectedCalendarIds_, setSelectedCalendarIds] = useSelectedCalendarIds();
   const updates = useLiveQuery(() => db.updateState.toArray());
   const updatesMap = keyBy(updates, 'resource');
 
@@ -48,16 +42,14 @@ function Calendars() {
 
   const onToggle = React.useCallback(
     (calendarId: string) => {
-      setSelectedCalendarIds((param) => {
-        const oldCalendarIds = Array.isArray(param) ? param : [param];
-        if (oldCalendarIds.includes(calendarId)) {
-          return oldCalendarIds.filter((id: string) => id !== calendarId);
-        } else {
-          return [...oldCalendarIds, calendarId];
-        }
-      });
+      const oldCalendarIds = Array.isArray(selectedCalendarIds_) ? selectedCalendarIds_ : [selectedCalendarIds_];
+      if (oldCalendarIds.includes(calendarId)) {
+        setSelectedCalendarIds(oldCalendarIds.filter((id: string) => id !== calendarId));
+      } else {
+        setSelectedCalendarIds([...oldCalendarIds, calendarId]);
+      }
     },
-    [setSelectedCalendarIds],
+    [selectedCalendarIds_, setSelectedCalendarIds],
   );
 
   return (

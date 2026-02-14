@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import { DateTime, Interval } from 'luxon';
 
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { filteredEvents, allEventFilters, paperColumns } from './lib/store';
+import { useFilterState } from './lib/FilterStateContext';
+import { useFilteredEvents, usePaperColumns, useSelectedCalendarIds } from './lib/hooks';
+import { asArray } from './utils';
 import { days } from './Table';
 
 import {
@@ -229,13 +230,20 @@ function search(regex: RegExp, s?: string) {
 }
 
 export default function Paper() {
-  const events = useRecoilValue(filteredEvents);
-  const [columns, setColumns] = useRecoilState(paperColumns);
+  const { eventFilters } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
 
-  const eventFilters = useRecoilValue(allEventFilters);
+  const allFilters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
+
+  const events = useFilteredEvents(allFilters);
+  const [columns, setColumns] = usePaperColumns();
+
   const dates = React.useMemo(
-    () => Array.from(days(eventFilters.start, eventFilters.end)),
-    [eventFilters.start, eventFilters.end],
+    () => Array.from(days(allFilters.start, allFilters.end)),
+    [allFilters.start, allFilters.end],
   );
 
   let eventsByDate = byDate(events, dates);
@@ -280,13 +288,11 @@ export default function Paper() {
                 autoFocus={index === 0}
                 onValueChange={(v) => {
                   if (index === columns.length) {
-                    setColumns((prevColumns) => [...prevColumns, v]);
+                    setColumns([...columns, v]);
                   } else {
-                    setColumns((prevColumns) => {
-                      const c = [...prevColumns];
-                      c[index] = v;
-                      return c;
-                    });
+                    const c = [...columns];
+                    c[index] = v;
+                    setColumns(c);
                   }
                 }}
               />

@@ -1,12 +1,13 @@
-import React, { useState, useEffect, ChangeEventHandler } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { userContext } from './userContext';
 
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { Calendar, CalendarEvent } from './models/types';
-import { atom, selector, useRecoilState, useRecoilValue } from 'recoil';
-import { allCalendars, allEvents, allEventFilters } from './lib/store';
+import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
+import { useFilterState } from './lib/FilterStateContext';
+import { asArray } from './utils';
 import patchEvents, { EventPatch } from './google/patchEvents';
 
 import { getEvents } from './google/useClientToFetch';
@@ -30,27 +31,18 @@ type Action = {
   }) => JSX.Element;
 };
 
-export const modEventFilters = atom<FilterValues & FilterInputs>({
-  key: 'modEventFilters',
-  default: {
-    start: DateTime.now(),
-    end: DateTime.now().plus({ months: 1 }).endOf('month'),
-    showCancelled: false,
-    calendarIds: [],
-    rangeText: 'now to end of next month',
-  },
-});
+function ModMany() {
+  const calendars = useCalendars();
+  const allEventsArray = useEvents();
+  const { eventFilters, modEventFilters: filters, setModEventFilters: setFilters, modEventMods: mods, setModEventMods: setMods } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
 
-export const modEventMods = atom<Partial<CalendarEvent>>({
-  key: 'modEventMods',
-  default: {},
-});
+  const globalFilters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
 
-export const modFilteredEvents = selector({
-  key: 'modFilteredEvents',
-  get: ({ get }) => {
-    const filters = get(modEventFilters);
-    const mods = get(modEventMods);
+  const events = useMemo(() => {
     const filter = filterForFilters(filters);
     const searchRegex = new RegExp(filters.searchText ?? '', 'i');
     const searchFilter = filters.searchText
@@ -64,42 +56,24 @@ export const modFilteredEvents = selector({
           };
         }
       : (e: CalendarEvent) => e;
-    const events = get(allEvents)
-      .filter(filter)
-      .filter(searchFilter)
-      .map(modifications);
-    return sortBy(events, (e) => [e.start.ms, e.end?.ms]);
-  },
-});
+    return sortBy(
+      allEventsArray.filter(filter).filter(searchFilter).map(modifications),
+      (e) => [e.start.ms, e.end?.ms],
+    );
+  }, [allEventsArray, filters]);
 
-function ModMany() {
-  const calendars = useRecoilValue(allCalendars);
-  const events = useRecoilValue(modFilteredEvents);
   const [showEditor, setShowEditor] = useState(false);
   const [content, setContent] = useState<Content>({
     json: null,
   });
 
   try {
-    const globalFilters = useRecoilValue(allEventFilters);
-    const [filters, setFilters] = useRecoilState(modEventFilters);
-    const [mods, setMods] = useRecoilState(modEventMods);
-
     useEffect(() => {
       // default to global filters
       setFilters(globalFilters);
     }, []);
 
     const user = React.useContext(userContext);
-
-    const actions: {
-      name: string;
-      modifyEvents: (events: CalendarEvent[]) => CalendarEvent[];
-      component: (props: {
-        events: CalendarEvent[];
-        calendars: Calendar[];
-      }) => JSX.Element;
-    }[] = [];
 
     const [checked, setChecked] = useState<Set<string>>(new Set());
 

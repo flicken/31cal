@@ -1,6 +1,5 @@
-import { useRecoilValue } from 'recoil';
-import { defaultCalendarObject } from './store';
+import { useDefaultCalendarValues } from './hooks';
 
 export default function useDefaultCalendar() {
-  return useRecoilValue(defaultCalendarObject);
+  return useDefaultCalendarValues();
 }

@@ -27,7 +27,7 @@ import Dropzone, {
   DropEvent,
 } from 'react-dropzone';
 
-import EventsContext from './EventsContext';
+import { FilterStateProvider } from './lib/FilterStateContext';
 
 import {
   Outlet,
@@ -39,8 +39,6 @@ import {
 } from 'react-router';
 
 import { KBarProvider, Action } from 'kbar';
-
-import { RecoilRoot } from 'recoil';
 
 import {
   useEventListener,
@@ -323,8 +321,7 @@ function App() {
   ) as Action[];
 
   return (
-    <RecoilRoot>
-      <EventsContext />
+    <FilterStateProvider>
       <userContext.Provider value={user}>
         <KBarProvider
           actions={actions}
@@ -374,7 +371,7 @@ function App() {
           </SettingsProvider>
         </KBarProvider>
       </userContext.Provider>
-    </RecoilRoot>
+    </FilterStateProvider>
   );
 }
 

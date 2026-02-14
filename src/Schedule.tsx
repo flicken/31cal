@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import { useRecoilValue } from 'recoil';
-import { filteredEvents, allEventsCount } from './lib/store';
+import { useFilterState } from './lib/FilterStateContext';
+import { useEvents, useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
+import { asArray } from './utils';
 
 import { useScheduleList } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
@@ -49,8 +50,18 @@ function SelectSchedule() {
 
 function Schedule() {
   const [selectedSchedules] = useSetting('selectedSchedules');
-  const allEventsCount_ = useRecoilValue(allEventsCount);
-  let eventList = useRecoilValue(filteredEvents);
+  const allEventsArray = useEvents();
+  const allEventsCount_ = allEventsArray.length;
+
+  const { eventFilters } = useFilterState();
+  const [selectedCalendarIds] = useSelectedCalendarIds();
+
+  const filters = useMemo(
+    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
+    [eventFilters, selectedCalendarIds],
+  );
+
+  let eventList = useFilteredEvents(filters);
 
   if (!isEmpty(selectedSchedules)) {
     eventList = eventList.filter(

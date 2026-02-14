@@ -1,26 +1,21 @@
 import React from 'react';
 
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import {
-  allCalendars,
-  eventFilters,
-  selectedCalendarIds,
-  selectedCalendars,
-} from './lib/store';
+import { useCalendars, useSelectedCalendarIds, useSelectedCalendars } from './lib/hooks';
+import { useFilterState } from './lib/FilterStateContext';
 
 import Calendars from './Calendars';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 import DateTimeInput from './DateTimeInput';
 
-import { Calendar, CalendarEvent } from './models/types';
+import { Calendar } from './models/types';
 import { db } from './models/db';
 
 function Filters() {
-  const [filters_, setFilters] = useRecoilState(eventFilters);
+  const { eventFilters: filters_, setEventFilters: setFilters } = useFilterState();
 
-  const calOptions = useRecoilValue(allCalendars);
-  const calValue = useRecoilValue(selectedCalendars);
-  const setSelectedCalendarIds = useSetRecoilState(selectedCalendarIds);
+  const calOptions = useCalendars();
+  const calValue = useSelectedCalendars();
+  const [, setSelectedCalendarIds] = useSelectedCalendarIds();
 
   const onCalendarChange = (calendars: Calendar[]) => {
     if (calendars.length > 0 && calendars[0]) {
@@ -56,12 +51,6 @@ function Filters() {
     });
   };
 
-  /*
-    
-    border-radius: calc(var(--unit) * 2);
-    padding: calc(var(--unit) * 4.5);
-    background: #fff;
-*/
   return (
     <div
       style={{

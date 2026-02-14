@@ -1,10 +1,10 @@
-import { SetterOrUpdater, useRecoilValue } from 'recoil';
+import { Dispatch, SetStateAction } from 'react';
 
 import Calendars from './Calendars';
 import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
 import DateTimeInput from './DateTimeInput';
 
-import { allCalendars } from './lib/store';
+import { useCalendars } from './lib/hooks';
 import { Calendar } from './models/types';
 import { useRef, useState } from 'react';
 import { notEmpty } from './utils';
@@ -15,10 +15,10 @@ function Filters2({
   setFilters,
 }: {
   filters: FilterValues & FilterInputs;
-  setFilters: SetterOrUpdater<FilterValues & FilterInputs>;
+  setFilters: Dispatch<SetStateAction<FilterValues & FilterInputs>>;
 }) {
   const searchRef = useRef<HTMLInputElement | null>(null);
-  const [calOptions] = useState(useRecoilValue(allCalendars));
+  const calOptions = useCalendars();
 
   const onCalendarChange = (calendars: Calendar[]) => {
     setFilters((f) => ({
