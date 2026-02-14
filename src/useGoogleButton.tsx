@@ -115,6 +115,21 @@ function use31CalGoogleLogin() {
     hint: user?.email,
   });
 
+  // Proactively refresh token before it expires
+  useEffect(() => {
+    if (!googleToken?.expires_in) return;
+
+    // Refresh 5 minutes before expiry (or immediately if less than 5 min left)
+    const refreshMs = Math.max((googleToken.expires_in - 300) * 1000, 0);
+    const timer = setTimeout(() => {
+      console.log('Proactively refreshing Google token');
+      googleLogin({ prompt: 'none' });
+    }, refreshMs);
+
+    return () => clearTimeout(timer);
+  }, [googleToken]);
+
+  // Reactively refresh on error
   useEffect(() => {
     if (error) {
       googleLogin({ prompt: 'none' });
