@@ -27,7 +27,7 @@ type TextFilterProps = JSX.IntrinsicElements['input'] & {
 const TextFilter = ({
   filter,
   onValueChange,
-  placeholder,
+  placeholder = 'Search events...',
   onFocus,
   ...rest
 }: TextFilterProps) => {
@@ -52,9 +52,6 @@ const TextFilter = ({
   );
 };
 
-TextFilter.defaultProps = {
-  placeholder: 'Search events...',
-};
 
 type EventFilter = (e: CalendarEvent) => Boolean;
 
