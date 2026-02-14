@@ -19,8 +19,7 @@ import Filters2 from './Filters2';
 import { FilterInputs, FilterValues, filterForFilters } from './lib/filters';
 import { DateTime } from 'luxon';
 import { toast } from 'react-toastify';
-import VanillaJSONEditor from './VanillaJSONEditor';
-import { Mode, Content } from 'vanilla-jsoneditor';
+import JsonEditor from './JsonEditor';
 import { EventCheckList } from './EventCheckList';
 import { keyFor } from './lib/events';
 
@@ -64,9 +63,7 @@ function ModMany() {
   }, [allEventsArray, filters]);
 
   const [showEditor, setShowEditor] = useState(false);
-  const [content, setContent] = useState<Content>({
-    json: null,
-  });
+  const [jsonText, setJsonText] = useState('');
 
   try {
     useEffect(() => {
@@ -146,26 +143,30 @@ function ModMany() {
             onClick={() => {
               setShowEditor((show) => !show);
               const firstEvent = events.find(isChecked)!;
-              setContent({
-                json: omit(
-                  firstEvent as any,
-                  'id',
-                  'eventId',
-                  'iCalUID',
-                  'recurringEventId',
-                  'originalStartTime',
-                  'sequence',
-                  'created',
-                  'updated',
-                  '_schedules',
-                  'eventType',
-                  'etag',
-                  'kind',
-                  'start.ms',
-                  'end.ms',
-                  'htmlLink',
+              setJsonText(
+                JSON.stringify(
+                  omit(
+                    firstEvent as any,
+                    'id',
+                    'eventId',
+                    'iCalUID',
+                    'recurringEventId',
+                    'originalStartTime',
+                    'sequence',
+                    'created',
+                    'updated',
+                    '_schedules',
+                    'eventType',
+                    'etag',
+                    'kind',
+                    'start.ms',
+                    'end.ms',
+                    'htmlLink',
+                  ),
+                  null,
+                  2,
                 ),
-              });
+              );
             }}
           >
             JSON
@@ -174,8 +175,7 @@ function ModMany() {
             <button
               disabled={events.length === 0 || checked.size < 1}
               onClick={() => {
-                const json =
-                  'json' in content ? content.json : JSON.parse(content.text);
+                const json = JSON.parse(jsonText);
 
                 applyPatches((e) => json);
 
@@ -188,11 +188,7 @@ function ModMany() {
         </div>
         {showEditor ? (
           <div>
-            <VanillaJSONEditor
-              defaultMode={Mode.text}
-              content={content}
-              onChange={setContent}
-            />
+            <JsonEditor value={jsonText} onChange={setJsonText} />
           </div>
         ) : null}
         <EventCheckList
