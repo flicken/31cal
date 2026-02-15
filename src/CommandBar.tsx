@@ -62,19 +62,17 @@ function RenderResults() {
   );
 }
 
-const ResultItem = React.forwardRef(
-  (
-    {
-      action,
-      active,
-      currentRootActionId,
-    }: {
-      action: ActionImpl;
-      active: boolean;
-      currentRootActionId?: ActionId;
-    },
-    ref: React.Ref<HTMLDivElement>,
-  ) => {
+function ResultItem({
+  action,
+  active,
+  currentRootActionId,
+  ref,
+}: {
+  action: ActionImpl;
+  active: boolean;
+  currentRootActionId?: ActionId;
+  ref?: React.Ref<HTMLDivElement>;
+}) {
     const ancestors = React.useMemo(() => {
       if (!currentRootActionId) return action.ancestors;
       const index = action.ancestors.findIndex(
@@ -163,8 +161,7 @@ const ResultItem = React.forwardRef(
         ) : null}
       </div>
     );
-  },
-);
+}
 
 function CommandBar() {
   return (

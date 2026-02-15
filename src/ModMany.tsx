@@ -29,7 +29,7 @@ type Action = {
   Component: (props: {
     events: CalendarEvent[];
     calendars: Calendar[];
-  }) => JSX.Element;
+  }) => React.JSX.Element;
 };
 
 function ModMany() {

@@ -185,11 +185,11 @@ const NavLink = ({
 
 function Layout() {
   const [showFilter, setShowFilter] = useState(false);
-  const hoverRef = useRef(null);
-  const filterRef = useRef(null);
-  const bodyRef = useRef(document.body);
+  const hoverRef = useRef<HTMLLIElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const documentRef = useRef(document) as React.RefObject<Document>;
 
-  useEventListener('mouseenter', () => setShowFilter(true), hoverRef);
+  useEventListener('mouseenter', () => setShowFilter(true), hoverRef as React.RefObject<HTMLLIElement>);
   useEventListener(
     'keydown',
     (e) => {
@@ -197,7 +197,7 @@ function Layout() {
         setShowFilter(false);
       }
     },
-    bodyRef,
+    documentRef,
   );
   useEventListener(
     'keydown',
@@ -206,9 +206,9 @@ function Layout() {
         setShowFilter(false);
       }
     },
-    filterRef,
+    filterRef as React.RefObject<HTMLDivElement>,
   );
-  useOnClickOutside(filterRef, () => setShowFilter(false));
+  useOnClickOutside(filterRef as React.RefObject<HTMLElement>, () => setShowFilter(false));
 
   return (
     <div>

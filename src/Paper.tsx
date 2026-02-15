@@ -18,7 +18,7 @@ import {
 
 import { intersection } from './lib/utils';
 
-type TextFilterProps = JSX.IntrinsicElements['input'] & {
+type TextFilterProps = React.JSX.IntrinsicElements['input'] & {
   filter: string;
   placeholder?: string;
   onValueChange: (arg0: string) => void;
@@ -160,7 +160,7 @@ const EL = ({ event, day }: ELProps) => {
   );
 };
 
-type RowProps = JSX.IntrinsicElements['tr'] & {
+type RowProps = React.JSX.IntrinsicElements['tr'] & {
   day: string;
   filters: any[];
   events: CalendarEvent[];
@@ -288,7 +288,7 @@ export default function Paper() {
                 filter={column}
                 placeholder="Search events..."
                 autoFocus={index === 0}
-                onValueChange={(v) => {
+                onValueChange={(v: string) => {
                   const c = [...columns];
                   c[index] = v;
 
