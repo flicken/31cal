@@ -6,7 +6,7 @@
   "dependencies": {
     "@react-oauth/google": "0.12.1",
     "@tanstack/react-table": "^8.21.3",
-    "@vitejs/plugin-react": "4.3.4",
+    "@vitejs/plugin-react": "5.1.4",
     "chrono-node": "2.7.8",
     "codejar": "^4.3.0",
     "dexie": "4.0.11",
@@ -25,7 +25,7 @@
     "react-textarea-autosize": "8.5.7",
     "react-toastify": "11.0.3",
     "usehooks-ts": "3.1.1",
-    "vite": "6.0.11"
+    "vite": "7.3.1"
   },
   "scripts": {
     "start": "vite",
@@ -51,13 +51,13 @@
     "@types/dompurify": "3.2.0",
     "@types/lodash-es": "4.17.12",
     "@types/luxon": "3.4.2",
-    "@types/node": "22.10.10",
+    "@types/node": "24.10.13",
     "@types/papaparse": "5.3.15",
     "@types/prismjs": "^1.26.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "husky": "9.1.7",
-    "lint-staged": "15.4.2",
+    "lint-staged": "16.2.7",
     "prettier": "3.4.2",
     "typescript": "5.7.3",
     "vite-plugin-svgr": "4.3.0",
