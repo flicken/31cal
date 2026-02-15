@@ -2,7 +2,6 @@ import React, {
   useEffect,
   useState,
   useRef,
-  useMemo,
   Suspense,
   ClipboardEvent,
 } from 'react';
@@ -14,8 +13,6 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
 import { GoogleUser, useGoogleButton } from './useGoogleButton';
-import CommandBar from './CommandBar';
-
 import { SettingsProvider } from './lib/settings';
 import { sample } from './lib/utils';
 
@@ -28,12 +25,9 @@ import {
   Outlet,
   Link,
   useRoutes,
-  useNavigate,
   useMatch,
   useResolvedPath,
 } from 'react-router';
-
-import { KBarProvider, Action } from 'kbar';
 
 import {
   useEventListener,
@@ -299,40 +293,15 @@ function App() {
   const [user] = useLocalStorage<GoogleUser | null>('googleUser', null);
   const { button: googleButton, hasWriteAccess, requestWriteAccess } =
     useGoogleButton();
-  let navigate = useNavigate();
-
-  const actions = useMemo(
-    () =>
-      ROUTES[0].children
-        .filter((a) => !a.ignored)
-        .map((a) => {
-          return {
-            ...a,
-            id: a.path,
-            name: a.logo ?? a.name ?? a.path.replaceAll('/', ''),
-            perform: () => navigate(a.path),
-          };
-        }),
-    [],
-  ) as Action[];
-
   return (
     <FilterStateProvider>
       <userContext.Provider value={user}>
         <authContext.Provider value={{ hasWriteAccess, requestWriteAccess }}>
-        <KBarProvider
-          actions={actions}
-          options={{
-            enableHistory: true,
-          }}
-        >
           <SettingsProvider>
-            <CommandBar />
             <RightBar user={user} googleButton={googleButton} />
                 {useRoutes(ROUTES)}
             <ToastContainer />
           </SettingsProvider>
-        </KBarProvider>
         </authContext.Provider>
       </userContext.Provider>
     </FilterStateProvider>
