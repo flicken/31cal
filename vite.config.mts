@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 import svgrPlugin from 'vite-plugin-svgr';
@@ -13,6 +13,9 @@ export default defineConfig({
   // comment this out if that isn't relevant for your project
   build: {
     outDir: 'build',
+  },
+  test: {
+    globals: true,
   },
   plugins: [
     react(),

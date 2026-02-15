@@ -29,6 +29,7 @@
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
+    "test": "vitest run",
     "serve": "vite preview",
     "configure-husky": "npx husky install && npx husky add .husky/pre-commit \"npx --no-install lint-staged\""
   },
