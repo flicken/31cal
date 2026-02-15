@@ -5,7 +5,7 @@
   "dependencies": {
     "@react-oauth/google": "0.12.1",
     "@tanstack/react-table": "^8.21.3",
-    "@vitejs/plugin-react": "4.3.4",
+    "@vitejs/plugin-react": "5.1.4",
     "chrono-node": "2.7.8",
     "codejar": "^4.3.0",
     "dexie": "4.0.11",
