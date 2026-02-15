@@ -185,11 +185,11 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
   const dayOfWeek = new Date(day).getDay();
   const dayStyle =
     dayOfWeek == 1
-      ? {
+      ? ({
           borderTopWidth: 'thin',
           borderTopStyle: 'dashed',
           borderTopColor: 'grey',
-        }
+        } as const)
       : null;
 
   return (
