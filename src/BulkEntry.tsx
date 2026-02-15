@@ -6,7 +6,7 @@ import parseEvent from './lib/parseEvent';
 
 import EventList from './EventList';
 
-import { compact, isEmpty, trim } from 'lodash-es';
+import { isEmpty } from './lib/utils';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import saveEvents from './google/saveEvents';
@@ -39,7 +39,7 @@ function BulkEntry() {
     ) => {
       const value = e.target.value;
       console.log('attachment change', e);
-      if (isEmpty(trim(value))) {
+      if (isEmpty(value.trim())) {
         setAttachment(undefined);
       } else {
         setAttachment({ fileUrl: value });
@@ -95,7 +95,7 @@ function BulkEntry() {
     const lines = eventsText.match(/[^\r\n]+/g);
     const parsedEvents = new Array(lines?.length || 0);
     lines?.forEach((line: string, i: number) => {
-      const parsed = parseEvent(line, compact(parsedEvents));
+      const parsed = parseEvent(line, parsedEvents.filter(Boolean));
       console.log('prefix', prefix);
       if (parsed) {
         if (!isEmpty(prefix)) {
@@ -107,7 +107,7 @@ function BulkEntry() {
         parsedEvents[i] = parsed;
       }
     });
-    setEvents(compact(parsedEvents));
+    setEvents(parsedEvents.filter(Boolean));
   }, [eventsText, prefix, attachment]);
 
   const handleSaveEvents = useCallback(async () => {

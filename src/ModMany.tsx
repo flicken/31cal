@@ -14,7 +14,8 @@ import patchEvents, { EventPatch } from './google/patchEvents';
 import { getEvents } from './google/useClientToFetch';
 
 import { ViewStartAndEnd } from './ViewEvent';
-import { keyBy, omit, sortBy } from 'lodash-es';
+import { omit } from 'lodash-es';
+import { keyBy, sortBy } from './lib/utils';
 import Filters2 from './Filters2';
 import { FilterInputs, FilterValues, filterForFilters } from './lib/filters';
 import { DateTime } from 'luxon';

@@ -3,7 +3,7 @@ import { CalendarEvent, StartEnd, isStartEndDate } from './models/types';
 
 import { DateTime } from 'luxon';
 import dompurify from 'dompurify';
-import { isEmpty } from 'lodash-es';
+import { isEmpty } from './lib/utils';
 
 import { Attachment } from './models/types';
 

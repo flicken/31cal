@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo } from 'react';
 import { db } from '../models/db';
 import { Calendar, CalendarEvent } from '../models/types';
-import { sortBy, countBy } from 'lodash-es';
+import { sortBy, countBy } from './utils';
 import { filterForFilters, FilterValues } from './filters';
 import { asArray } from '../utils';
 

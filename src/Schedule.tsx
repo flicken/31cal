@@ -8,7 +8,7 @@ import { useScheduleList } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';
 import EventList from './EventList';
 
-import { isEmpty, intersection } from 'lodash-es';
+import { isEmpty, intersection } from './lib/utils';
 
 import Select from 'react-select';
 

@@ -16,7 +16,7 @@ import {
   StartEndDateTime,
 } from './models/types';
 
-import { intersection } from 'lodash-es';
+import { intersection } from './lib/utils';
 
 type TextFilterProps = JSX.IntrinsicElements['input'] & {
   filter: string;

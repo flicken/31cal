@@ -6,7 +6,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
-import { keyBy } from 'lodash-es';
 
 import MultiSelectSort from './MultiSelectSort';
 import { StylesConfig } from 'react-select';

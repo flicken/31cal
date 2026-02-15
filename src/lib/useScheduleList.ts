@@ -2,12 +2,12 @@ import { db } from '../models/db';
 import { CalendarEvent } from '../models/types';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { unset, set, toPairs } from 'lodash-es';
+import { unset, set } from 'lodash-es';
 
 const PROPERTY_PREFIX = /^31cal./;
 
 const eventSchedules = (e: CalendarEvent) => {
-  return toPairs(e.extendedProperties?.shared)
+  return Object.entries(e.extendedProperties?.shared ?? {})
     .filter((kv) => kv[0].startsWith('31cal') && !!kv[1])
     .map((kv) => kv[0].replace(PROPERTY_PREFIX, ''))
     .map((k) => decodeURIComponent(k));

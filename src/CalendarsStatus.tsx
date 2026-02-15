@@ -8,7 +8,7 @@ import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import { useCalendars, useSelectedCalendarIds, useCountsByCalendar } from './lib/hooks';
 
-import { keyBy, sortBy } from 'lodash-es';
+import { keyBy, sortBy } from './lib/utils';
 import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';

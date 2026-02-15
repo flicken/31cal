@@ -3,7 +3,7 @@ import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
 import { useFilterState } from './lib/FilterStateContext';
 import { asArray } from './utils';
 import { Calendar, CalendarEvent } from './models/types';
-import { keyBy, pick, sortBy } from 'lodash-es';
+import { keyBy, pick, sortBy } from './lib/utils';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 import Filters2 from './Filters2';

@@ -3,7 +3,6 @@ import { db } from '../models/db';
 
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { get, fromPairs } from 'lodash-es';
 
 const SettingsContext = React.createContext<Object | undefined>(undefined);
 
@@ -15,7 +14,7 @@ const useSetting = (id: string) => {
   }, []);
 
   if (settings) {
-    return [get(settings, id), _set];
+    return [(settings as any)?.[id], _set];
   } else {
     return [undefined, _set];
   }
@@ -30,7 +29,7 @@ const SettingsProvider: React.FC<Props> = ({ children }) => {
     db.settings
       .toArray()
       .then((settingsArray) =>
-        fromPairs(settingsArray.map((i) => [i.id, i.value])),
+        Object.fromEntries(settingsArray.map((i) => [i.id, i.value])),
       ),
   );
 

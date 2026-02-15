@@ -4,7 +4,7 @@ import { db } from '../models/db';
 import ensureClient from './ensureClient';
 import { getEvents } from './useClientToFetch';
 
-import { uniq } from 'lodash-es';
+
 import { GoogleUser } from '../useGoogleButton';
 
 type EventToDelete = {
@@ -42,7 +42,7 @@ export default async function deleteEvents(
     }
   }
 
-  const calendarIds = uniq(events.map((e) => e.calendarId));
+  const calendarIds = [...new Set(events.map((e) => e.calendarId))];
   await getEvents(
     user,
     calendarIds.map((id) => {

@@ -17,7 +17,8 @@ import {
 import { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
 
 import { DateTime } from 'luxon';
-import { intersection, compact, uniqWith, isEqual } from 'lodash-es';
+import { uniqWith, isEqual } from 'lodash-es';
+import { intersection } from './lib/utils';
 
 import deleteEvents from './google/deleteEvents';
 
@@ -155,18 +156,17 @@ function Table_({
       .getSelectedRowModel()
       .flatRows.filter((r) => r.original);
     const eventsToDelete = uniqWith(
-      compact(
-        selectedRows.map((e) => {
+      selectedRows.flatMap((e) => {
           const event = e.original;
           if (event) {
-            return {
+            return [{
               calendarId: event.calendarId,
               eventId: event.id,
               summary: event.summary,
-            };
+            }];
           }
+          return [];
         }),
-      ),
       isEqual,
     );
     console.log('eventsToDelete', eventsToDelete);

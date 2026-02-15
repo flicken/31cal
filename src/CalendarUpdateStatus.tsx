@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { last, max } from 'lodash-es';
+import { max } from './lib/utils';
 import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';
