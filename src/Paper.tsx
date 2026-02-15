@@ -186,7 +186,9 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
   const dayStyle =
     dayOfWeek == 1
       ? {
-          borderTop: 'thin dashed grey',
+          borderTopWidth: 'thin',
+          borderTopStyle: 'dashed',
+          borderTopColor: 'grey',
         }
       : null;
 

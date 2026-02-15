@@ -1,6 +1,31 @@
-const ensureClient = () => {
+function waitForGapi(timeoutMs = 10000): Promise<any> {
+  const gapi = (window as any).gapi;
+  if (gapi) return Promise.resolve(gapi);
+
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const gapi = (window as any).gapi;
+      if (gapi) {
+        clearInterval(interval);
+        resolve(gapi);
+      } else if (Date.now() - start > timeoutMs) {
+        clearInterval(interval);
+        reject(
+          new Error(
+            'Timed out waiting for Google API (gapi) to load. Ensure the gapi script is included.',
+          ),
+        );
+      }
+    }, 50);
+  });
+}
+
+const ensureClient = async () => {
   console.log('Ensuring client');
-  const gapi: any = (window as any).gapi;
+  const gapi = await waitForGapi();
+  console.log('gapi', gapi);
+
   const initClient = () => {
     return gapi.client.init({
       discoveryDocs: [
@@ -9,20 +34,17 @@ const ensureClient = () => {
     });
   };
 
-  console.log('gapi', gapi);
-
-  if (!gapi?.client) {
-    const promise = new Promise(function (resolve, reject) {
+  if (!gapi.client) {
+    await new Promise<void>((resolve, reject) => {
       try {
         gapi.load('client', resolve);
       } catch (e) {
         reject(e);
       }
     });
-
-    return promise.then(() => initClient());
+    await initClient();
   } else {
-    return initClient();
+    await initClient();
   }
 };
 
