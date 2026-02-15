@@ -5,6 +5,7 @@ import svgrPlugin from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: process.env.CF_PAGES_URL || '/',
   server: {
     port: 3000,
     strictPort: true,
