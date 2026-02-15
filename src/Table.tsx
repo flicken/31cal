@@ -18,24 +18,13 @@ import { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
 
 import { DateTime } from 'luxon';
 import { uniqWith, isEqual } from 'lodash-es';
-import { intersection } from './lib/utils';
+import { intersection, days } from './lib/utils';
 
 import deleteEvents from './google/deleteEvents';
 
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 import { toast } from 'react-toastify';
-
-export function* days(
-  start: DateTime,
-  end: DateTime,
-): Generator<string, void, unknown> {
-  let cursor = start.startOf('day');
-  while (cursor < end) {
-    yield cursor.toISODate()!;
-    cursor = cursor.plus({ days: 1 });
-  }
-}
 
 function Table_({
   columns,

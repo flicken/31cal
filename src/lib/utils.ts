@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon';
+
 export function pick<T extends object>(
   obj: T,
   ...keys: string[] | [string[]]
@@ -71,4 +73,15 @@ export function isEmpty(
 
 export function sample<T>(arr: T[]): T | undefined {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+export function* days(
+  start: DateTime,
+  end: DateTime,
+): Generator<string, void, unknown> {
+  let cursor = start.startOf('day');
+  while (cursor < end) {
+    yield cursor.toISODate()!;
+    cursor = cursor.plus({ days: 1 });
+  }
 }

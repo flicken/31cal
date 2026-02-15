@@ -7,7 +7,7 @@ import { DateTime, Interval } from 'luxon';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, usePaperColumns, useSelectedCalendarIds } from './lib/hooks';
 import { asArray } from './utils';
-import { days } from './Table';
+import { days } from './lib/utils';
 
 import {
   CalendarEvent,

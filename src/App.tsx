@@ -41,10 +41,10 @@ import BulkEntry from './BulkEntry';
 import CalendarsStatus from './CalendarsStatus';
 import Events from './Events';
 import Filters from './Filters';
-import ImportFile from './ImportFile';
-import ModMany from './ModMany';
-import Schedule from './Schedule';
-import Table from './Table';
+const ImportFile = React.lazy(() => import('./ImportFile'));
+const ModMany = React.lazy(() => import('./ModMany'));
+const Schedule = React.lazy(() => import('./Schedule'));
+const Table = React.lazy(() => import('./Table'));
 import CalendarUpdateStatus from './CalendarUpdateStatus';
 import { GOOGLE_CLIENT_ID } from './config';
 import CopyFrom from './CopyFrom';
@@ -237,7 +237,9 @@ function Layout() {
         <Filters />
       </div>
       <hr />
-      <Outlet />
+      <Suspense fallback={<span>Loading...</span>}>
+        <Outlet />
+      </Suspense>
     </div>
   );
 }
