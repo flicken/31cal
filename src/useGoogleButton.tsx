@@ -50,6 +50,7 @@ function use31CalGoogleLogin() {
   );
 
   const [error, setError] = useState<boolean>(false);
+  const [needsReconnect, setNeedsReconnect] = useState<boolean>(false);
 
   const status = useScript('https://apis.google.com/js/api.js', {
     removeOnUnmount: false,
@@ -110,6 +111,7 @@ function use31CalGoogleLogin() {
 
   const handleSuccess = useCallback(
     async (tokenResponse: TokenResponse) => {
+      setNeedsReconnect(false);
       setGoogleToken(tokenResponse);
       const result = await fetch(
         'https://www.googleapis.com/oauth2/v3/userinfo',
@@ -127,6 +129,7 @@ function use31CalGoogleLogin() {
 
   const handleError = useCallback((errorResponse: any) => {
     console.log(errorResponse);
+    setNeedsReconnect(true);
   }, []);
 
   const googleLogin = useGoogleLogin({
@@ -195,6 +198,7 @@ function use31CalGoogleLogin() {
     isLoggedIn: Boolean(googleToken?.access_token),
     hasWriteAccess,
     requestWriteAccess,
+    needsReconnect,
   };
 }
 
@@ -206,20 +210,36 @@ export function useGoogleButton() {
     clearGoogleToken,
     hasWriteAccess,
     requestWriteAccess,
+    needsReconnect,
   } = use31CalGoogleLogin();
 
   const button = isLoggedIn ? (
-    <Link
-      to="/"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    <>
+      {needsReconnect && (
+        <Link
+          to="#"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            googleLogin();
+          }}
+          style={{ color: '#c57000' }}
+        >
+          Reconnect
+        </Link>
+      )}{needsReconnect && ' - '}
+      <Link
+        to="/"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
 
-        clearGoogleToken();
-      }}
-    >
-      {user?.email ? `Logout (${user.email})` : 'Logout'}
-    </Link>
+          clearGoogleToken();
+        }}
+      >
+        {user?.email ? `Logout (${user.email})` : 'Logout'}
+      </Link>
+    </>
   ) : (
     <Link
       to="#"
