@@ -30,13 +30,14 @@ interface SortContextType {
     index: number,
     onReorder: (from: number, to: number) => void,
   ) => (e: React.PointerEvent) => void;
+  InnerMultiValue: React.ComponentType<MultiValueProps<any>>;
 }
 
 const SortCtx = createContext<SortContextType>(null!);
 
 function DraggableMultiValue(props: MultiValueProps<any>) {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const { itemRefs, onReorder, dragState, createPointerDownHandler } =
+  const { itemRefs, onReorder, dragState, createPointerDownHandler, InnerMultiValue } =
     useContext(SortCtx);
   const index = props.index;
 
@@ -79,14 +80,18 @@ function DraggableMultiValue(props: MultiValueProps<any>) {
         transition: 'border 150ms ease',
       }}
     >
-      <components.MultiValue {...props} />
+      <InnerMultiValue {...props} />
     </div>
   );
 }
 
 export default function MultiSelectSort(props: any) {
   const { onChange, value, components: externalComponents, ...rest } = props;
+  const { MultiValue: ExternalMultiValue, ...otherExternalComponents } =
+    externalComponents || {};
   const { itemRefs, dragState, createPointerDownHandler } = useSortableList();
+
+  const InnerMultiValue = ExternalMultiValue || components.MultiValue;
 
   const doOnChange = useCallback(
     (selectedOptions: OnChangeValue<any, true>) => {
@@ -105,7 +110,7 @@ export default function MultiSelectSort(props: any) {
 
   return (
     <SortCtx.Provider
-      value={{ itemRefs, onReorder, dragState, createPointerDownHandler }}
+      value={{ itemRefs, onReorder, dragState, createPointerDownHandler, InnerMultiValue }}
     >
       <Select
         isMulti
@@ -115,9 +120,9 @@ export default function MultiSelectSort(props: any) {
         defaultValue={value}
         {...rest}
         components={{
-          ...externalComponents,
-          // Override animated MultiValue and ValueContainer — the animated
-          // ValueContainer uses TransitionGroup which keeps removed chips
+          ...otherExternalComponents,
+          // Must come AFTER spread — the animated ValueContainer from
+          // makeAnimated() uses TransitionGroup which keeps removed chips
           // in the DOM indefinitely when the MultiValue component lacks
           // react-transition-group callbacks.
           MultiValue: DraggableMultiValue,

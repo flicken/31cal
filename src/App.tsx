@@ -1,14 +1,12 @@
 import React, {
-  useState,
-  useRef,
   Suspense,
   ClipboardEvent,
+  createContext,
+  useContext,
 } from 'react';
 import './App.css';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
-
-import useDefaultCalendar from './lib/useDefaultCalendar';
 
 import useClientToFetch from './google/useClientToFetch';
 import { GoogleUser, useGoogleButton } from './useGoogleButton';
@@ -27,9 +25,7 @@ import {
 } from 'react-router';
 
 import {
-  useEventListener,
   useLocalStorage,
-  useOnClickOutside,
 } from 'usehooks-ts';
 
 import Paper from './Paper';
@@ -37,19 +33,24 @@ import Attachments from './Attachments';
 import BulkEntry from './BulkEntry';
 import CalendarsStatus from './CalendarsStatus';
 import Events from './Events';
-import Filters from './Filters';
+import SearchBar from './SearchBar';
+import Calendars from './Calendars';
+import { useCalendars, useSelectedCalendarIds, useSelectedCalendars } from './lib/hooks';
+import { Calendar } from './models/types';
+import { db } from './models/db';
 const ImportFile = React.lazy(() => import('./ImportFile'));
 const ModMany = React.lazy(() => import('./ModMany'));
 const Schedule = React.lazy(() => import('./Schedule'));
 const Table = React.lazy(() => import('./Table'));
 import CalendarUpdateStatus from './CalendarUpdateStatus';
-import { GOOGLE_CLIENT_ID } from './config';
 import CopyFrom from './CopyFrom';
+
+const googleButtonContext = createContext<React.ReactNode>(null);
 
 const SmallLogo = (
   <svg
-    height="1em"
-    width="1em"
+    height="1.5em"
+    width="1.5em"
     id="Layer_1"
     data-name="Layer 1"
     xmlns="http://www.w3.org/2000/svg"
@@ -168,94 +169,112 @@ function compareProperty(a?: string, b?: string) {
   return a || b ? (!a ? -1 : !b ? 1 : a.localeCompare(b)) : 0;
 }
 
-function Layout() {
-  const [showFilter, setShowFilter] = useState(false);
-  const hoverRef = useRef<HTMLLIElement>(null);
-  const filterRef = useRef<HTMLDivElement>(null);
-  const documentRef = useRef(document) as React.RefObject<Document>;
-
-  useEventListener('mouseenter', () => setShowFilter(true), hoverRef as React.RefObject<HTMLLIElement>);
-  useEventListener(
-    'keydown',
-    (e) => {
-      if (e.code == 'Escape') {
-        setShowFilter(false);
-      }
-    },
-    documentRef,
-  );
-  useEventListener(
-    'keydown',
-    (e) => {
-      if (e.code == 'Enter') {
-        setShowFilter(false);
-      }
-    },
-    filterRef as React.RefObject<HTMLDivElement>,
-  );
-  useOnClickOutside(filterRef as React.RefObject<HTMLElement>, () => setShowFilter(false));
+function StatusBar() {
+  const user = useContext(userContext);
+  const googleButton = useContext(googleButtonContext);
+  useClientToFetch(user, 5 * 60 * 1000);
 
   return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+      <Suspense fallback={<span>...</span>}>
+        <Link to="/status">
+          <CalendarUpdateStatus />
+        </Link>
+      </Suspense>
+      {googleButton}
+    </div>
+  );
+}
+
+function CalendarFilter() {
+  const calOptions = useCalendars() ?? [];
+  const calValue = useSelectedCalendars();
+  const [, setSelectedCalendarIds] = useSelectedCalendarIds();
+
+  const onCalendarChange = (calendars: Calendar[]) => {
+    if (calendars.length > 0 && calendars[0]) {
+      db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
+    }
+    setSelectedCalendarIds(calendars.filter((c) => c).map((c) => c?.id));
+  };
+
+  return (
+    <Calendars
+      options={calOptions}
+      value={calValue}
+      onChange={onCalendarChange}
+      compact
+    />
+  );
+}
+
+const topBarStyles = `
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .topbar-home {
+    flex: 0 0 auto;
+    order: 0;
+    margin-left: 8px;
+  }
+  .topbar-search {
+    flex: 1 1 200px;
+    min-width: 0;
+    order: 1;
+  }
+  .topbar-calendars {
+    flex: 1 0 200px;
+    order: 2;
+    z-index: 11;
+    position: relative;
+    height: 38px;
+  }
+  .topbar-status {
+    flex: 0 0 auto;
+    order: 3;
+    margin-left: auto;
+  }
+  @media (max-width: 640px) {
+    .topbar-status {
+      order: 0;
+      margin-left: auto;
+    }
+    .topbar-search {
+      order: 1;
+      flex-basis: 100%;
+    }
+    .topbar-calendars {
+      order: 2;
+      flex-basis: 100%;
+    }
+  }
+`;
+
+function Layout() {
+  return (
     <div>
-      <nav>
-        <Link to="/">{SmallLogo}</Link>{' '}
-        <span
-          ref={hoverRef as any}
-          onClick={() => setShowFilter((show) => !show)}
-          style={{ cursor: 'pointer' }}
-        >
-          ↓filters
-        </span>
-      </nav>
-      <div
-        ref={filterRef}
-        style={{
-          visibility: showFilter ? undefined : 'hidden',
-          left: '10vw',
-          position: 'fixed',
-          zIndex: 10,
-          top: '1em',
-          width: '80vw',
-        }}
-      >
-        <Filters />
+      <style>{topBarStyles}</style>
+      <div className="topbar">
+        <nav className="topbar-home">
+          <Link to="/">{SmallLogo}</Link>
+        </nav>
+        <div className="topbar-status">
+          <StatusBar />
+        </div>
+        <div className="topbar-search">
+          <SearchBar />
+        </div>
+        <div className="topbar-calendars">
+          <CalendarFilter />
+        </div>
       </div>
       <hr />
       <Suspense fallback={<span>Loading...</span>}>
         <Outlet />
       </Suspense>
-    </div>
-  );
-}
-
-function ShowDefaultCalendar() {
-  const defaultCalendar = useDefaultCalendar();
-
-  return (
-    <span title={defaultCalendar?.id}>
-      {defaultCalendar?.summary ?? 'No default calendar'}
-    </span>
-  );
-}
-
-function RightBar({
-  user,
-  googleButton,
-}: {
-  user: GoogleUser | null;
-  googleButton: any;
-}) {
-  useClientToFetch(user, 5 * 60 * 1000);
-
-  return (
-    <div style={{ float: 'right', clear: 'both' }}>
-      <Suspense fallback={<span>...</span>}>
-        <ShowDefaultCalendar />
-        <Link to="/status">
-          <CalendarUpdateStatus />
-        </Link>
-      </Suspense>{' '}
-      - {googleButton}
     </div>
   );
 }
@@ -284,8 +303,9 @@ function App() {
       <userContext.Provider value={user}>
         <authContext.Provider value={{ hasWriteAccess, requestWriteAccess }}>
           <SettingsProvider>
-            <RightBar user={user} googleButton={googleButton} />
-                {useRoutes(ROUTES)}
+            <googleButtonContext.Provider value={googleButton}>
+              {useRoutes(ROUTES)}
+            </googleButtonContext.Provider>
             <ToastContainer />
           </SettingsProvider>
         </authContext.Provider>
