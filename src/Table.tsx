@@ -14,7 +14,8 @@ import {
   RowSelectionState,
 } from '@tanstack/react-table';
 
-import { ViewStartAndEnd, ViewEventSummary } from './ViewEvent';
+import { ViewEventSummary } from './ViewEvent';
+import { ViewStartAndEnd } from './ViewStartAndEnd';
 
 import { DateTime } from 'luxon';
 import { uniqWith, isEqual } from 'lodash-es';

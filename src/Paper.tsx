@@ -55,7 +55,7 @@ const TextFilter = ({
 
 type EventFilter = (e: CalendarEvent) => Boolean;
 
-export const splitByFilters = (
+const splitByFilters = (
   events: CalendarEvent[],
   filters: EventFilter[],
 ) => {
@@ -80,7 +80,7 @@ function tomorrow(day: string) {
   return today.plus({ days: 1 }).toISODate();
 }
 
-export function showTime(event: CalendarEvent, day: string) {
+function showTime(event: CalendarEvent, day: string) {
   if (
     isStartEndDate(event.start) &&
     (!event.end || isStartEndDate(event.end))
@@ -113,7 +113,7 @@ export function showTime(event: CalendarEvent, day: string) {
   }
 }
 
-export const byDate = (events: CalendarEvent[], dates: string[]) => {
+const byDate = (events: CalendarEvent[], dates: string[]) => {
   let eventsByDate = new Map<string, CalendarEvent[]>();
   dates.forEach((date) => {
     eventsByDate.set(date, []);

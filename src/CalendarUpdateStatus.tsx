@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -8,12 +8,9 @@ import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';
 
-import Error from './assets/error.svg';
-import Loading from './assets/loading.svg';
-import Ok from './assets/ok.svg';
-import { showDate, toRelativeDate } from './utils';
 import { UpdateState } from './models/types';
 import { fetchResource } from './google/useClientToFetch';
+import UpdateStatusIcon from './UpdateStatusIcon';
 
 function CalendarUpdateStatus() {
   const [asOf, setAsOf] = React.useState(DateTime.now());
@@ -33,61 +30,6 @@ function CalendarUpdateStatus() {
       update={{ updatedAt: updatedAt ?? 0, error, requesting }}
     />
   );
-}
-
-export function UpdateStatusIcon({
-  update,
-}: {
-  update?: Pick<
-    UpdateState,
-    'updatedAt' | 'requesting' | 'error' | 'nextPageToken'
-  >;
-}) {
-  if (!update) {
-    return null;
-  }
-  return (
-    <img
-      title={`${update.updatedAt ? toRelativeDate(update.updatedAt) : null}`}
-      style={{ verticalAlign: 'middle', display: 'inline' }}
-      height={20}
-      width={20}
-      src={
-        update.requesting || update.nextPageToken
-          ? Loading
-          : update.error
-          ? Error
-          : Ok
-      }
-    />
-  );
-}
-
-export function UpdateStatus({ update }: { update?: UpdateState }) {
-  if (!update) {
-    return null;
-  }
-  if (update.error) {
-    return (
-      <>
-        <button
-          onClick={async () => {
-            await db.updateState.update([update.account, update.resource], {
-              nextSyncToken: undefined,
-              nextPageToken: undefined,
-              etag: undefined,
-            });
-            await fetchResource(update.account, update.resource);
-          }}
-        >
-          <UpdateStatusIcon update={update} />
-          {update.error}
-        </button>
-      </>
-    );
-  }
-
-  return <UpdateStatusIcon update={update} />;
 }
 
 export default CalendarUpdateStatus;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { Calendar, UpdateState } from './models/types';
 import { db } from './models/db';
@@ -11,9 +11,10 @@ import { useCalendars, useSelectedCalendarIds, useCountsByCalendar } from './lib
 import { keyBy, sortBy } from './lib/utils';
 import { DateTime } from 'luxon';
 
-import { useInterval } from 'usehooks-ts';
+import { fetchResource } from './google/useClientToFetch';
 
-import { UpdateStatus, UpdateStatusIcon } from './CalendarUpdateStatus';
+import { useInterval } from 'usehooks-ts';
+import UpdateStatusIcon from './UpdateStatusIcon';
 
 function sortKey(c: Calendar): string {
   if (c.primary) {
@@ -95,6 +96,34 @@ function Calendars() {
     </>
   );
 }
+
+function UpdateStatus({ update }: { update?: UpdateState }) {
+  if (!update) {
+    return null;
+  }
+  if (update.error) {
+    return (
+      <>
+        <button
+          onClick={async () => {
+            await db.updateState.update([update.account, update.resource], {
+              nextSyncToken: undefined,
+              nextPageToken: undefined,
+              etag: undefined,
+            });
+           await fetchResource(update.account, update.resource);
+          }}
+        >
+          <UpdateStatusIcon update={update} />
+          {update.error}
+        </button>
+      </>
+    );
+  }
+
+  return <UpdateStatusIcon update={update} />;
+}
+
 
 function run<T>(f: () => T): T {
   return f();

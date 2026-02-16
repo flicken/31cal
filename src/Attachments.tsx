@@ -5,7 +5,6 @@ import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
 import { asArray } from './utils';
 
 import { db } from './models/db';
-import { Attachment } from './models/types';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
@@ -14,8 +13,9 @@ import { useSetting } from './lib/settings';
 import EventList from './EventList';
 
 import { DateTime } from 'luxon';
+import { ViewAttachment } from './ViewAttachment';
 
-function ViewAttachmentInner({ url }: { url: string }) {
+export function ViewAttachmentInner({ url }: { url: string }) {
   const [showAnyway, setShowAnyway] = React.useState(false);
   const viewShowAnyway = (
     <a
@@ -52,15 +52,6 @@ function ViewAttachmentInner({ url }: { url: string }) {
       src={url.replaceAll('view', 'preview')}
       loading="lazy"
     />
-  );
-}
-
-export function ViewAttachment({ attachment }: { attachment: Attachment }) {
-  return (
-    <div>
-      {attachment.title ? <h1>{attachment.title}</h1> : undefined}
-      <ViewAttachmentInner url={attachment.fileUrl} />
-    </div>
   );
 }
 

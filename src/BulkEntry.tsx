@@ -14,7 +14,7 @@ import { userContext } from './userContext';
 import { authContext } from './authContext';
 
 import { Attachment } from './models/types';
-import { ViewAttachment } from './Attachments';
+import { ViewAttachment } from './ViewAttachment';
 import { toast } from 'react-toastify';
 
 const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';

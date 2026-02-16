@@ -13,7 +13,7 @@ import patchEvents, { EventPatch } from './google/patchEvents';
 
 import { getEvents } from './google/useClientToFetch';
 
-import { ViewStartAndEnd } from './ViewEvent';
+import { ViewStartAndEnd } from './ViewStartAndEnd';
 import { omit } from 'lodash-es';
 import { keyBy, sortBy } from './lib/utils';
 import Filters2 from './Filters2';

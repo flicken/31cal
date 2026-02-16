@@ -1,6 +1,6 @@
 import { Calendar, CalendarEvent } from './models/types';
 import React, { ChangeEventHandler } from 'react';
-import { ViewStartAndEnd } from './ViewEvent';
+import { ViewStartAndEnd } from './ViewStartAndEnd';
 import { keyFor } from './lib/events';
 
 export function EventCheckList({
