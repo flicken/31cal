@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useState,
   useRef,
   Suspense,
@@ -25,8 +24,6 @@ import {
   Outlet,
   Link,
   useRoutes,
-  useMatch,
-  useResolvedPath,
 } from 'react-router';
 
 import {
@@ -74,7 +71,7 @@ const ROUTES = [
         shortcut: ['h'],
         name: 'home',
         logo: SmallLogo,
-        element: <div> Agenda: 31 different ways to calendar </div>,
+        element: <Home />,
         keywords: 'home',
       },
       {
@@ -148,34 +145,28 @@ function NotFound({ routesF }: { routesF: () => typeof ROUTES }) {
   );
 }
 
+function Home() {
+  const routes = ROUTES[0]
+    .children!.filter((r) => !r.ignored && !r.index)
+    .sort((a, b) => compareProperty(a.path, b.path));
+
+  return (
+    <div>
+      <h2>Agenda: 31 different ways to calendar</h2>
+      <ul>
+        {routes.map((r) => (
+          <li key={r.path}>
+            <Link to={r.path}>{r.path.replace('/', '')}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function compareProperty(a?: string, b?: string) {
   return a || b ? (!a ? -1 : !b ? 1 : a.localeCompare(b)) : 0;
 }
-
-const NavLink = ({
-  path,
-  name,
-  logo,
-}: {
-  path: string;
-  name?: any;
-  logo?: any;
-}) => {
-  let resolved = useResolvedPath(path);
-  let match = useMatch({ path: resolved.pathname, end: true });
-
-  return (
-    <li
-      style={{
-        display: 'inline',
-        marginLeft: '0.25em',
-        fontWeight: match ? 'bold' : undefined,
-      }}
-    >
-      <Link to={path}>{logo || name || path}</Link>
-    </li>
-  );
-};
 
 function Layout() {
   const [showFilter, setShowFilter] = useState(false);
@@ -207,21 +198,14 @@ function Layout() {
   return (
     <div>
       <nav>
-        <ul style={{ listStyleType: 'none', margin: 0, padding: 0 }}>
-          {ROUTES[0]
-            .children!.filter((r) => !r.ignored)
-            .sort((a, b) => compareProperty(a.path, b.path))
-            .map((r) => (
-              <NavLink key={r.path} {...r} />
-            ))}
-          <li
-            ref={hoverRef}
-            onClick={() => setShowFilter((show) => !show)}
-            style={{ display: 'inline', marginLeft: '0.25em' }}
-          >
-            ↓filters
-          </li>
-        </ul>
+        <Link to="/">{SmallLogo}</Link>{' '}
+        <span
+          ref={hoverRef as any}
+          onClick={() => setShowFilter((show) => !show)}
+          style={{ cursor: 'pointer' }}
+        >
+          ↓filters
+        </span>
       </nav>
       <div
         ref={filterRef}
