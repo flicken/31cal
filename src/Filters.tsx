@@ -13,7 +13,7 @@ import { db } from './models/db';
 function Filters() {
   const { eventFilters: filters_, setEventFilters: setFilters } = useFilterState();
 
-  const calOptions = useCalendars();
+  const calOptions = useCalendars() ?? [];
   const calValue = useSelectedCalendars();
   const [, setSelectedCalendarIds] = useSelectedCalendarIds();
 

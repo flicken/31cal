@@ -33,8 +33,8 @@ type Action = {
 };
 
 function ModMany() {
-  const calendars = useCalendars();
-  const allEventsArray = useEvents();
+  const calendars = useCalendars() ?? [];
+  const allEventsArray = useEvents() ?? [];
   const { eventFilters, modEventFilters: filters, setModEventFilters: setFilters, modEventMods: mods, setModEventMods: setMods } = useFilterState();
   const [selectedCalendarIds] = useSelectedCalendarIds();
 

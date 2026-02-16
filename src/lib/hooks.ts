@@ -6,14 +6,12 @@ import { sortBy, countBy } from './utils';
 import { filterForFilters, FilterValues } from './filters';
 import { asArray } from '../utils';
 
-export function useCalendars(): Calendar[] {
-  return useLiveQuery(() => db.calendars.orderBy('summary').toArray()) ?? [];
+export function useCalendars(): Calendar[] | undefined {
+  return useLiveQuery(() => db.calendars.orderBy('summary').toArray());
 }
 
-export function useEvents(): CalendarEvent[] {
-  return (
-    useLiveQuery(() => db.events.orderBy('[start.ms+end.ms]').toArray()) ?? []
-  );
+export function useEvents(): CalendarEvent[] | undefined {
+  return useLiveQuery(() => db.events.orderBy('[start.ms+end.ms]').toArray());
 }
 
 export function useSelectedCalendarIds(): [
@@ -47,11 +45,12 @@ export function usePaperColumns(): [string[], (cols: string[]) => void] {
   return [cols, setCols];
 }
 
-export function useSelectedCalendars(): Calendar[] {
+export function useSelectedCalendars(): Calendar[] | undefined {
   const calendars = useCalendars();
   const [selectedIds] = useSelectedCalendarIds();
 
   return useMemo(() => {
+    if (!calendars) return undefined;
     const ids = Array.isArray(selectedIds) ? selectedIds : [selectedIds];
     return ids
       .map((id: string) => calendars.find((c) => c.id === id)!)
@@ -59,14 +58,16 @@ export function useSelectedCalendars(): Calendar[] {
   }, [calendars, selectedIds]);
 }
 
-export function useCountsByCalendar(): Record<string, number> {
+export function useCountsByCalendar(): Record<string, number> | undefined {
   const events = useEvents();
   return useMemo(
     () =>
-      countBy(
-        events.filter((e) => e.status != 'cancelled'),
-        (e) => e.calendarId,
-      ),
+      events
+        ? countBy(
+            events.filter((e) => e.status != 'cancelled'),
+            (e) => e.calendarId,
+          )
+        : undefined,
     [events],
   );
 }
@@ -81,14 +82,15 @@ export function useDefaultCalendarValues() {
   );
 
   return useMemo(
-    () => calendars.find((c) => c.id === defaultId),
+    () => calendars?.find((c) => c.id === defaultId),
     [calendars, defaultId],
   );
 }
 
-export function useFilteredEvents(filters: FilterValues): CalendarEvent[] {
+export function useFilteredEvents(filters: FilterValues): CalendarEvent[] | undefined {
   const events = useEvents();
   return useMemo(() => {
+    if (!events) return undefined;
     const filter = filterForFilters(filters);
     return sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
   }, [events, filters]);

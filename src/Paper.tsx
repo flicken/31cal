@@ -249,6 +249,14 @@ export default function Paper() {
     [allFilters.start, allFilters.end],
   );
 
+  let emptyState = (
+    <div className="empty">
+      <h3>Empty</h3>
+    </div>
+  );
+
+  if (!events) return null;
+
   let eventsByDate = byDate(events, dates);
 
   let filters = columns
@@ -322,11 +330,5 @@ export default function Paper() {
     </table>
   );
 
-  let emptyState = (
-    <div className="empty">
-      <h3>Empty</h3>
-    </div>
-  );
-
-  return events?.length ? list : emptyState;
+  return events.length ? list : emptyState;
 }

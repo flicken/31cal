@@ -315,6 +315,7 @@ export default function Table() {
   );
 
   const events = useFilteredEvents(allFilters);
+  if (!events) return null;
 
   return <Table_ columns={columns} data={events} filters={allFilters} />;
 }

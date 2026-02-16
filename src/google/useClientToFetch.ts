@@ -132,7 +132,7 @@ function useClientToFetch(user: GoogleUser | null, interval: number) {
     getCalendars();
   }, [getCalendars]);
 
-  const calendarIds = calendarsToFetch.map(c => c.id).join(',');
+  const calendarIds = calendarsToFetch?.map(c => c.id).join(',');
 
   useEffect(() => {
     getEvents(user, calendarsToFetch);

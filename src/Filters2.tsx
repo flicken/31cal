@@ -18,7 +18,7 @@ function Filters2({
   setFilters: Dispatch<SetStateAction<FilterValues & FilterInputs>>;
 }) {
   const searchRef = useRef<HTMLInputElement | null>(null);
-  const calOptions = useCalendars();
+  const calOptions = useCalendars() ?? [];
 
   const onCalendarChange = (calendars: Calendar[]) => {
     setFilters((f) => ({

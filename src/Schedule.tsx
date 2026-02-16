@@ -51,7 +51,7 @@ function SelectSchedule() {
 function Schedule() {
   const [selectedSchedules] = useSetting('selectedSchedules');
   const allEventsArray = useEvents();
-  const allEventsCount_ = allEventsArray.length;
+  const allEventsCount_ = allEventsArray?.length ?? 0;
 
   const { eventFilters } = useFilterState();
   const [selectedCalendarIds] = useSelectedCalendarIds();
@@ -63,11 +63,13 @@ function Schedule() {
 
   let eventList = useFilteredEvents(filters);
 
-  if (!isEmpty(selectedSchedules)) {
+  if (eventList && !isEmpty(selectedSchedules)) {
     eventList = eventList.filter(
       (e) => !isEmpty(intersection(selectedSchedules, e._schedules ?? [])),
     );
   }
+
+  if (!eventList) return null;
 
   return (
     <div>
@@ -76,7 +78,7 @@ function Schedule() {
       </div>
       <br />
       <div>
-        Showing: {eventList && eventList.length} of {allEventsCount_} events
+        Showing: {eventList.length} of {allEventsCount_} events
       </div>
       <EventList events={eventList} />
     </div>

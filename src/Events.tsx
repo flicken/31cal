@@ -17,6 +17,7 @@ function Events() {
   );
 
   const eventList = useFilteredEvents(filters);
+  if (!eventList) return null;
 
   return (
     <>

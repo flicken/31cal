@@ -29,7 +29,7 @@ function Calendars() {
   const [asOf, setAsOf] = React.useState(DateTime.now());
   const defaultCalendar = useDefaultCalendar();
   const calList = useCalendars();
-  const counts = useCountsByCalendar();
+  const counts = useCountsByCalendar() ?? {};
   const [selectedCalendarIds_, setSelectedCalendarIds] = useSelectedCalendarIds();
   const updates = useLiveQuery(() => db.updateState.toArray());
   const updatesMap = keyBy(updates, 'resource');
@@ -64,7 +64,7 @@ function Calendars() {
           </tr>
         </thead>
         <tbody>
-          {sortBy(calList, sortKey).map((c) => (
+          {sortBy(calList ?? [], sortKey).map((c) => (
             <tr
               key={c.id}
               style={{

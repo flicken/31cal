@@ -74,6 +74,7 @@ function Attachments() {
   );
 
   const events = useFilteredEvents(filters);
+  if (!events) return null;
   const eventsWithAttachments = events.filter((e) => e.attachments);
   const attachmentUrl2Events = new Map();
   eventsWithAttachments.forEach((e) => {

@@ -19,8 +19,8 @@ import { filterForFilters } from './lib/filters';
 import { toast } from 'react-toastify';
 
 function CopyFrom() {
-  const calendars = useCalendars();
-  const allEventsArray = useEvents();
+  const calendars = useCalendars() ?? [];
+  const allEventsArray = useEvents() ?? [];
   const user = React.useContext(userContext);
   const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
   const { eventFilters, modEventFilters: filters, setModEventFilters: setFilters, modEventMods: mods, setModEventMods: setMods } = useFilterState();
