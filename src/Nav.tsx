@@ -1,4 +1,5 @@
 import React, {
+  ComponentType,
   createContext,
   Suspense,
   useContext,
@@ -121,7 +122,21 @@ export const ROUTES = [
   },
 ];
 
-function randomRoute(routes: ReturnType<typeof sortedRoutes>) {
+type SortedRoute = {
+  path: string;
+  Component: ComponentType;
+  name?: string;
+  shortcut?: string[];
+  ignored?: boolean;
+}
+
+const sortedRoutes: SortedRoute[] =
+  ROUTES[0]
+    .children!.filter((r) => !r.ignored && !r.index)
+    .sort((a, b) => compareProperty(a.path, b.path));
+
+
+function randomRoute(routes: SortedRoute[]) {
   const route = sample(routes.filter((f) => !f.ignored))!;
 
   return <Link to={route.path}>{route.path}</Link>;
@@ -129,24 +144,15 @@ function randomRoute(routes: ReturnType<typeof sortedRoutes>) {
 
 function NotFound() {
   return (
-    <div>Try {randomRoute(sortedRoutes())}, it's better than a blank page.</div>
+    <div>Try {randomRoute(sortedRoutes)}, it's better than a blank page.</div>
   );
 }
-
-function sortedRoutes() {
-  return ROUTES[0]
-    .children!.filter((r) => !r.ignored && !r.index)
-    .sort((a, b) => compareProperty(a.path, b.path));
-}
-
 function Home() {
-  const routes = sortedRoutes();
-
   return (
     <div>
       <h2>Agenda: 31 different ways to calendar</h2>
       <ul>
-        {routes.map((r) => (
+        {sortedRoutes.map((r) => (
           <li key={r.path}>
             <Link to={r.path}>{r.path.replace('/', '')}</Link>
           </li>
@@ -277,8 +283,6 @@ function HomeNav() {
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const routes = sortedRoutes();
-
   const show = () => {
     clearTimeout(timeoutRef.current);
     setOpen(true);
@@ -292,7 +296,7 @@ function HomeNav() {
       <Link to="/">{SmallLogo}</Link>
       {open && (
         <div className="home-dropdown" onMouseEnter={show} onMouseLeave={hide}>
-          {routes.map((r) => (
+          {sortedRoutes.map((r) => (
             <Link
               key={r.path}
               to={r.path}
@@ -308,22 +312,26 @@ function HomeNav() {
   );
 }
 
+function TopBar() {
+  return <div className="topbar">
+    <HomeNav/>
+    <div className="topbar-status">
+      <StatusBar />
+    </div>
+    <div className="topbar-search">
+      <SearchBar />
+    </div>
+    <div className="topbar-calendars">
+      <CalendarFilter />
+    </div>
+  </div>;
+}
+
 function Layout() {
   return (
     <div>
       <style>{topBarStyles}</style>
-      <div className="topbar">
-        <HomeNav />
-        <div className="topbar-status">
-          <StatusBar />
-        </div>
-        <div className="topbar-search">
-          <SearchBar />
-        </div>
-        <div className="topbar-calendars">
-          <CalendarFilter />
-        </div>
-      </div>
+      <TopBar/>
       <hr />
       <Suspense fallback={<span>Loading...</span>}>
         <Outlet />
