@@ -176,7 +176,10 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
   const hoverStyle = hover
     ? {
         outline: 'none',
-        borderColor: 'red',
+        borderTopColor: 'red',
+        borderRightColor: 'red',
+        borderBottomColor: 'red',
+        borderLeftColor: 'red',
         boxShadow: '0 0 10px red',
         filter: 'brightness(.9)',
       }
