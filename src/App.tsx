@@ -6,9 +6,9 @@ import { GoogleUser, useGoogleButton } from './useGoogleButton';
 import { SettingsProvider } from './lib/settings';
 import { ToastContainer } from 'react-toastify';
 import { FilterStateProvider } from './lib/FilterStateContext';
-import { useRoutes } from 'react-router';
 import { useLocalStorage } from 'usehooks-ts';
-import { googleButtonContext, ROUTES } from './Nav';
+import { Routes } from './Nav';
+import { googleButtonContext } from './googleButtonContext';
 
 function App() {
   const [user] = useLocalStorage<GoogleUser | null>('googleUser', null);
@@ -21,7 +21,7 @@ function App() {
         <authContext.Provider value={{ hasWriteAccess, requestWriteAccess }}>
           <SettingsProvider>
             <googleButtonContext.Provider value={googleButton}>
-              {useRoutes(ROUTES)}
+             <Routes/>
             </googleButtonContext.Provider>
             <ToastContainer />
           </SettingsProvider>

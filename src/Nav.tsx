@@ -1,6 +1,5 @@
 import React, {
   ComponentType,
-  createContext,
   Suspense,
   useContext,
   useRef,
@@ -12,7 +11,6 @@ import {
   useSelectedCalendars,
 } from './lib/hooks';
 import { Calendar } from './models/types';
-import { db } from './models/db';
 import Calendars from './Calendars';
 import { sample } from './lib/utils';
 import { Link, Outlet } from 'react-router';
@@ -26,14 +24,15 @@ import Events from './Events';
 import { userContext } from './userContext';
 import useClientToFetch from './google/useClientToFetch';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
+import { useRoutes } from 'react-router';
 
 import 'react-toastify/dist/ReactToastify.css'; // part of layout
+import { googleButtonContext } from './googleButtonContext';
 
 const ImportFile = React.lazy(() => import('./ImportFile'));
 const ModMany = React.lazy(() => import('./ModMany'));
 const Schedule = React.lazy(() => import('./Schedule'));
 const Table = React.lazy(() => import('./Table'));
-export const googleButtonContext = createContext<React.ReactNode>(null);
 
 const SmallLogo = (
   <svg
@@ -49,7 +48,7 @@ const SmallLogo = (
   </svg>
 );
 
-export const ROUTES = [
+const ROUTES = [
   {
     path: '/',
     Component: Layout,
@@ -121,6 +120,10 @@ export const ROUTES = [
     ],
   },
 ];
+
+export function Routes() {
+  return <>{useRoutes(ROUTES)}</>
+}
 
 type SortedRoute = {
   path: string;
