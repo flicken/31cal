@@ -6,7 +6,12 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
-import { useCalendars, useSelectedCalendarIds, useCountsByCalendar } from './lib/hooks';
+import {
+  useCalendars,
+  useSelectedCalendarIds,
+  useCountsByCalendar,
+  useLatestUpdateByCalendar,
+} from './lib/hooks';
 
 import { keyBy, sortBy } from './lib/utils';
 import { DateTime } from 'luxon';
@@ -31,6 +36,7 @@ function Calendars() {
   const defaultCalendar = useDefaultCalendar();
   const calList = useCalendars();
   const counts = useCountsByCalendar() ?? {};
+  const latest = useLatestUpdateByCalendar() ?? {};
   const [selectedCalendarIds_, setSelectedCalendarIds] = useSelectedCalendarIds();
   const updates = useLiveQuery(() => db.updateState.toArray());
   const updatesMap = keyBy(updates, 'resource');
@@ -61,35 +67,41 @@ function Calendars() {
             <th></th>
             <th>Name</th>
             <th>Events</th>
+            <th>Latest update</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {sortBy(calList ?? [], sortKey).map((c) => (
-            <tr
-              key={c.id}
-              style={{
-                backgroundColor: c.backgroundColor,
-                color: c.foregroundColor,
-                fontWeight: defaultCalendar?.id == c.id ? 'bold' : undefined,
-              }}
-            >
-              <td>
-                <input
-                  type="checkbox"
-                  checked={selectedCalendarIds_.includes(c.id)}
-                  onChange={() => {
-                    onToggle(c.id);
-                  }}
-                />
-              </td>
-              <td>{c.summary}</td>
-              <td>{counts[c.id]}</td>
-              <td>
-                <UpdateStatusIcon update={updatesMap[`calendar/${c.id}`]} />
-              </td>
-            </tr>
-          ))}
+          {sortBy(calList ?? [], sortKey).map((c) => {
+            const update = updatesMap[`calendar/${c.id}`];
+
+            return (
+              <tr
+                key={c.id}
+                style={{
+                  backgroundColor: c.backgroundColor,
+                  color: c.foregroundColor,
+                  fontWeight: defaultCalendar?.id == c.id ? 'bold' : undefined,
+                }}
+              >
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedCalendarIds_.includes(c.id)}
+                    onChange={() => {
+                      onToggle(c.id);
+                    }}
+                  />
+                </td>
+                <td>{c.summary}</td>
+                <td>{update?.disabled ? null : counts[c.id]}</td>
+                <td>{update?.disabled ? null : latest[c.id]}</td>
+                <td>
+                  {update?.disabled ? null : <UpdateStatusIcon update={update} />}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       Calendar list: <UpdateStatus update={updatesMap['calendarList']} />

@@ -131,7 +131,7 @@ function useClientToFetch(user: GoogleUser | null, interval: number) {
 
   const calendars = useCalendars();
   const calendarsToFetch = useSelectedCalendars();
-  const [, setSelectedIds] = useSelectedCalendarIds();
+  const [selectedIds, setSelectedIds] = useSelectedCalendarIds();
 
   const getCalendars = useCallback(async () => {
     if (!user) return;
@@ -148,6 +148,25 @@ function useClientToFetch(user: GoogleUser | null, interval: number) {
   useEffect(() => {
     getCalendars();
   }, [getCalendars]);
+
+  useEffect(() => {
+    async function disableUnselectedCalendars(selectedIds: string[]) {
+      const selectedResources = new Set(selectedIds.map(id => `calendar/${id}`));
+      const states =  await db.updateState.toArray()
+      const needToUpdate =
+        states.filter(s => !selectedResources.has(s.resource))
+          .filter(s => !s.disabled)
+
+      if (needToUpdate.length > 0) {
+        await db.updateState.bulkUpdate(needToUpdate.map(u => ({
+          key: [u.account, u.resource],
+          changes: { disabled: true }
+        })))
+      }
+    }
+
+    disableUnselectedCalendars(selectedIds).catch(e => console.log({s: "needToUpdate ", e}));
+  }, [selectedIds])
 
 
   const calendarIds = calendarsToFetch?.map(c => c.id).join(',');

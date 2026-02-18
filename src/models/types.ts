@@ -77,6 +77,7 @@ export type UpdateState = {
   requestedAt?: number;
   requesting?: boolean;
   error?: string;
+  disabled?: boolean;
 };
 
 export type Setting = {

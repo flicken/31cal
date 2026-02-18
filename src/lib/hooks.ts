@@ -5,6 +5,7 @@ import { Calendar, CalendarEvent } from '../models/types';
 import { sortBy, countBy } from './utils';
 import { filterForFilters, FilterValues } from './filters';
 import { asArray } from '../utils';
+import { groupBy, mapValues } from 'lodash-es';
 
 export async function calendarsQuery(): Promise<Calendar[]> {
   return db.calendars.orderBy('summary').toArray();
@@ -81,6 +82,20 @@ export function useCountsByCalendar(): Record<string, number> | undefined {
             events.filter((e) => e.status != 'cancelled'),
             (e) => e.calendarId,
           )
+        : undefined,
+    [events],
+  );
+}
+
+export function useLatestUpdateByCalendar(): Record<string, string> | undefined {
+  const events = useEvents();
+  return useMemo(
+    () =>
+      events
+        ? mapValues(groupBy(
+            events.filter((e) => e.status != 'cancelled'),
+            (e) => e.calendarId,
+          ), es => es.map(e => e.updated).sort().at(-1)!)
         : undefined,
     [events],
   );
