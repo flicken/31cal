@@ -6,12 +6,20 @@ import { sortBy, countBy } from './utils';
 import { filterForFilters, FilterValues } from './filters';
 import { asArray } from '../utils';
 
+export async function calendarsQuery(): Promise<Calendar[]> {
+  return db.calendars.orderBy('summary').toArray();
+}
+
 export function useCalendars(): Calendar[] | undefined {
-  return useLiveQuery(() => db.calendars.orderBy('summary').toArray());
+  return useLiveQuery(calendarsQuery);
+}
+
+export async function eventsQuery(): Promise<CalendarEvent[]>  {
+  return db.events.orderBy('[start.ms+end.ms]').toArray();
 }
 
 export function useEvents(): CalendarEvent[] | undefined {
-  return useLiveQuery(() => db.events.orderBy('[start.ms+end.ms]').toArray());
+  return useLiveQuery(eventsQuery);
 }
 
 export function useSelectedCalendarIds(): [
@@ -28,6 +36,12 @@ export function useSelectedCalendarIds(): [
   };
 
   return [asArray(ids) as string[], setIds];
+}
+
+export function autoSelectCalendarIds(calendars: Calendar[]): string[] {
+  const primary = calendars.find((c) => c.primary);
+  const rest = calendars.filter((c) => c.selected && !c.primary);
+  return [primary, ...rest].filter(Boolean).map((c) => c!.id);
 }
 
 export function usePaperColumns(): [string[], (cols: string[]) => void] {

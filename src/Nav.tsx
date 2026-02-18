@@ -196,9 +196,6 @@ function CalendarFilter() {
   const [, setSelectedCalendarIds] = useSelectedCalendarIds();
 
   const onCalendarChange = (calendars: Calendar[]) => {
-    if (calendars.length > 0 && calendars[0]) {
-      db.settings.put({ id: 'calendarDefault', value: calendars[0].id });
-    }
     setSelectedCalendarIds(calendars.filter((c) => c).map((c) => c?.id));
   };
 

@@ -3,7 +3,13 @@ import React, { useCallback, useEffect } from 'react';
 import { db } from '../models/db';
 import fetchList from './fetchList';
 
-import { useSelectedCalendars } from '../lib/hooks';
+import {
+  useSelectedCalendars,
+  useSelectedCalendarIds,
+  autoSelectCalendarIds,
+  useCalendars,
+  calendarsQuery,
+} from '../lib/hooks';
 
 import { DateTime } from 'luxon';
 
@@ -11,6 +17,7 @@ import { eventSchedules } from '../lib/useScheduleList';
 
 import { useInterval } from 'usehooks-ts';
 import { GoogleUser } from '../useGoogleButton';
+import { Calendar } from '../models/types';
 
 const toMillis = (
   event: any,
@@ -121,16 +128,27 @@ function useClientToFetch(user: GoogleUser | null, interval: number) {
     setLastFetchDate(DateTime.now());
   }, interval);
 
+
+  const calendars = useCalendars();
+  const calendarsToFetch = useSelectedCalendars();
+  const [, setSelectedIds] = useSelectedCalendarIds();
+
   const getCalendars = useCallback(async () => {
     if (!user) return;
     await fetchResource(user.email, 'calendarList');
-  }, [user, lastFetchDate]);
 
-  const calendarsToFetch = useSelectedCalendars();
+    const selectedCalendarsSetting = await db.settings.get('selectedCalendars')
+    if (!selectedCalendarsSetting) {
+      const calenders: Calendar[] = await calendarsQuery();
+
+      setSelectedIds(autoSelectCalendarIds(calenders))
+    }
+  }, [user, lastFetchDate]);
 
   useEffect(() => {
     getCalendars();
   }, [getCalendars]);
+
 
   const calendarIds = calendarsToFetch?.map(c => c.id).join(',');
 
