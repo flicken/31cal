@@ -3,6 +3,8 @@ import React, {
   ClipboardEvent,
   createContext,
   useContext,
+  useState,
+  useRef,
 } from 'react';
 import './App.css';
 import { userContext } from './userContext';
@@ -219,6 +221,28 @@ const topBarStyles = `
     flex: 0 0 auto;
     order: 0;
     margin-left: 8px;
+    position: relative;
+  }
+  .home-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 20;
+    min-width: 140px;
+    padding: 4px 0;
+  }
+  .home-dropdown-item {
+    display: block;
+    padding: 4px 12px;
+    text-decoration: none;
+    color: #333;
+  }
+  .home-dropdown-item:hover {
+    background: #f0f0f0;
   }
   .topbar-search {
     flex: 1 1 200px;
@@ -253,14 +277,53 @@ const topBarStyles = `
   }
 `;
 
+function HomeNav() {
+  const [open, setOpen] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const routes = ROUTES[0]
+    .children!.filter((r) => !r.ignored && !r.index)
+    .sort((a, b) => compareProperty(a.path, b.path));
+
+  const show = () => {
+    clearTimeout(timeoutRef.current);
+    setOpen(true);
+  };
+  const hide = () => {
+    timeoutRef.current = setTimeout(() => setOpen(false), 150);
+  };
+
+  return (
+    <nav
+      className="topbar-home"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+    >
+      <Link to="/">{SmallLogo}</Link>
+      {open && (
+        <div className="home-dropdown" onMouseEnter={show} onMouseLeave={hide}>
+          {routes.map((r) => (
+            <Link
+              key={r.path}
+              to={r.path}
+              className="home-dropdown-item"
+              onClick={() => setOpen(false)}
+            >
+              {r.path.replace('/', '')}
+            </Link>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+}
+
 function Layout() {
   return (
     <div>
       <style>{topBarStyles}</style>
       <div className="topbar">
-        <nav className="topbar-home">
-          <Link to="/">{SmallLogo}</Link>
-        </nav>
+        <HomeNav />
         <div className="topbar-status">
           <StatusBar />
         </div>
@@ -278,21 +341,6 @@ function Layout() {
     </div>
   );
 }
-
-const onPaste = (e: ClipboardEvent<HTMLInputElement>) => {
-  if (
-    e.target instanceof HTMLInputElement ||
-    e.target instanceof HTMLTextAreaElement ||
-    (e.target as HTMLElement).isContentEditable
-  ) {
-    return;
-  }
-
-  const myText = e.clipboardData.getData('text');
-  console.log(myText);
-  console.log(e.clipboardData.types);
-  console.log(e);
-};
 
 function App() {
   const [user] = useLocalStorage<GoogleUser | null>('googleUser', null);
