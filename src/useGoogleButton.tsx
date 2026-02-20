@@ -8,7 +8,7 @@ import {
 
 import { useLocalStorage, useScript } from 'usehooks-ts';
 import ensureClient from './google/ensureClient';
-import { Link } from 'react-router';
+import { Link } from 'wouter';
 
 const CALENDAR_READONLY = 'https://www.googleapis.com/auth/calendar.readonly';
 const EVENTS_READONLY =
@@ -217,7 +217,7 @@ export function useGoogleButton() {
     <>
       {needsReconnect && (
         <Link
-          to="#"
+          href="#"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -229,7 +229,7 @@ export function useGoogleButton() {
         </Link>
       )}{needsReconnect && ' - '}
       <Link
-        to="/"
+        href="/"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -242,7 +242,7 @@ export function useGoogleButton() {
     </>
   ) : (
     <Link
-      to="#"
+      href="#"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

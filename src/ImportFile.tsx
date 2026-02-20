@@ -10,7 +10,7 @@ import { parse } from 'chrono-node';
 import { DateTime } from 'luxon';
 
 import EventList from './EventList';
-import { Link } from 'react-router';
+import { Link } from 'wouter';
 
 import saveEvents from './google/saveEvents';
 import useDefaultCalendar from './lib/useDefaultCalendar';
@@ -213,7 +213,7 @@ function ImportFile() {
   if (!defaultCalendar) {
     return (
       <div>
-        Must select default <Link to="/calendars">calendar</Link> before
+        Must select default <Link href="/calendars">calendar</Link> before
         importing.
       </div>
     );

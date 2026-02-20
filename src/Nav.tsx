@@ -13,7 +13,7 @@ import {
 import { Calendar } from './models/types';
 import Calendars from './Calendars';
 import { sample } from './lib/utils';
-import { Link, Outlet } from 'react-router';
+import { Link, Switch, Route } from 'wouter';
 import SearchBar from './SearchBar';
 import Paper from './Paper';
 import Attachments from './Attachments';
@@ -24,7 +24,6 @@ import Events from './Events';
 import { userContext } from './userContext';
 import useClientToFetch from './google/useClientToFetch';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
-import { useRoutes } from 'react-router';
 
 import 'react-toastify/dist/ReactToastify.css'; // part of layout
 import { googleButtonContext } from './googleButtonContext';
@@ -122,7 +121,19 @@ const ROUTES = [
 ];
 
 export function Routes() {
-  return <>{useRoutes(ROUTES)}</>
+  return (
+    <Layout>
+      <Switch>
+        {ROUTES[0].children.map(({ path, Component, ignored }) =>
+          ignored ? (
+            <Route key="*"><Component /></Route>
+          ) : (
+            <Route key={path} path={path}><Component /></Route>
+          )
+        )}
+      </Switch>
+    </Layout>
+  );
 }
 
 type SortedRoute = {
@@ -142,7 +153,7 @@ const sortedRoutes: SortedRoute[] =
 function randomRoute(routes: SortedRoute[]) {
   const route = sample(routes.filter((f) => !f.ignored))!;
 
-  return <Link to={route.path}>{route.path}</Link>;
+  return <Link href={route.path}>{route.path}</Link>;
 }
 
 function NotFound() {
@@ -157,7 +168,7 @@ function Home() {
       <ul>
         {sortedRoutes.map((r) => (
           <li key={r.path}>
-            <Link to={r.path}>{r.path.replace('/', '')}</Link>
+            <Link href={r.path}>{r.path.replace('/', '')}</Link>
           </li>
         ))}
       </ul>
@@ -184,7 +195,7 @@ function StatusBar() {
       }}
     >
       <Suspense fallback={<span>...</span>}>
-        <Link to="/status">
+        <Link href="/status">
           <CalendarUpdateStatus />
         </Link>
       </Suspense>
@@ -293,13 +304,13 @@ function HomeNav() {
 
   return (
     <nav className="topbar-home" onMouseEnter={show} onMouseLeave={hide}>
-      <Link to="/">{SmallLogo}</Link>
+      <Link href="/">{SmallLogo}</Link>
       {open && (
         <div className="home-dropdown" onMouseEnter={show} onMouseLeave={hide}>
           {sortedRoutes.map((r) => (
             <Link
               key={r.path}
-              to={r.path}
+              href={r.path}
               className="home-dropdown-item"
               onClick={() => setOpen(false)}
             >
@@ -327,14 +338,14 @@ function TopBar() {
   </div>;
 }
 
-function Layout() {
+function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <style>{topBarStyles}</style>
       <TopBar/>
       <hr />
       <Suspense fallback={<span>Loading...</span>}>
-        <Outlet />
+        {children}
       </Suspense>
     </div>
   );
