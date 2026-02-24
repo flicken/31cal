@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  useGoogleLogin,
   hasGrantedAllScopesGoogle,
   TokenResponse,
+  useGoogleLogin,
 } from '@react-oauth/google';
 
 import { useLocalStorage, useScript } from 'usehooks-ts';
@@ -38,6 +38,15 @@ export type GoogleUser = {
   sub: string;
 };
 
+type TokenWithExp = TokenResponse & { exp?: number };
+
+function isTokenExpired(token: TokenResponse | null): boolean {
+  if (!token) return true;
+  const exp = (token as TokenWithExp).exp;
+  if (!exp) return false;
+  return Date.now() > exp;
+}
+
 function use31CalGoogleLogin() {
   const [user, setUser] = useLocalStorage<GoogleUser | null>(
     'googleUser',
@@ -49,32 +58,29 @@ function use31CalGoogleLogin() {
     null,
   );
 
-  const [error, setError] = useState<boolean>(false);
-  const [needsReconnect, setNeedsReconnect] = useState<boolean>(false);
+  const [oauthError, setOauthError] = useState(false);
 
   const status = useScript('https://apis.google.com/js/api.js', {
     removeOnUnmount: false,
   });
 
+  // Initialize gapi client when token and script are ready
   useEffect(() => {
-    async function requestGoogleAccessToken() {
+    async function initGapiClient() {
       if (googleToken?.error) {
-        setError(true);
+        setOauthError(true);
         return;
       }
 
-      setError(false);
+      setOauthError(false);
 
       try {
         const gapi = (window as any).gapi;
         if (googleToken?.access_token && status === 'ready') {
           await ensureClient();
           if (gapi?.client) {
-            gapi?.client?.setToken({
-              access_token: googleToken.access_token,
-            });
+            gapi.client.setToken({ access_token: googleToken.access_token });
           }
-
           console.log('User', user?.email);
         }
       } catch (e) {
@@ -82,28 +88,7 @@ function use31CalGoogleLogin() {
       }
     }
 
-    requestGoogleAccessToken();
-  }, [status, googleToken]);
-
-  useEffect(() => {
-    async function t() {
-      try {
-        const gapi = (window as any).gapi;
-        if (googleToken?.access_token && status === 'ready') {
-          await ensureClient();
-          if (gapi?.client) {
-            gapi?.client?.setToken({
-              access_token: googleToken.access_token,
-            });
-          }
-
-          console.log('User', user?.email);
-        }
-      } catch (e) {
-        console.log('Error', e);
-      }
-    }
-    t();
+    initGapiClient();
   }, [status, googleToken]);
 
   const writeResolveRef = useRef<((value: void) => void) | null>(null);
@@ -111,9 +96,10 @@ function use31CalGoogleLogin() {
 
   const handleSuccess = useCallback(
     async (tokenResponse: TokenResponse) => {
-      setNeedsReconnect(false);
+      setOauthError(false);
       if (tokenResponse.expires_in && !('exp' in tokenResponse)) {
-        (tokenResponse as any).exp = new Date().setSeconds(tokenResponse.expires_in)
+        (tokenResponse as TokenWithExp).exp =
+          Date.now() + tokenResponse.expires_in * 1000;
       }
       setGoogleToken(tokenResponse);
       const result = await fetch(
@@ -122,8 +108,7 @@ function use31CalGoogleLogin() {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         },
       );
-      const body = await result.text();
-      const userInfo = JSON.parse(body);
+      const userInfo = JSON.parse(await result.text());
       console.log(`Have user info ${JSON.stringify(userInfo)}`);
       setUser(userInfo);
     },
@@ -132,7 +117,7 @@ function use31CalGoogleLogin() {
 
   const handleError = useCallback((errorResponse: any) => {
     console.log(errorResponse);
-    setNeedsReconnect(true);
+    setOauthError(true);
   }, []);
 
   const googleLogin = useGoogleLogin({
@@ -171,13 +156,16 @@ function use31CalGoogleLogin() {
     });
   }, [googleLoginWrite]);
 
-  // Proactively refresh token before it expires
-  useEffect(() => {
-    if (!googleToken?.expires_in) return;
+  const needsReconnect =
+    Boolean(googleToken?.access_token) &&
+    (isTokenExpired(googleToken) || oauthError);
 
-    // Refresh 5 minutes before expiry (or immediately if less than 5 min left)
-    const refreshMs = Math.max((googleToken.expires_in - 300) * 1000, 0);
-    const refreshScopes = hasWriteAccess ? WRITE_SCOPES : READ_SCOPES;
+  // Proactively refresh token 5 minutes before expiry
+  useEffect(() => {
+    const exp = (googleToken as any)?.exp;
+    if (!exp) return;
+
+    const refreshMs = Math.max(exp - Date.now() - 5 * 60 * 1000, 0);
     const timer = setTimeout(() => {
       console.log('Proactively refreshing Google token');
       googleLogin({ prompt: 'none' });
@@ -186,12 +174,12 @@ function use31CalGoogleLogin() {
     return () => clearTimeout(timer);
   }, [googleToken]);
 
-  // Reactively refresh on error
+  // Reactively refresh on oauth error
   useEffect(() => {
-    if (error) {
+    if (oauthError) {
       googleLogin({ prompt: 'none' });
     }
-  }, [error]);
+  }, [oauthError]);
 
   return {
     googleLogin,
@@ -216,44 +204,68 @@ export function useGoogleButton() {
     needsReconnect,
   } = use31CalGoogleLogin();
 
-  const button = isLoggedIn ? (
-    <>
-      {needsReconnect && (
+  const email = user?.email;
+
+  function GoogleButton({
+    onLogin,
+    onReconnect,
+    onLogout,
+  }: {
+    onLogin: () => void;
+    onReconnect: () => void;
+    onLogout: () => void;
+  }) {
+    if (!isLoggedIn) {
+      return (
         <Link
           href="#"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            googleLogin();
+            onLogin();
           }}
-          style={{ color: '#c57000' }}
         >
-          Reconnect
+          Login with Google
         </Link>
-      )}{needsReconnect && ' - '}
-      <Link
-        href="/"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+      );
+    }
 
-          clearGoogleToken();
-        }}
-      >
-        {user?.email ? `Logout (${user.email})` : 'Logout'}
-      </Link>
-    </>
-  ) : (
-    <Link
-      href="#"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        googleLogin();
-      }}
-    >
-      Login with Google
-    </Link>
+    return (
+      <>
+        {needsReconnect && (
+          <Link
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onReconnect();
+            }}
+            style={{ color: '#c57000' }}
+          >
+            Reconnect
+          </Link>
+        )}
+        {needsReconnect && ' - '}
+        <Link
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onLogout();
+          }}
+        >
+          {email ? `Logout (${email})` : 'Logout'}
+        </Link>
+      </>
+    );
+  }
+
+  const button = (
+    <GoogleButton
+      onLogin={googleLogin}
+      onReconnect={googleLogin}
+      onLogout={clearGoogleToken}
+    />
   );
 
   return { button, hasWriteAccess, requestWriteAccess };
