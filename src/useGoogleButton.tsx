@@ -112,6 +112,9 @@ function use31CalGoogleLogin() {
   const handleSuccess = useCallback(
     async (tokenResponse: TokenResponse) => {
       setNeedsReconnect(false);
+      if (tokenResponse.expires_in && !('exp' in tokenResponse)) {
+        (tokenResponse as any).exp = new Date().setSeconds(tokenResponse.expires_in)
+      }
       setGoogleToken(tokenResponse);
       const result = await fetch(
         'https://www.googleapis.com/oauth2/v3/userinfo',
