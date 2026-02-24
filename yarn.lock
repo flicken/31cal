@@ -11,18 +11,18 @@ __metadata:
   dependencies:
     "@babel/core": "npm:7.29.0"
     "@react-oauth/google": "npm:0.13.4"
-    "@tanstack/react-table": "npm:^8.21.3"
+    "@tanstack/react-table": "npm:8.21.3"
     "@types/dompurify": "npm:3.2.0"
     "@types/lodash-es": "npm:4.17.12"
     "@types/luxon": "npm:3.7.1"
     "@types/node": "npm:24.10.13"
     "@types/papaparse": "npm:5.5.2"
-    "@types/prismjs": "npm:^1.26.6"
+    "@types/prismjs": "npm:1.26.6"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     "@vitejs/plugin-react": "npm:5.1.4"
     chrono-node: "npm:2.9.0"
-    codejar: "npm:^4.3.0"
+    codejar: "npm:4.3.0"
     dexie: "npm:4.3.0"
     dexie-react-hooks: "npm:4.2.0"
     dompurify: "npm:3.3.1"
@@ -33,9 +33,9 @@ __metadata:
     nanoid: "npm:5.1.6"
     papaparse: "npm:5.5.3"
     prettier: "npm:3.8.1"
-    prismjs: "npm:^1.30.0"
-    react: "npm:^19"
-    react-dom: "npm:^19"
+    prismjs: "npm:1.30.0"
+    react: "npm:19.2.4"
+    react-dom: "npm:19.2.4"
     react-dropzone: "npm:15.0.0"
     react-select: "npm:5.10.2"
     react-textarea-autosize: "npm:8.5.9"
@@ -44,8 +44,8 @@ __metadata:
     usehooks-ts: "npm:3.1.1"
     vite: "npm:7.3.1"
     vite-plugin-svgr: "npm:4.5.0"
-    vitest: "npm:^4.0.18"
-    wouter: "npm:^3.9.0"
+    vitest: "npm:4.0.18"
+    wouter: "npm:3.9.0"
   languageName: unknown
   linkType: soft
 
@@ -1224,7 +1224,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-table@npm:^8.21.3":
+"@tanstack/react-table@npm:8.21.3":
   version: 8.21.3
   resolution: "@tanstack/react-table@npm:8.21.3"
   dependencies:
@@ -1381,7 +1381,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prismjs@npm:^1.26.6":
+"@types/prismjs@npm:1.26.6":
   version: 1.26.6
   resolution: "@types/prismjs@npm:1.26.6"
   checksum: 10c0/152a27500cb32b114edfb77f9d0dccd03bebc84828d1e92abacaf212b22d3ccdde041ce421dd58b6ec8461bbec7cd76ed5ee773cae4be7ca36a6dd4ddcf0f9e7
@@ -1715,7 +1715,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"codejar@npm:^4.3.0":
+"codejar@npm:4.3.0":
   version: 4.3.0
   resolution: "codejar@npm:4.3.0"
   checksum: 10c0/16300641ebb978c517ade2f97817b3529b12b539e042ae81673dd9aacc2d2f3757138e57550bc5199cb6dbe161d2ab5f88696e288b8841e4df1423ef52042f5e
@@ -2868,7 +2868,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismjs@npm:^1.30.0":
+"prismjs@npm:1.30.0":
   version: 1.30.0
   resolution: "prismjs@npm:1.30.0"
   checksum: 10c0/f56205bfd58ef71ccfcbcb691fd0eb84adc96c6ff21b0b69fc6fdcf02be42d6ef972ba4aed60466310de3d67733f6a746f89f2fb79c00bf217406d465b3e8f23
@@ -2903,7 +2903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19":
+"react-dom@npm:19.2.4":
   version: 19.2.4
   resolution: "react-dom@npm:19.2.4"
   dependencies:
@@ -3001,7 +3001,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19":
+"react@npm:19.2.4":
   version: 19.2.4
   resolution: "react@npm:19.2.4"
   checksum: 10c0/cd2c9ff67a720799cc3b38a516009986f7fc4cb8d3e15716c6211cf098d1357ee3e348ab05ad0600042bbb0fd888530ba92e329198c92eafa0994f5213396596
@@ -3610,7 +3610,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^4.0.18":
+"vitest@npm:4.0.18":
   version: 4.0.18
   resolution: "vitest@npm:4.0.18"
   dependencies:
@@ -3692,7 +3692,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wouter@npm:^3.9.0":
+"wouter@npm:3.9.0":
   version: 3.9.0
   resolution: "wouter@npm:3.9.0"
   dependencies:
