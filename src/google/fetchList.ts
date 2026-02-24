@@ -3,6 +3,7 @@ import ensureClient from './ensureClient';
 import { db } from '../models/db';
 import { UpdateState } from '../models/types';
 import { trigger } from '../lib/dispatcher';
+import { setLocalStorage } from '../utils';
 
 interface Props {
   account: string;
@@ -132,10 +133,7 @@ async function fetchList({
 
     if ([401, 403].includes((e as any)?.result?.error?.code)) {
       console.log('Authentication', e);
-      window.localStorage.setItem(
-        'googleToken',
-        JSON.stringify((e as any).result),
-      );
+      setLocalStorage('googleToken', (e as any).result);
     }
 
     throw e;

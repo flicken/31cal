@@ -23,3 +23,9 @@ export function notEmpty<T>(value: T | null | undefined): value is T {
 export function asArray<T>(v: T | T[]): T[] {
   return Array.isArray(v) ? v : [v];
 }
+
+export function setLocalStorage(key: string, value: any) {
+  window.localStorage.setItem(key, JSON.stringify(value));
+  // for useLocalStorage hook
+  window.dispatchEvent(new StorageEvent('local-storage', { key: key }));
+}
