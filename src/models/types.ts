@@ -76,6 +76,7 @@ export type UpdateState = {
   updatedAt: number;
   requestedAt?: number;
   requesting?: boolean;
+  resyncRequired?: boolean;
   error?: string;
   disabled?: boolean;
 };

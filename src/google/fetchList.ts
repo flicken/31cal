@@ -80,7 +80,7 @@ async function fetchList({
       await db.transaction('rw', [table, db.updateState], async (_tx) => {
         await table.bulkPut(transformed);
 
-        const newUpdateState = {
+        const newUpdateState: UpdateState = {
           account: account,
           resource: resource,
           resyncRequired: result.resyncRequired,
@@ -115,11 +115,12 @@ async function fetchList({
   } catch (e) {
     console.log('Error', e);
 
-    const newUpdatePartial = {
+    const newUpdatePartial: Partial<UpdateState> = {
       requesting: false,
       error: (e as any)?.message ?? `An error occured ${JSON.stringify(e)}`,
       updatedAt: Date.now(),
     };
+
     await db.updateState.update(key, newUpdatePartial);
 
     trigger('fetchList:update', {
