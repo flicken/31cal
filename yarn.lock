@@ -15,7 +15,7 @@ __metadata:
     "@types/dompurify": "npm:3.2.0"
     "@types/lodash-es": "npm:4.17.12"
     "@types/luxon": "npm:3.7.1"
-    "@types/node": "npm:24.10.13"
+    "@types/node": "npm:24.12.0"
     "@types/papaparse": "npm:5.5.2"
     "@types/prismjs": "npm:^1.26.6"
     "@types/react": "npm:^19"
@@ -25,9 +25,9 @@ __metadata:
     codejar: "npm:^4.3.0"
     dexie: "npm:4.3.0"
     dexie-react-hooks: "npm:4.2.0"
-    dompurify: "npm:3.3.1"
+    dompurify: "npm:3.3.2"
     husky: "npm:9.1.7"
-    lint-staged: "npm:16.2.7"
+    lint-staged: "npm:16.3.2"
     lodash-es: "npm:4.17.23"
     luxon: "npm:3.7.2"
     nanoid: "npm:5.1.6"
@@ -1356,12 +1356,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:24.10.13":
-  version: 24.10.13
-  resolution: "@types/node@npm:24.10.13"
+"@types/node@npm:24.12.0":
+  version: 24.12.0
+  resolution: "@types/node@npm:24.12.0"
   dependencies:
     undici-types: "npm:~7.16.0"
-  checksum: 10c0/4ff0b9b060b5477c0fec5b11a176f294be588104ab546295db65b17a92ba0a6077b52ad92dd3c0d2154198c7f9d0021e6c1d42b00c9ac7ebfd85632afbcc48a4
+  checksum: 10c0/8b31c0af5b5474f13048a4e77c57f22cd4f8fe6e58c4b6fde9456b0c13f46a5bfaf5744ff88fd089581de9f0d6e99c584e022681de7acb26a58d258c654c4843
   languageName: node
   linkType: hard
 
@@ -1729,7 +1729,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^14.0.2":
+"commander@npm:^14.0.3":
   version: 14.0.3
   resolution: "commander@npm:14.0.3"
   checksum: 10c0/755652564bbf56ff2ff083313912b326450d3f8d8c85f4b71416539c9a05c3c67dbd206821ca72635bf6b160e2afdefcb458e86b317827d5cb333b69ce7f1a24
@@ -1858,15 +1858,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.3.1":
-  version: 3.3.1
-  resolution: "dompurify@npm:3.3.1"
+"dompurify@npm:3.3.2":
+  version: 3.3.2
+  resolution: "dompurify@npm:3.3.2"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10c0/fa0a8c55a436ba0d54389195e3d2337e311f56de709a2fc9efc98dbbc7746fa53bb4b74b6ac043b77a279a8f2ebd8685f0ebaa6e58c9e32e92051d529bc0baf8
+  checksum: 10c0/8989525f003dd062e829137982b5412143421342991b2732bd621a1efd98b2c3cdc4f37547601d0727d3bc20f1d0eb2a0ecca287d3688f168cdb54ced867ca8f
   languageName: node
   linkType: hard
 
@@ -2390,20 +2390,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:16.2.7":
-  version: 16.2.7
-  resolution: "lint-staged@npm:16.2.7"
+"lint-staged@npm:16.3.2":
+  version: 16.3.2
+  resolution: "lint-staged@npm:16.3.2"
   dependencies:
-    commander: "npm:^14.0.2"
+    commander: "npm:^14.0.3"
     listr2: "npm:^9.0.5"
     micromatch: "npm:^4.0.8"
-    nano-spawn: "npm:^2.0.0"
-    pidtree: "npm:^0.6.0"
     string-argv: "npm:^0.3.2"
-    yaml: "npm:^2.8.1"
+    tinyexec: "npm:^1.0.2"
+    yaml: "npm:^2.8.2"
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: 10c0/9a677c21a8112d823ae5bc565ba2c9e7b803786f2a021c46827a55fe44ed59def96edb24fc99c06a2545cdbbf366022ad82addcb3bf60c712f3b98ef92069717
+  checksum: 10c0/4cbaa85904a912215660ac3c69400b71beabe3fe7e82969cd32c726dbfb04b0f651d0660906215f955c1446ac6b520319e1c7a03c707353a5f038c3d0441a8c3
   languageName: node
   linkType: hard
 
@@ -2642,13 +2641,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nano-spawn@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "nano-spawn@npm:2.0.0"
-  checksum: 10c0/d00f9b5739f86e28cb732ffd774793e110810cded246b8393c75c4f22674af47f98ee37b19f022ada2d8c9425f800e841caa0662fbff4c0930a10e39339fb366
-  languageName: node
-  linkType: hard
-
 "nanoid@npm:5.1.6":
   version: 5.1.6
   resolution: "nanoid@npm:5.1.6"
@@ -2836,15 +2828,6 @@ __metadata:
   version: 4.0.3
   resolution: "picomatch@npm:4.0.3"
   checksum: 10c0/9582c951e95eebee5434f59e426cddd228a7b97a0161a375aed4be244bd3fe8e3a31b846808ea14ef2c8a2527a6eeab7b3946a67d5979e81694654f939473ae2
-  languageName: node
-  linkType: hard
-
-"pidtree@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "pidtree@npm:0.6.0"
-  bin:
-    pidtree: bin/pidtree.js
-  checksum: 10c0/0829ec4e9209e230f74ebf4265f5ccc9ebfb488334b525cb13f86ff801dca44b362c41252cd43ae4d7653a10a5c6ab3be39d2c79064d6895e0d78dc50a5ed6e9
   languageName: node
   linkType: hard
 
@@ -3744,7 +3727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.8.1":
+"yaml@npm:^2.8.2":
   version: 2.8.2
   resolution: "yaml@npm:2.8.2"
   bin:
