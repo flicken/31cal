@@ -18,8 +18,8 @@ __metadata:
     "@types/node": "npm:24.10.13"
     "@types/papaparse": "npm:5.5.2"
     "@types/prismjs": "npm:^1.26.6"
-    "@types/react": "npm:^19"
-    "@types/react-dom": "npm:^19"
+    "@types/react": "npm:19.2.14"
+    "@types/react-dom": "npm:19.2.3"
     "@vitejs/plugin-react": "npm:5.1.4"
     chrono-node: "npm:2.9.0"
     codejar: "npm:^4.3.0"
@@ -1388,7 +1388,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19":
+"@types/react-dom@npm:19.2.3":
   version: 19.2.3
   resolution: "@types/react-dom@npm:19.2.3"
   peerDependencies:
@@ -1406,7 +1406,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19":
+"@types/react@npm:19.2.14":
   version: 19.2.14
   resolution: "@types/react@npm:19.2.14"
   dependencies:
