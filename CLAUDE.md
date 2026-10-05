@@ -32,6 +32,11 @@ yarn serve        # preview production build
 yarn tsc          # type-check only
 ```
 
+## Dependency security
+
+- 7 days after release
+- no scripts on install
+
 ## Environment variables
 
 Requires a `.env.local` file with:
