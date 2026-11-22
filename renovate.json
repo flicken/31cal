@@ -1,5 +1,10 @@
 {
-  "extends": ["config:base", "group:allNonMajor", ":pinVersions"],
+  "extends": [
+    "config:base",
+    "group:allNonMajor",
+    ":pinVersions",
+    "helpers:pinGitHubActionDigests"
+  ],
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict"
 }
