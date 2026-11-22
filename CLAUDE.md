@@ -9,7 +9,7 @@
 | Concern             | Library                                                                                  |
 | ------------------- | ---------------------------------------------------------------------------------------- |
 | Framework           | React 19                                                                                 |
-| Build tool          | Vite 7                                                                                   |
+| Build tool          | Vite 8                                                                                   |
 | Router              | wouter                                                                                   |
 | Local DB            | Dexie 4 (IndexedDB)                                                                      |
 | Date/time           | Luxon + chrono-node (NLP date parsing)                                                   |
@@ -61,7 +61,7 @@ src/
 
   models/
     types.ts                # Shared TypeScript types (CalendarEvent, Calendar, etc.)
-    db.ts                   # Dexie DB class + singleton `db`; exposed as globalThis.db
+    db.ts                   # Dexie DB class, singleton `db`, clearLocalData()
 
   google/
     sync.ts                 # syncResource(): paged incremental sync, 410 purge, tombstones, single-flight
@@ -87,7 +87,7 @@ src/
     utils.ts                # General helpers
 
   useGoogleButton.tsx       # OAuth login flow, token refresh, read/write scopes
-  authContext.ts            # hasWriteAccess / requestWriteAccess context
+  authContext.ts            # isLoggedIn / hasWriteAccess / ensureWriteAccess context
 
   # Feature views (several are React.lazy):
   BulkEntry.tsx             # Bulk create events with NLP date entry
