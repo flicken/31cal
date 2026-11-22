@@ -219,7 +219,8 @@ describe('syncResource events', () => {
       syncResource('me', 'calendar/c1'),
       syncResource('me', 'calendar/c1'),
     ]);
-    expect(calls.length).toBe(1);
+    // One run: the recent window plus the full pass.
+    expect(calls.map((c) => !!c.req.timeMin)).toEqual([true, false]);
   });
 });
 
@@ -257,5 +258,87 @@ describe('syncResource calendarList', () => {
     const c2 = await db.calendars.get('c2');
     expect(c2?.summary).toBe('Mine');
     expect(c2?.originalSummary).toBe('Orig');
+  });
+});
+
+describe('recent-first sync', () => {
+  it('fetches a recent window before the full pass and marks backfilling', async () => {
+    await seedCalendar();
+    const states: (boolean | undefined)[] = [];
+    setCalendarApiProvider(async () =>
+      fakeApi({
+        events: async (req) => {
+          states.push(
+            (await db.updateState.get(['me', 'calendar/c1']))?.backfilling,
+          );
+          return req.timeMin
+            ? { items: [ev('recent', '2026-03-01T10:00:00Z')] }
+            : {
+                items: [
+                  ev('recent', '2026-03-01T10:00:00Z'),
+                  ev('old', '2020-03-01T10:00:00Z'),
+                ],
+                nextSyncToken: 's',
+              };
+        },
+      }),
+    );
+    await syncResource('me', 'calendar/c1');
+    expect(calls.map((c) => !!c.req.timeMin)).toEqual([true, false]);
+    expect(calls[0].req.syncToken).toBeUndefined();
+    expect(states).toEqual([undefined, true]);
+    const state = await db.updateState.get(['me', 'calendar/c1']);
+    expect(state?.backfilling).toBe(false);
+    expect(state?.nextSyncToken).toBe('s');
+    expect((await db.events.toArray()).map((e) => e.id).sort()).toEqual([
+      'old',
+      'recent',
+    ]);
+  });
+
+  it('incremental syncs skip the recent window', async () => {
+    await seedCalendar();
+    await db.updateState.put({
+      account: 'me',
+      resource: 'calendar/c1',
+      nextSyncToken: 't',
+      updatedAt: 1,
+    });
+    setCalendarApiProvider(async () =>
+      fakeApi({ events: () => ({ items: [], nextSyncToken: 't2' }) }),
+    );
+    await syncResource('me', 'calendar/c1');
+    expect(calls.length).toBe(1);
+    expect(calls[0].req.timeMin).toBeUndefined();
+  });
+
+  it('after 410, purges only by the full pass, not the recent window', async () => {
+    await seedCalendar();
+    await db.events.put(
+      toLocalEvent(ev('deleted-recent', '2026-03-01T10:00:00Z'), 'c1', 'UTC')!,
+    );
+    await db.updateState.put({
+      account: 'me',
+      resource: 'calendar/c1',
+      nextSyncToken: 'stale',
+      updatedAt: 1,
+    });
+    setCalendarApiProvider(async () =>
+      fakeApi({
+        events: (req) => {
+          if (req.syncToken === 'stale') throw googleError(410);
+          // A stale window response still lists the deleted event; the full
+          // pass (the source of truth) does not.
+          if (req.timeMin)
+            return { items: [ev('deleted-recent', '2026-03-01T10:00:00Z')] };
+          return {
+            items: [ev('keep', '2026-03-02T10:00:00Z')],
+            nextSyncToken: 'fresh',
+          };
+        },
+      }),
+    );
+    await syncResource('me', 'calendar/c1');
+    expect((await db.events.toArray()).map((e) => e.id)).toEqual(['keep']);
   });
 });

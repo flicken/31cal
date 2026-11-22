@@ -16,6 +16,7 @@ function CalendarUpdateStatus() {
   const updates = useLiveQuery(() => db.updateState.toArray());
 
   const requesting = updates?.find((u) => u.requesting)?.requesting;
+  const backfilling = updates?.some((u) => u.backfilling && !u.disabled);
   const error = updates?.filter((u) => !u.disabled).find((u) => u.error)?.error;
 
   const updatedAt = max(updates?.map((u) => u.updatedAt));
@@ -26,7 +27,7 @@ function CalendarUpdateStatus() {
 
   return (
     <UpdateStatusIcon
-      update={{ updatedAt: updatedAt ?? 0, error, requesting }}
+      update={{ updatedAt: updatedAt ?? 0, error, requesting, backfilling }}
     />
   );
 }

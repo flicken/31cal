@@ -19,6 +19,10 @@ import ensureClient from './ensureClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
 
 export const CALENDAR_LIST = 'calendarList';
+
+/** The window fetched first on a full sync; the rest is backfilled after. */
+const RECENT_PAST = { months: 1 };
+const RECENT_FUTURE = { months: 6 };
 export const calendarResource = (calendarId: string) =>
   `calendar/${calendarId}`;
 
@@ -87,6 +91,11 @@ export function toLocalEvent(
 
 type Handler = {
   request: object;
+  /**
+   * Extra parameters for a quick first pass over recent events before a full
+   * sync, so views fill in while the rest of history backfills.
+   */
+  recentWindow?: () => object;
   list: (api: CalendarApi, req: object) => Promise<{ result: ListResult }>;
   tables: any[];
   apply: (items: any[]) => Promise<void>;
@@ -133,6 +142,13 @@ async function eventsHandler(calendarId: string): Promise<Handler> {
 
   return {
     request: { calendarId, showDeleted: true, singleEvents: true },
+    recentWindow: () => {
+      const now = DateTime.now();
+      return {
+        timeMin: now.minus(RECENT_PAST).toISO(),
+        timeMax: now.plus(RECENT_FUTURE).toISO(),
+      };
+    },
     list: (api, req) => api.events.list(req),
     tables: [db.calendars, db.events, db.updateState, db.calendarStats],
     async apply(items) {
@@ -212,7 +228,27 @@ async function doSync(account: string, resource: string) {
   let fullSync = !syncToken;
   const seen = new Set<string>();
 
+  /**
+   * Fetch the recent window (all pages) and store it. Its rows don't count
+   * as "seen" for purging: only the full pass decides what was deleted.
+   */
+  const recentPass = async () => {
+    if (!handler.recentWindow) return;
+    const window = handler.recentWindow();
+    let page: string | undefined;
+    do {
+      const req = { ...handler.request, ...window, pageToken: page };
+      const result = (await callGoogle(() => handler.list(api, req))).result;
+      await db.transaction('rw', handler.tables, () =>
+        handler.apply(result.items ?? []),
+      );
+      page = result.nextPageToken;
+    } while (page);
+    await db.updateState.update(key, { backfilling: true });
+  };
+
   try {
+    if (fullSync) await recentPass();
     while (true) {
       let result: ListResult;
       try {
@@ -225,6 +261,7 @@ async function doSync(account: string, resource: string) {
           pageToken = undefined;
           fullSync = true;
           seen.clear();
+          await recentPass();
           continue;
         }
         throw e;
@@ -246,6 +283,7 @@ async function doSync(account: string, resource: string) {
             updatedAt: Date.now(),
             requestedAt: previous?.requestedAt,
             requesting: false,
+            backfilling: false,
             disabled: previous?.disabled,
           };
           // A deleted calendar removes its own state row; don't recreate it.
@@ -260,6 +298,7 @@ async function doSync(account: string, resource: string) {
     debug(`Sync failed for ${resource}`, e);
     await db.updateState.update(key, {
       requesting: false,
+      backfilling: false,
       error: errorMessage(e),
       updatedAt: Date.now(),
     });

@@ -79,6 +79,8 @@ export type UpdateState = {
   requestedAt?: number;
   requesting?: boolean;
   resyncRequired?: boolean;
+  /** Recent events are stored; older history is still being fetched. */
+  backfilling?: boolean;
   error?: string;
   disabled?: boolean;
 };

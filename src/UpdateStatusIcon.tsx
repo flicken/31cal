@@ -11,7 +11,7 @@ export default function UpdateStatusIcon({
 }: {
   update?: Pick<
     UpdateState,
-    'updatedAt' | 'requesting' | 'error' | 'nextPageToken'
+    'updatedAt' | 'requesting' | 'error' | 'nextPageToken' | 'backfilling'
   >;
 }) {
   if (!update) {
@@ -19,7 +19,14 @@ export default function UpdateStatusIcon({
   }
   return (
     <img
-      title={`${update.updatedAt ? toRelativeDate(update.updatedAt) : null}`}
+      title={
+        update.backfilling
+          ? 'Loading older history…'
+          : `${update.updatedAt ? toRelativeDate(update.updatedAt) : null}`
+      }
+      alt={
+        update.requesting ? 'Syncing' : update.error ? 'Sync error' : 'Synced'
+      }
       style={{ verticalAlign: 'middle', display: 'inline' }}
       height={20}
       width={20}
