@@ -4,7 +4,11 @@ import { userContext } from './userContext';
 import { authContext } from './authContext';
 
 import { CalendarEvent } from './models/types';
-import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
+import {
+  useCalendars,
+  useFilteredEvents,
+  useSelectedCalendarIds,
+} from './lib/hooks';
 import { useFilterState, useSeedModFilters } from './lib/FilterStateContext';
 import { deleteEvents, EventPatch, patchEvents } from './google/writes';
 
@@ -49,7 +53,6 @@ function editableJson(event: CalendarEvent) {
 
 function ModMany() {
   const calendars = useCalendars() ?? [];
-  const allEvents = useEvents();
   const { modEventFilters: filters, setModEventFilters: setFilters } =
     useFilterState();
   const [selectedCalendarIds, , loaded] = useSelectedCalendarIds();
@@ -59,6 +62,7 @@ function ModMany() {
   // Start from the global filters each time the page opens.
   useSeedModFilters(loaded ? selectedCalendarIds : undefined);
 
+  const allEvents = useFilteredEvents(filters);
   const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
   const { isChecked, setChecked, toggleAll, selected, replace } =
     useEventSelection(events);

@@ -14,6 +14,7 @@ import { db } from '../models/db';
 import { Calendar, CalendarEvent, UpdateState } from '../models/types';
 import { eventSchedules } from '../lib/useScheduleList';
 import { debug } from '../lib/log';
+import { noteDurations } from '../lib/eventQueries';
 import ensureClient from './ensureClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
 
@@ -95,6 +96,7 @@ type Handler = {
 async function deleteCalendarLocally(calendarId: string) {
   await db.events.where('calendarId').equals(calendarId).delete();
   await db.calendars.delete(calendarId);
+  await db.calendarStats.delete(calendarId);
   await db.updateState
     .filter((s) => s.resource === calendarResource(calendarId))
     .delete();
@@ -103,7 +105,7 @@ async function deleteCalendarLocally(calendarId: string) {
 const calendarListHandler: Handler = {
   request: {},
   list: (api, req) => api.calendarList.list(req),
-  tables: [db.calendars, db.events, db.updateState],
+  tables: [db.calendars, db.events, db.updateState, db.calendarStats],
   async apply(items) {
     for (const calendar of items) {
       if (calendar.deleted) {
@@ -132,7 +134,7 @@ async function eventsHandler(calendarId: string): Promise<Handler> {
   return {
     request: { calendarId, showDeleted: true, singleEvents: true },
     list: (api, req) => api.events.list(req),
-    tables: [db.calendars, db.events, db.updateState],
+    tables: [db.calendars, db.events, db.updateState, db.calendarStats],
     async apply(items) {
       const puts: CalendarEvent[] = [];
       const tombstones = items.filter(
@@ -157,6 +159,7 @@ async function eventsHandler(calendarId: string): Promise<Handler> {
         else debug('Skipping event without a usable start', item.id);
       }
       await db.events.bulkPut(puts);
+      await noteDurations(calendarId, puts);
     },
     async purgeExcept(seen) {
       await db.events

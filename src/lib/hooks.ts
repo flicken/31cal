@@ -2,7 +2,12 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo } from 'react';
 import { db } from '../models/db';
 import { Calendar, CalendarEvent } from '../models/types';
-import { sortBy, countBy } from './utils';
+import { sortBy } from './utils';
+import {
+  countsByCalendar,
+  eventsInRange,
+  latestUpdateByCalendar,
+} from './eventQueries';
 import { filterForFilters, FilterValues } from './filters';
 import { asArray } from '../utils';
 
@@ -14,12 +19,9 @@ export function useCalendars(): Calendar[] | undefined {
   return useLiveQuery(calendarsQuery);
 }
 
-export async function eventsQuery(): Promise<CalendarEvent[]> {
-  return db.events.orderBy('[start.ms+end.ms]').toArray();
-}
-
-export function useEvents(): CalendarEvent[] | undefined {
-  return useLiveQuery(eventsQuery);
+/** Total number of cached events (cheap; no rows are loaded). */
+export function useEventCount(): number | undefined {
+  return useLiveQuery(() => db.events.count());
 }
 
 const NO_IDS: string[] = [];
@@ -78,39 +80,27 @@ export function useSelectedCalendars(): Calendar[] | undefined {
 }
 
 export function useCountsByCalendar(): Record<string, number> | undefined {
-  const events = useEvents();
-  return useMemo(
+  const calendars = useCalendars();
+  const ids = calendars?.map((c) => c.id).join(',');
+  return useLiveQuery(
     () =>
-      events
-        ? countBy(
-            events.filter((e) => e.status != 'cancelled'),
-            (e) => e.calendarId,
-          )
-        : undefined,
-    [events],
+      ids === undefined
+        ? undefined
+        : countsByCalendar(ids ? ids.split(',') : []),
+    [ids],
   );
 }
 
 export function useLatestUpdateByCalendar():
   Record<string, string> | undefined {
-  const events = useEvents();
-  return useMemo(
+  const calendars = useCalendars();
+  const ids = calendars?.map((c) => c.id).join(',');
+  return useLiveQuery(
     () =>
-      events
-        ? events.reduce(
-            (latest, e) => {
-              if (
-                e.status !== 'cancelled' &&
-                !(latest[e.calendarId] >= e.updated)
-              ) {
-                latest[e.calendarId] = e.updated;
-              }
-              return latest;
-            },
-            {} as Record<string, string>,
-          )
-        : undefined,
-    [events],
+      ids === undefined
+        ? undefined
+        : latestUpdateByCalendar(ids ? ids.split(',') : []),
+    [ids],
   );
 }
 
@@ -129,13 +119,23 @@ export function useDefaultCalendarValues() {
   );
 }
 
+/**
+ * Events matching the filters, sorted by start. Only the selected calendars
+ * and date range are read from IndexedDB (see eventQueries.ts).
+ */
 export function useFilteredEvents(
   filters: FilterValues,
 ): CalendarEvent[] | undefined {
-  const events = useEvents();
+  const startMs = filters.start.toMillis();
+  const endMs = filters.end.toMillis();
+  const ids = filters.calendarIds.join(',');
+  const inRange = useLiveQuery(
+    () => eventsInRange(ids ? ids.split(',') : [], startMs, endMs),
+    [ids, startMs, endMs],
+  );
   return useMemo(() => {
-    if (!events) return undefined;
+    if (!inRange) return undefined;
     const filter = filterForFilters(filters);
-    return sortBy(events.filter(filter), (e) => [e.start.ms, e.end?.ms]);
-  }, [events, filters]);
+    return sortBy(inRange.filter(filter), (e) => [e.start.ms, e.end?.ms]);
+  }, [inRange, filters]);
 }

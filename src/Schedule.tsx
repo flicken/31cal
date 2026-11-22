@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
 import {
-  useEvents,
+  useEventCount,
   useFilteredEvents,
   useSelectedCalendarIds,
 } from './lib/hooks';
@@ -51,8 +51,7 @@ function SelectSchedule() {
 
 function Schedule() {
   const [selectedSchedules] = useSetting('selectedSchedules');
-  const allEventsArray = useEvents();
-  const allEventsCount_ = allEventsArray?.length ?? 0;
+  const totalEvents = useEventCount() ?? 0;
 
   const { eventFilters } = useFilterState();
   const [selectedCalendarIds] = useSelectedCalendarIds();
@@ -79,7 +78,7 @@ function Schedule() {
       </div>
       <br />
       <div>
-        Showing: {eventList.length} of {allEventsCount_} events
+        Showing: {eventList.length} of {totalEvents} events
       </div>
       <EventList events={eventList} />
     </div>

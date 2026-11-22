@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
+import {
+  useCalendars,
+  useFilteredEvents,
+  useSelectedCalendarIds,
+} from './lib/hooks';
 import { useFilterState, useSeedModFilters } from './lib/FilterStateContext';
 import { Calendar, CalendarEvent } from './models/types';
 import { keyBy, pick } from './lib/utils';
@@ -21,7 +25,6 @@ const sourceKey = (calendarId: string, id: string) => `${calendarId}/${id}`;
 
 function CopyFrom() {
   const calendars = useCalendars() ?? [];
-  const allEvents = useEvents();
   const user = React.useContext(userContext);
   const { ensureWriteAccess } = React.useContext(authContext);
   const { modEventFilters: filters, setModEventFilters: setFilters } =
@@ -31,6 +34,7 @@ function CopyFrom() {
   // Start from the global filters each time the page opens.
   useSeedModFilters(loaded ? selectedCalendarIds : undefined);
 
+  const allEvents = useFilteredEvents(filters);
   const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
   const { isChecked, setChecked, toggleAll, selected, replace } =
     useEventSelection(events);
@@ -44,9 +48,19 @@ function CopyFrom() {
   const copyToCalendar = chosenCalendar ?? defaultCalendar;
 
   /** Sources already copied into the target calendar, to avoid duplicates. */
+  // Copies keep their source's times, so the same range covers them.
+  const targetFilters = useMemo(
+    () => ({
+      ...filters,
+      showCancelled: false,
+      calendarIds: copyToCalendar ? [copyToCalendar.id] : [],
+    }),
+    [filters, copyToCalendar],
+  );
+  const targetEvents = useFilteredEvents(targetFilters);
   const alreadyCopied = useMemo(() => {
     const set = new Set<string>();
-    for (const e of allEvents ?? []) {
+    for (const e of targetEvents ?? []) {
       const p = e.extendedProperties?.private;
       if (
         e.calendarId === copyToCalendar?.id &&
@@ -58,7 +72,7 @@ function CopyFrom() {
       }
     }
     return set;
-  }, [allEvents, copyToCalendar?.id]);
+  }, [targetEvents, copyToCalendar?.id]);
 
   async function copyEvents(calendar: Calendar, toCopy: CalendarEvent[]) {
     if (!(await ensureWriteAccess())) return;

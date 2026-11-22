@@ -2,11 +2,19 @@ import Dexie, { Table } from 'dexie';
 
 import { Calendar, CalendarEvent, Setting, UpdateState } from './types';
 
+/** Per-calendar facts that make range queries cheap. */
+export type CalendarStats = {
+  calendarId: string;
+  /** Longest event duration seen; range queries look back this far. */
+  maxDurationMs: number;
+};
+
 export class DB extends Dexie {
   calendars!: Table<Calendar, string>;
   events!: Table<CalendarEvent, [string, string]>;
   updateState!: Table<UpdateState, [string, string]>;
   settings!: Table<Setting, string>;
+  calendarStats!: Table<CalendarStats, string>;
   constructor() {
     super('31cal');
     this.version(1).stores({
@@ -60,6 +68,29 @@ export class DB extends Dexie {
           .modify((c: any) => {
             delete c.dirty;
           });
+      });
+    // Indexed range queries: counts by status, latest update, max duration.
+    this.version(15)
+      .stores({
+        events:
+          '[id+calendarId], calendarId, [calendarId+start.ms], [calendarId+status], [calendarId+updated], *_schedules, [start.ms+end.ms]',
+        calendarStats: 'calendarId',
+      })
+      .upgrade(async (tx) => {
+        const max = new Map<string, number>();
+        await tx
+          .table('events')
+          .toCollection()
+          .each((e: CalendarEvent) => {
+            const d = (e.end?.ms ?? 0) - (e.start?.ms ?? 0);
+            if (d > (max.get(e.calendarId) ?? 0)) max.set(e.calendarId, d);
+          });
+        await tx.table('calendarStats').bulkPut(
+          [...max].map(([calendarId, maxDurationMs]) => ({
+            calendarId,
+            maxDurationMs,
+          })),
+        );
       });
   }
 }
