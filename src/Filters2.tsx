@@ -6,7 +6,6 @@ import DateTimeInput from './DateTimeInput';
 
 import { useCalendars } from './lib/hooks';
 import { Calendar } from './models/types';
-import { useRef, useState } from 'react';
 import { notEmpty } from './utils';
 import { FilterValues, FilterInputs } from './lib/filters';
 
@@ -17,7 +16,6 @@ function Filters2({
   filters: FilterValues & FilterInputs;
   setFilters: Dispatch<SetStateAction<FilterValues & FilterInputs>>;
 }) {
-  const searchRef = useRef<HTMLInputElement | null>(null);
   const calOptions = useCalendars() ?? [];
 
   const onCalendarChange = (calendars: Calendar[]) => {
@@ -91,18 +89,6 @@ function Filters2({
       />
     </div>
   );
-  {
-    /* <Select
-        menuIsOpen={true}
-        closeMenuOnSelect={false}
-        closeMenuOnScroll={false}
-        blurInputOnSelect={false}
-        components={{ Option, Menu }}
-        isMulti={true}
-        defaultValue={options[0]}
-        options={options}
-      /> */
-  }
 }
 
 export default Filters2;

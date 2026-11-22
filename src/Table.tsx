@@ -61,9 +61,11 @@ function Table_({
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   // Reset expanded state when dates change
-  React.useEffect(() => {
+  const [prevInitial, setPrevInitial] = React.useState(initialExpanded);
+  if (prevInitial !== initialExpanded) {
+    setPrevInitial(initialExpanded);
     setExpanded(initialExpanded);
-  }, [initialExpanded]);
+  }
 
   const allColumns = React.useMemo<Columns>(
     () => [
@@ -105,8 +107,9 @@ function Table_({
   });
 
   // Custom grouping: assign rows to date buckets based on event start/end
+  const coreRows = table.getCoreRowModel().rows;
   const customGroupedRows = React.useMemo(() => {
-    const flatRows = table.getCoreRowModel().rows;
+    const flatRows = coreRows;
     const grouped: Record<string, typeof flatRows> = {};
     for (const row of flatRows) {
       const start = row.original?.start?.ms
@@ -124,7 +127,7 @@ function Table_({
       }
     }
     return grouped;
-  }, [table.getCoreRowModel().rows, dates]);
+  }, [coreRows, dates]);
 
   const selectedEvents = (() => {
     const seen = new Set<string>();
@@ -178,10 +181,9 @@ function Table_({
 
   // Build display rows: date group headers + their child rows
   const displayRows = React.useMemo(() => {
-    const flatRows = table.getCoreRowModel().rows;
     const result: Array<
       | { type: 'group'; date: string; rowCount: number }
-      | { type: 'row'; row: (typeof flatRows)[number] }
+      | { type: 'row'; row: (typeof coreRows)[number] }
     > = [];
     const sortedDates = Object.keys(customGroupedRows).sort();
     for (const date of sortedDates) {

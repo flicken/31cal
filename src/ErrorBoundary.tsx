@@ -1,6 +1,7 @@
 import React from 'react';
 
-type Props = { children: React.ReactNode; resetKey?: unknown };
+/** Give it a `key` (e.g. the route) to reset after navigating away. */
+type Props = { children: React.ReactNode };
 type State = { error?: Error };
 
 /** Catches render errors in a view so the rest of the app keeps working. */
@@ -9,12 +10,6 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
-  }
-
-  componentDidUpdate(prev: Props) {
-    if (this.state.error && prev.resetKey !== this.props.resetKey) {
-      this.setState({ error: undefined });
-    }
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {

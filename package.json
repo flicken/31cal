@@ -29,7 +29,9 @@
     "test": "vitest run",
     "serve": "vite preview",
     "tsc": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint": "oxlint",
+    "check": "yarn tsc && yarn lint && yarn test && yarn build"
   },
   "devDependencies": {
     "@types/luxon": "3.7.6",
@@ -39,8 +41,11 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",
+    "fake-indexeddb": "6.2.8",
+    "happy-dom": "21.0.4",
     "husky": "9.1.7",
     "lint-staged": "17.6.0",
+    "oxlint": "1.93.0",
     "prettier": "3.10.1",
     "typescript": "7.0.2",
     "vite": "8.3.8",
@@ -48,8 +53,11 @@
     "vitest": "5.1.0"
   },
   "lint-staged": {
-    "*.{tsx,ts,js,jsx,json}": [
+    "*.{tsx,ts,js,jsx,json,css,md}": [
       "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "oxlint"
     ]
   },
   "engines": {

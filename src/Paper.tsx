@@ -37,10 +37,12 @@ const TextFilter = ({
   ...rest
 }: TextFilterProps) => {
   const [value, setValue] = useState(filter);
-
-  useEffect(() => {
+  // Reset the local value when the stored filter changes.
+  const [prevFilter, setPrevFilter] = useState(filter);
+  if (filter !== prevFilter) {
+    setPrevFilter(filter);
     setValue(filter);
-  }, [filter]);
+  }
 
   return (
     <input
@@ -57,7 +59,7 @@ const TextFilter = ({
   );
 };
 
-type EventFilter = (e: CalendarEvent) => Boolean;
+type EventFilter = (e: CalendarEvent) => boolean;
 
 const splitByFilters = (events: CalendarEvent[], filters: EventFilter[]) => {
   const matchedIds = new Set();

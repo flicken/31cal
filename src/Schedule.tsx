@@ -27,16 +27,13 @@ function SelectSchedule() {
   const [selectedSchedules, setSelectedSchedules] =
     useSetting('selectedSchedules');
 
-  useEffect(() => {
+  // Follow the stored selection when it changes.
+  const [prevSelected, setPrevSelected] = useState(selectedSchedules);
+  if (selectedSchedules !== prevSelected) {
+    setPrevSelected(selectedSchedules);
     const s = selectedSchedules && selectedSchedules[0];
-    if (s) {
-      const newState = {
-        value: s,
-        label: s,
-      };
-      setState(newState);
-    }
-  }, [selectedSchedules]);
+    if (s) setState({ value: s, label: s });
+  }
 
   return (
     <Select

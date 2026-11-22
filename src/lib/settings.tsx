@@ -3,14 +3,19 @@ import { db } from '../models/db';
 
 import { useLiveQuery } from 'dexie-react-hooks';
 
-const SettingsContext = React.createContext<Object | undefined>(undefined);
+const SettingsContext = React.createContext<Record<string, any> | undefined>(
+  undefined,
+);
 
 const useSetting = (id: string) => {
   const settings = useContext(SettingsContext);
 
-  const _set = useCallback((value: string | string[]) => {
-    db.settings.put({ id: id, value: value });
-  }, []);
+  const _set = useCallback(
+    (value: string | string[]) => {
+      db.settings.put({ id: id, value: value });
+    },
+    [id],
+  );
 
   if (settings) {
     return [(settings as any)?.[id], _set];

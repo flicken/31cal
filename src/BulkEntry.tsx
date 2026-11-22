@@ -1,5 +1,5 @@
 import { debug } from './lib/log';
-import React, { useState, useCallback, useEffect, ClipboardEvent } from 'react';
+import React, { useState, useCallback, useMemo, ClipboardEvent } from 'react';
 
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -23,7 +23,6 @@ const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
 
 function BulkEntry() {
   const defaultCalendar = useDefaultCalendar();
-  const [events, setEvents] = useState<any>([]);
   const [eventsText, setEventsText] = useState('');
   const [description, setDescription] = useState('');
   const [prefix, setPrefix] = useState('');
@@ -94,12 +93,11 @@ function BulkEntry() {
     [setEventsText],
   );
 
-  useEffect(() => {
+  const events = useMemo(() => {
     const lines = eventsText.match(/[^\r\n]+/g);
     const parsedEvents = new Array(lines?.length || 0);
     lines?.forEach((line: string, i: number) => {
       const parsed = parseEvent(line, parsedEvents.filter(Boolean));
-      debug('prefix', prefix);
       if (parsed) {
         if (!isEmpty(prefix)) {
           parsed.summary = `${prefix}${parsed.summary}`;
@@ -110,7 +108,7 @@ function BulkEntry() {
         parsedEvents[i] = parsed;
       }
     });
-    setEvents(parsedEvents.filter(Boolean));
+    return parsedEvents.filter(Boolean);
   }, [eventsText, prefix, attachment]);
 
   const handleSaveEvents = useCallback(async () => {

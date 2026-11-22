@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { CodeJar } from 'codejar';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-json';
@@ -13,7 +13,9 @@ export default function JsonEditor({ value, onChange }: JsonEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const jarRef = useRef<ReturnType<typeof CodeJar> | null>(null);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useLayoutEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   const highlight = useCallback((el: HTMLElement) => {
     el.textContent = el.textContent ?? '';
@@ -32,6 +34,8 @@ export default function JsonEditor({ value, onChange }: JsonEditorProps) {
       jar.destroy();
       jarRef.current = null;
     };
+    // Create the editor once; later value changes go through updateCode below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

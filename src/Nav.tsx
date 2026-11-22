@@ -350,7 +350,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <style>{topBarStyles}</style>
       <TopBar />
       <hr />
-      <ErrorBoundary resetKey={location}>
+      <ErrorBoundary key={location}>
         <Suspense fallback={<span>Loading…</span>}>{children}</Suspense>
       </ErrorBoundary>
     </div>
