@@ -153,9 +153,8 @@ Write operations (save/patch/delete) require `EVENTS_READWRITE` scope. The app s
 
 ## Build + Deployment
 
-- Builds to `build/` directory.
+- Deployed on Cloudflare Pages; builds to `build/` directory.
 - `.github/workflows/ci.yml` runs tsc, lint, test, build.
-- `vercel.json` Vercel (headers must match `public/_headers`)
 - `renovate.json` automated dependency updates.
 - `public/_headers` — Cloudflare Pages (CSP and security headers)
 - `public/_redirects` — Cloudflare Pages

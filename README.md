@@ -53,6 +53,13 @@ change or delete something it asks Google for "View and edit events"
 (`calendar.events`) in a second popup. Signing out revokes the token and
 deletes the local copy of your calendars from the browser.
 
+## Deployment
+
+Deployed on Cloudflare Pages: build command `yarn build`, output directory
+`build`. `public/_headers` sets security and caching headers. Pages serves
+`index.html` for unknown paths (SPA routing) and `/legal/privacy` from
+`legal/privacy.html` without extra configuration.
+
 ## Security model
 
 - All data stays in your browser; there is no 31cal server.
@@ -63,8 +70,7 @@ deletes the local copy of your calendars from the browser.
   `https://drive.google.com` / `docs.google.com` attachments are embedded,
   in sandboxed iframes.
 - A Content-Security-Policy and other security headers are set in
-  `public/_headers` (Cloudflare Pages) and `vercel.json` (Vercel); keep the
-  two in sync.
+  `public/_headers`.
 - Dependencies must be at least 7 days old and install scripts are disabled
   (`.yarnrc.yml`, `renovate.json`).
 
