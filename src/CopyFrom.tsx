@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import React, { useMemo, useState } from 'react';
 import {
   useCalendars,
@@ -36,6 +37,7 @@ function CopyFrom() {
 
   const allEvents = useFilteredEvents(filters);
   const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
+  const emptyState = useEmptyState(allEvents, filters.calendarIds);
   const { isChecked, setChecked, toggleAll, selected, replace } =
     useEventSelection(events);
   const calendarsById = useMemo(() => keyBy(calendars, 'id'), [calendars]);
@@ -173,9 +175,7 @@ function CopyFrom() {
         </div>
         {busy && <span aria-live="polite">Copying…</span>}
       </div>
-      {allEvents === undefined ? (
-        <p>Loading events…</p>
-      ) : (
+      {emptyState ?? (
         <EventCheckList
           calendars={calendarsById}
           events={previewEvents}

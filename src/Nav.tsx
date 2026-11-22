@@ -2,9 +2,11 @@ import React, {
   ComponentType,
   Suspense,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
+import { authContext } from './authContext';
 import {
   useCalendars,
   useSelectedCalendarIds,
@@ -48,76 +50,77 @@ const SmallLogo = (
   </svg>
 );
 
-const ROUTES = [
+type AppRoute = {
+  path: string;
+  name: string;
+  description: string;
+  Component: ComponentType;
+};
+
+/** Every view, in the order shown on the home page and in the menu. */
+const ROUTES: AppRoute[] = [
   {
-    path: '/',
-    Component: Layout,
-    children: [
-      {
-        index: true,
-        path: '/',
-        shortcut: ['h'],
-        name: 'home',
-        logo: SmallLogo,
-        Component: Home,
-        keywords: 'home',
-      },
-      {
-        path: '/paper',
-        shortcut: ['p'],
-        Component: Paper,
-      },
-      {
-        path: '/attachments',
-        shortcut: ['a'],
-        Component: Attachments,
-      },
-      {
-        path: '/bulk',
-        shortcut: ['b'],
-        Component: BulkEntry,
-      },
-      {
-        path: '/copy',
-        shortcut: ['c'],
-        Component: CopyFrom,
-      },
-      {
-        path: '/mod',
-        shortcut: ['m'],
-        Component: ModMany,
-      },
-      {
-        path: '/status',
-        shortcut: ['s'],
-        Component: CalendarsStatus,
-      },
-      {
-        path: '/events',
-        shortcut: ['e'],
-        Component: Events,
-      },
-      {
-        path: '/import',
-        shortcut: ['i'],
-        Component: ImportFile,
-      },
-      {
-        path: '/schedule',
-        shortcut: ['s'],
-        Component: Schedule,
-      },
-      {
-        path: '/table',
-        shortcut: ['t'],
-        Component: Table,
-      },
-      {
-        path: '*',
-        Component: NotFound,
-        ignored: true,
-      },
-    ],
+    path: '/events',
+    name: 'Events',
+    description:
+      'Every event in range on one page, with descriptions and attachments.',
+    Component: Events,
+  },
+  {
+    path: '/paper',
+    name: 'Paper',
+    description:
+      'A paper-calendar grid: one row per day, one column per keyword.',
+    Component: Paper,
+  },
+  {
+    path: '/table',
+    name: 'Table',
+    description:
+      'Spreadsheet-style list grouped by day, with multi-select delete.',
+    Component: Table,
+  },
+  {
+    path: '/schedule',
+    name: 'Schedule',
+    description: 'Events tagged with a 31cal schedule (club, team, choir…).',
+    Component: Schedule,
+  },
+  {
+    path: '/bulk',
+    name: 'Bulk entry',
+    description: 'Type many events at once: “Saturday 3pm rehearsal”.',
+    Component: BulkEntry,
+  },
+  {
+    path: '/import',
+    name: 'Import CSV',
+    description: 'Import a CSV file, reviewing every row before saving.',
+    Component: ImportFile,
+  },
+  {
+    path: '/mod',
+    name: 'Bulk modify',
+    description: 'Find events, then rename, delete or edit them all at once.',
+    Component: ModMany,
+  },
+  {
+    path: '/copy',
+    name: 'Copy',
+    description: 'Copy events from one calendar to another.',
+    Component: CopyFrom,
+  },
+  {
+    path: '/attachments',
+    name: 'Attachments',
+    description: 'Preview the files attached to events.',
+    Component: Attachments,
+  },
+  {
+    path: '/status',
+    name: 'Calendars',
+    description: 'Choose calendars and see sync status.',
+    Component: CalendarsStatus,
   },
 ];
 
@@ -125,62 +128,61 @@ export function Routes() {
   return (
     <Layout>
       <Switch>
-        {ROUTES[0].children.map(({ path, Component, ignored }) =>
-          ignored ? (
-            <Route key="*">
-              <Component />
-            </Route>
-          ) : (
-            <Route key={path} path={path}>
-              <Component />
-            </Route>
-          ),
-        )}
+        <Route path="/">
+          <Home />
+        </Route>
+        {ROUTES.map(({ path, Component }) => (
+          <Route key={path} path={path}>
+            <Component />
+          </Route>
+        ))}
+        <Route>
+          <NotFound />
+        </Route>
       </Switch>
     </Layout>
   );
 }
 
-type SortedRoute = {
-  path: string;
-  Component: ComponentType;
-  name?: string;
-  shortcut?: string[];
-  ignored?: boolean;
-};
-
-const sortedRoutes: SortedRoute[] = ROUTES[0]
-  .children!.filter((r) => !r.ignored && !r.index)
-  .sort((a, b) => compareProperty(a.path, b.path));
-
-function randomRoute(routes: SortedRoute[]) {
-  const route = sample(routes.filter((f) => !f.ignored))!;
-
-  return <Link href={route.path}>{route.path}</Link>;
-}
-
 function NotFound() {
-  return (
-    <div>Try {randomRoute(sortedRoutes)}, it's better than a blank page.</div>
-  );
-}
-function Home() {
+  const route = sample(ROUTES)!;
   return (
     <div>
-      <h2>Agenda: 31 different ways to calendar</h2>
-      <ul>
-        {sortedRoutes.map((r) => (
+      Page not found. Try <Link href={route.path}>{route.name}</Link>, or see{' '}
+      <Link href="/">all views</Link>.
+    </div>
+  );
+}
+
+function Home() {
+  const { isLoggedIn, login } = useContext(authContext);
+  return (
+    <div className="home">
+      <h1>31cal — 31 different ways to calendar</h1>
+      <p>
+        Alternative views and bulk-editing tools for Google Calendar. Your
+        calendar is copied into this browser; nothing is sent anywhere else.
+      </p>
+      {!isLoggedIn && (
+        <p>
+          <button type="button" className="primary-button" onClick={login}>
+            Sign in with Google
+          </button>{' '}
+          <span className="hint">
+            Starts with read-only access; 31cal asks again before making any
+            change.
+          </span>
+        </p>
+      )}
+      <ul className="route-list">
+        {ROUTES.map((r) => (
           <li key={r.path}>
-            <Link href={r.path}>{r.path.replace('/', '')}</Link>
+            <Link href={r.path}>{r.name}</Link> — {r.description}
           </li>
         ))}
       </ul>
     </div>
   );
-}
-
-function compareProperty(a?: string, b?: string) {
-  return a || b ? (!a ? -1 : !b ? 1 : a.localeCompare(b)) : 0;
 }
 
 function StatusBar() {
@@ -250,6 +252,8 @@ const topBarStyles = `
     z-index: 20;
     min-width: 140px;
     padding: 4px 0;
+    margin: 0;
+    list-style: none;
   }
   .home-dropdown-item {
     display: block;
@@ -296,6 +300,9 @@ const topBarStyles = `
 function HomeNav() {
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const navRef = useRef<HTMLElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuId = 'home-menu';
 
   const show = () => {
     clearTimeout(timeoutRef.current);
@@ -305,22 +312,58 @@ function HomeNav() {
     timeoutRef.current = setTimeout(() => setOpen(false), 150);
   };
 
+  // Close on outside click.
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!navRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointer);
+    return () => document.removeEventListener('pointerdown', onPointer);
+  }, [open]);
+
   return (
-    <nav className="topbar-home" onMouseEnter={show} onMouseLeave={hide}>
-      <Link href="/">{SmallLogo}</Link>
+    <nav
+      ref={navRef}
+      className="topbar-home"
+      aria-label="Views"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && open) {
+          setOpen(false);
+          buttonRef.current?.focus();
+        }
+      }}
+    >
+      <Link href="/" aria-label="31cal home">
+        {SmallLogo}
+      </Link>
+      <button
+        ref={buttonRef}
+        type="button"
+        className="menu-button"
+        aria-expanded={open}
+        aria-controls={menuId}
+        aria-label="Views menu"
+        onClick={() => setOpen((o) => !o)}
+      >
+        ▾
+      </button>
       {open && (
-        <div className="home-dropdown" onMouseEnter={show} onMouseLeave={hide}>
-          {sortedRoutes.map((r) => (
-            <Link
-              key={r.path}
-              href={r.path}
-              className="home-dropdown-item"
-              onClick={() => setOpen(false)}
-            >
-              {r.path.replace('/', '')}
-            </Link>
+        <ul id={menuId} className="home-dropdown">
+          {ROUTES.map((r) => (
+            <li key={r.path}>
+              <Link
+                href={r.path}
+                className="home-dropdown-item"
+                onClick={() => setOpen(false)}
+              >
+                {r.name}
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </nav>
   );

@@ -46,7 +46,7 @@ function Calendars() {
 
   useInterval(() => {
     setAsOf(DateTime.now());
-  }, 1000);
+  }, 30 * 1000);
 
   const onToggle = React.useCallback(
     (calendarId: string) => {

@@ -126,6 +126,7 @@ export default function SearchBar() {
             fontSize: '14px',
           }}
           title="Date filter"
+          aria-hidden="true"
         >
           &#128197;
         </span>
@@ -137,12 +138,12 @@ export default function SearchBar() {
           onBlur={commitText}
           onKeyDown={onKeyDown}
           placeholder="next week, january to march, updated since last monday..."
+          aria-label="Date range (for example: next week, january to march, updated since last monday)"
           style={{
             flex: 1,
             padding: '6px 4px',
             fontSize: '14px',
             border: 'none',
-            outline: 'none',
             background: 'transparent',
             minWidth: 0,
           }}
@@ -151,6 +152,7 @@ export default function SearchBar() {
           <button
             onClick={clearFilters}
             title="Reset to default"
+            aria-label="Reset date range to default"
             style={{
               flex: '0 0 auto',
               background: 'none',

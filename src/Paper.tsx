@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import { dayOfWeek, eventDays } from './lib/events';
 import { safeRegExp } from './lib/regex';
 import React from 'react';
@@ -56,6 +57,7 @@ const TextFilter = ({
       }}
       onFocus={onFocus}
       placeholder={placeholder}
+      aria-label={rest['aria-label'] ?? placeholder}
     />
   );
 };
@@ -250,13 +252,8 @@ export default function Paper() {
     [allFilters.start, allFilters.end],
   );
 
-  let emptyState = (
-    <div className="empty">
-      <h3>Empty</h3>
-    </div>
-  );
-
-  if (!events) return null;
+  const empty = useEmptyState(events, allFilters.calendarIds);
+  if (empty || !events) return empty;
 
   let eventsByDate = byDate(events, dates);
 
@@ -298,6 +295,7 @@ export default function Paper() {
                 key={`filter-${index}`}
                 filter={column}
                 placeholder="Search events..."
+                aria-label={`Column ${index + 1}: show events matching`}
                 autoFocus={index === 0}
                 onValueChange={(v: string) => {
                   const c = [...columns];
@@ -331,5 +329,5 @@ export default function Paper() {
     </table>
   );
 
-  return events.length ? list : emptyState;
+  return list;
 }

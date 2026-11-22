@@ -10,9 +10,11 @@ import { useInterval } from 'usehooks-ts';
 
 import { UpdateState } from './models/types';
 import UpdateStatusIcon from './UpdateStatusIcon';
+import { authContext } from './authContext';
 
 function CalendarUpdateStatus() {
-  const [asOf, setAsOf] = React.useState(DateTime.now());
+  // Re-render every 30s so the relative time stays current.
+  const [, setAsOf] = React.useState(DateTime.now());
   const updates = useLiveQuery(() => db.updateState.toArray());
 
   const requesting = updates?.find((u) => u.requesting)?.requesting;
@@ -25,8 +27,12 @@ function CalendarUpdateStatus() {
     setAsOf(DateTime.now());
   }, 30 * 1000);
 
+  const { isLoggedIn } = React.useContext(authContext);
+  if (!isLoggedIn) return null;
+
   return (
     <UpdateStatusIcon
+      showText
       update={{ updatedAt: updatedAt ?? 0, error, requesting, backfilling }}
     />
   );

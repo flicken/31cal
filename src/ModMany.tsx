@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import React, { useState, useMemo } from 'react';
 
 import { userContext } from './userContext';
@@ -64,6 +65,7 @@ function ModMany() {
 
   const allEvents = useFilteredEvents(filters);
   const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
+  const emptyState = useEmptyState(allEvents, filters.calendarIds);
   const { isChecked, setChecked, toggleAll, selected, replace } =
     useEventSelection(events);
   const calendarsById = useMemo(() => keyBy(calendars, 'id'), [calendars]);
@@ -202,9 +204,7 @@ function ModMany() {
         {busy && <span aria-live="polite"> Working…</span>}
       </div>
       {showEditor && <JsonEditor value={jsonText} onChange={setJsonText} />}
-      {allEvents === undefined ? (
-        <p>Loading events…</p>
-      ) : (
+      {emptyState ?? (
         <EventCheckList
           calendars={calendarsById}
           events={events}

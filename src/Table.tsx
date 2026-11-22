@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import { CalendarEvent } from './models/types';
 import { FilterValues } from './lib/filters';
 import { eventDays } from './lib/events';
@@ -340,7 +341,8 @@ export default function Table() {
   );
 
   const events = useFilteredEvents(allFilters);
-  if (!events) return null;
+  const empty = useEmptyState(events, allFilters.calendarIds);
+  if (empty || !events) return empty;
 
   return <Table_ columns={columns} data={events} filters={allFilters} />;
 }

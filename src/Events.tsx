@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import React, { useMemo } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
@@ -17,7 +18,8 @@ function Events() {
   );
 
   const eventList = useFilteredEvents(filters);
-  if (!eventList) return null;
+  const empty = useEmptyState(eventList, filters.calendarIds);
+  if (empty || !eventList) return empty;
 
   return (
     <>

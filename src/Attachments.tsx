@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import React, { useMemo } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
@@ -25,7 +26,8 @@ function Attachments() {
   );
 
   const events = useFilteredEvents(filters);
-  if (!events) return null;
+  const empty = useEmptyState(events, filters.calendarIds);
+  if (empty || !events) return empty;
   const eventsWithAttachments = events.filter((e) => e.attachments);
   const attachmentUrl2Events = new Map();
   eventsWithAttachments.forEach((e) => {

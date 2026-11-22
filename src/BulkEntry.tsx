@@ -150,24 +150,23 @@ function BulkEntry() {
   }
 
   return (
-    <div
-      onPaste={onPaste}
-      style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}
-    >
+    <div onPaste={onPaste} className="two-column">
       <div>
         <TextareaAutosize
           name="events"
           minRows={5}
-          style={{ width: '40em' }}
+          style={{ width: '40em', maxWidth: '100%' }}
           placeholder={placeholderEntry}
+          aria-label="Events, one per line (e.g. Saturday 3pm rehearsal)"
           onChange={handleEventsChange}
         />
         <br />
         <TextareaAutosize
           name="description"
           minRows={5}
-          style={{ width: '40em' }}
+          style={{ width: '40em', maxWidth: '100%' }}
           placeholder="Description for all events"
+          aria-label="Description for all events"
           onChange={(e) => setDescription(e.target.value)}
         />
         <br />
@@ -178,6 +177,7 @@ function BulkEntry() {
           name="prefix"
           type="text"
           placeholder="Prefix for all events"
+          aria-label="Prefix for all event titles"
           onChange={handlePrefixChange}
         />
         <EventList events={events} />
@@ -187,6 +187,7 @@ function BulkEntry() {
           type="text"
           size={80}
           placeholder="Attachment URL"
+          aria-label="Attachment URL for all events"
           onChange={handleAttachmentChange}
         />
         {attachment ? <ViewAttachment attachment={attachment} /> : null}

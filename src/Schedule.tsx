@@ -1,3 +1,4 @@
+import { useEmptyState } from './EmptyState';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
@@ -62,6 +63,7 @@ function Schedule() {
   );
 
   let eventList = useFilteredEvents(filters);
+  const empty = useEmptyState(eventList, filters.calendarIds);
 
   if (eventList && !isEmpty(selectedSchedules)) {
     eventList = eventList.filter(
@@ -69,7 +71,7 @@ function Schedule() {
     );
   }
 
-  if (!eventList) return null;
+  if (empty || !eventList) return empty;
 
   return (
     <div>
