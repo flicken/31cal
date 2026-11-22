@@ -58,14 +58,14 @@ export class DB extends Dexie {
         await tx
           .table('events')
           .toCollection()
-          .modify((e: any) => {
+          .modify((e: Record<string, unknown>) => {
             delete e.dirty;
             delete e.eventId;
           });
         await tx
           .table('calendars')
           .toCollection()
-          .modify((c: any) => {
+          .modify((c: Record<string, unknown>) => {
             delete c.dirty;
           });
       });
@@ -104,5 +104,5 @@ export async function clearLocalData() {
 }
 
 if (import.meta.env.DEV) {
-  (globalThis as any).db = db;
+  (globalThis as { db?: DB }).db = db;
 }

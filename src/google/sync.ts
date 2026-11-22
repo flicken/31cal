@@ -10,6 +10,7 @@
  * - Calendars removed from the calendar list are deleted with their events.
  */
 import { DateTime } from 'luxon';
+import type { Table } from 'dexie';
 import { db } from '../models/db';
 import { Calendar, CalendarEvent, UpdateState } from '../models/types';
 import { eventSchedules } from '../lib/useScheduleList';
@@ -17,6 +18,15 @@ import { debug } from '../lib/log';
 import { noteDurations } from '../lib/eventQueries';
 import ensureClient from './ensureClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
+import type {
+  CalendarApi,
+  GoogleCalendarListEntry,
+  GoogleEvent,
+  ListParams,
+  ListResponse,
+} from './calendarTypes';
+
+export type { CalendarApi } from './calendarTypes';
 
 export const CALENDAR_LIST = 'calendarList';
 
@@ -26,21 +36,11 @@ const RECENT_FUTURE = { months: 6 };
 export const calendarResource = (calendarId: string) =>
   `calendar/${calendarId}`;
 
-type ListResult = {
-  items?: any[];
-  nextPageToken?: string;
-  nextSyncToken?: string;
-};
-
-export type CalendarApi = {
-  calendarList: { list(req: object): Promise<{ result: ListResult }> };
-  events: { list(req: object): Promise<{ result: ListResult }> };
-};
-
 /** Overridable for tests. */
 let apiProvider = async (): Promise<CalendarApi> => {
   await ensureClient();
-  return (window as any).gapi.client.calendar;
+  return (window as unknown as { gapi: { client: { calendar: CalendarApi } } })
+    .gapi.client.calendar;
 };
 
 export function setCalendarApiProvider(provider: () => Promise<CalendarApi>) {
@@ -60,7 +60,7 @@ export function toMillis(
 
 /** Add the derived fields the local DB indexes on. Returns undefined if unusable. */
 export function toLocalEvent(
-  event: any,
+  event: GoogleEvent,
   calendarId: string,
   timeZone: string | undefined,
 ): CalendarEvent | undefined {
@@ -83,22 +83,26 @@ export function toLocalEvent(
   return {
     ...event,
     calendarId,
-    start: { ...event.start, ms: startMs },
-    end: { ...(event.end ?? event.start), ms: endMs },
+    updated: event.updated ?? '',
+    start: { ...event.start, ms: startMs } as CalendarEvent['start'],
+    end: { ...(event.end ?? event.start), ms: endMs } as CalendarEvent['end'],
     _schedules: schedules,
   };
 }
 
-type Handler = {
-  request: object;
+type Handler<T extends { id: string }> = {
+  request: ListParams;
   /**
    * Extra parameters for a quick first pass over recent events before a full
    * sync, so views fill in while the rest of history backfills.
    */
-  recentWindow?: () => object;
-  list: (api: CalendarApi, req: object) => Promise<{ result: ListResult }>;
-  tables: any[];
-  apply: (items: any[]) => Promise<void>;
+  recentWindow?: () => ListParams;
+  list: (
+    api: CalendarApi,
+    req: ListParams,
+  ) => Promise<{ result: ListResponse<T> }>;
+  tables: Table[];
+  apply: (items: T[]) => Promise<void>;
   purgeExcept: (seenIds: Set<string>) => Promise<void>;
 };
 
@@ -111,7 +115,7 @@ async function deleteCalendarLocally(calendarId: string) {
     .delete();
 }
 
-const calendarListHandler: Handler = {
+const calendarListHandler: Handler<GoogleCalendarListEntry> = {
   request: {},
   list: (api, req) => api.calendarList.list(req),
   tables: [db.calendars, db.events, db.updateState, db.calendarStats],
@@ -121,11 +125,18 @@ const calendarListHandler: Handler = {
         await deleteCalendarLocally(calendar.id);
         continue;
       }
-      if (calendar.summaryOverride) {
-        calendar.originalSummary = calendar.summary;
-        calendar.summary = calendar.summaryOverride;
-      }
-      await db.calendars.put(calendar as Calendar);
+      const local: Calendar = {
+        ...calendar,
+        summary: calendar.summaryOverride ?? calendar.summary ?? calendar.id,
+        originalSummary: calendar.summaryOverride
+          ? calendar.summary
+          : undefined,
+        selected: !!calendar.selected,
+        timeZone: calendar.timeZone ?? 'UTC',
+        foregroundColor: calendar.foregroundColor ?? '#000000',
+        backgroundColor: calendar.backgroundColor ?? '#ffffff',
+      };
+      await db.calendars.put(local);
     }
   },
   async purgeExcept(seen) {
@@ -136,12 +147,14 @@ const calendarListHandler: Handler = {
   },
 };
 
-async function eventsHandler(calendarId: string): Promise<Handler> {
+async function eventsHandler(
+  calendarId: string,
+): Promise<Handler<GoogleEvent>> {
   const calendar = await db.calendars.get(calendarId);
   if (!calendar) throw new Error(`Unknown calendar ${calendarId}`);
 
   return {
-    request: { calendarId, showDeleted: true, singleEvents: true },
+    request: { showDeleted: true, singleEvents: true },
     recentWindow: () => {
       const now = DateTime.now();
       return {
@@ -149,7 +162,7 @@ async function eventsHandler(calendarId: string): Promise<Handler> {
         timeMax: now.plus(RECENT_FUTURE).toISO(),
       };
     },
-    list: (api, req) => api.events.list(req),
+    list: (api, req) => api.events.list({ ...req, calendarId }),
     tables: [db.calendars, db.events, db.updateState, db.calendarStats],
     async apply(items) {
       const puts: CalendarEvent[] = [];
@@ -157,7 +170,7 @@ async function eventsHandler(calendarId: string): Promise<Handler> {
         (i) => i.status === 'cancelled' && !i.start,
       );
       const existing = await db.events.bulkGet(
-        tombstones.map((t) => [t.id, calendarId] as any),
+        tombstones.map((t): [string, string] => [t.id, calendarId]),
       );
       tombstones.forEach((t, i) => {
         const old = existing[i];
@@ -203,14 +216,26 @@ async function doSync(account: string, resource: string) {
   const calendarId = resource.startsWith('calendar/')
     ? resource.slice('calendar/'.length)
     : undefined;
-  const handler =
-    resource === CALENDAR_LIST
-      ? calendarListHandler
-      : calendarId
-        ? await eventsHandler(calendarId)
-        : undefined;
-  if (!handler) throw new Error(`Unknown resource ${resource}`);
+  if (resource === CALENDAR_LIST) {
+    return runSync(account, resource, undefined, calendarListHandler);
+  }
+  if (calendarId) {
+    return runSync(
+      account,
+      resource,
+      calendarId,
+      await eventsHandler(calendarId),
+    );
+  }
+  throw new Error(`Unknown resource ${resource}`);
+}
 
+async function runSync<T extends { id: string }>(
+  account: string,
+  resource: string,
+  calendarId: string | undefined,
+  handler: Handler<T>,
+) {
   const key: [string, string] = [account, resource];
   const previous = await db.updateState.get(key);
   await db.updateState.put({
@@ -250,7 +275,7 @@ async function doSync(account: string, resource: string) {
   try {
     if (fullSync) await recentPass();
     while (true) {
-      let result: ListResult;
+      let result: ListResponse<T>;
       try {
         const req = { ...handler.request, syncToken, pageToken };
         result = (await callGoogle(() => handler.list(api, req))).result;

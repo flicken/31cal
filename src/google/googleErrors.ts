@@ -1,20 +1,20 @@
 import { trigger } from '../lib/dispatcher';
+import type { GoogleErrorBody } from './calendarTypes';
 
 /** Fired when Google rejects our token; useGoogleButton listens and re-auths. */
 export const AUTH_EXPIRED_EVENT = 'google:auth-expired';
 
-type GoogleErrorBody = {
-  code?: number;
-  message?: string;
-  errors?: { reason?: string; message?: string }[];
+type GoogleErrorLike = {
+  result?: { error?: GoogleErrorBody };
+  status?: number;
 };
 
 function errorBody(e: unknown): GoogleErrorBody | undefined {
-  return (e as any)?.result?.error;
+  return (e as GoogleErrorLike | undefined)?.result?.error;
 }
 
 export function statusOf(e: unknown): number | undefined {
-  return errorBody(e)?.code ?? (e as any)?.status;
+  return errorBody(e)?.code ?? (e as GoogleErrorLike | undefined)?.status;
 }
 
 export function reasonsOf(e: unknown): string[] {

@@ -1,10 +1,9 @@
 import { debug } from './log';
 import { parse, ParsedComponents } from 'chrono-node';
-import { DateTime, FixedOffsetZone } from 'luxon';
+import { DateTime } from 'luxon';
+import { componentsToDateTime } from './chrono';
 
 import { CalendarEvent, StartEnd, StartEndDate } from '../models/types';
-
-import { pick } from './utils';
 
 function dateTimeToGoogleTime(
   dateMaybeTime: DateTime,
@@ -21,60 +20,16 @@ function dateTimeToGoogleTime(
     : { dateTime: dateMaybeTime.toISO()! };
 }
 
-const dateTimeFromAll = (components: any) => {
-  const fields = pick(
-    { ...components.knownValues, ...components.impliedValues },
-    [
-      'year',
-      'month',
-      'day',
-      'ordinal',
-      'weekYear',
-      'weekNumber',
-      'weekday',
-      'hour',
-      'minute',
-      'second',
-      'millisecond',
-    ],
-  );
-  const offset = components.knownValues?.timezoneOffset;
-  return DateTime.fromObject(
-    fields,
-    typeof offset === 'number'
-      ? { zone: FixedOffsetZone.instance(offset) }
-      : {},
-  );
-};
-
 const toGoogleTime = (components: ParsedComponents): StartEnd | undefined => {
   if (!components) return undefined;
   debug('toGoogleTime', components);
 
-  if (components.isCertain('weekday')) {
-    const date = dateTimeFromAll(components);
-    return dateTimeToGoogleTime(date, components);
-  } else if (components.isCertain('month') && components.isCertain('day')) {
-    const kv: any = (components as any).knownValues;
-    debug('kv', kv);
-    const date = DateTime.fromObject(
-      {
-        year: kv.year || (components as any).impliedValues.year,
-        month: kv.month,
-        day: kv.day,
-        hour: kv.hour,
-        minute: kv.minute,
-        second: kv.second,
-        millisecond: kv.millisecond,
-      },
-      typeof kv.timezoneOffset === 'number'
-        ? { zone: FixedOffsetZone.instance(kv.timezoneOffset) }
-        : {},
-    );
-    return dateTimeToGoogleTime(date, components);
-  } else if (components.isCertain('hour')) {
-    const date = dateTimeFromAll(components);
-    return dateTimeToGoogleTime(date, components);
+  if (
+    components.isCertain('weekday') ||
+    (components.isCertain('month') && components.isCertain('day')) ||
+    components.isCertain('hour')
+  ) {
+    return dateTimeToGoogleTime(componentsToDateTime(components), components);
   }
 
   return undefined;
@@ -107,12 +62,8 @@ const parseInput = (
   let datetimes = parse(s, referenceDatetime, { forwardDate: true });
   debug('parsed', datetimes);
   if (datetimes[0]) {
-    let components: any = datetimes[0].start;
-    debug('components', components);
-
-    let values = { ...components.impliedValues, ...components.knownValues };
-    let rest = s.replace(datetimes[0].text, '').trim();
-    debug('values', values);
+    debug('components', datetimes[0].start);
+    const rest = s.replace(datetimes[0].text, '').trim();
     const start = toGoogleTime(datetimes[0].start);
     const maybeEnd = toGoogleTime(datetimes[0].end ?? datetimes[0].start);
     // End of full-day calendar events must be on the next day.

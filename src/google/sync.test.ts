@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db, clearLocalData } from '../models/db';
+import type { GoogleEvent } from './calendarTypes';
 import {
   CalendarApi,
   setCalendarApiProvider,
@@ -36,13 +37,14 @@ function fakeApi(lists: {
       return { result: await fn(req) };
     },
   });
+  // Sync only lists; the write methods are never called here.
   return {
     calendarList: wrap('calendarList', lists.calendarList),
     events: wrap('events', lists.events),
-  };
+  } as unknown as CalendarApi;
 }
 
-const ev = (id: string, startIso: string, extra: object = {}) => ({
+const ev = (id: string, startIso: string, extra: object = {}): GoogleEvent => ({
   id,
   status: 'confirmed',
   updated: '2026-01-01T00:00:00Z',

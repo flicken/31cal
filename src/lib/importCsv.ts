@@ -25,10 +25,9 @@ export function parseDate(text?: unknown): DateParts | undefined {
   if (iso.isValid && /^\d{4}-\d{2}-\d{2}/.test(s)) {
     return { year: iso.year, month: iso.month, day: iso.day };
   }
-  const c: any = parse(s, new Date(), { forwardDate: true })[0]?.start;
+  const c = parse(s, new Date(), { forwardDate: true })[0]?.start;
   if (!c) return;
-  const p = { ...c.impliedValues, ...c.knownValues };
-  return { year: p.year, month: p.month, day: p.day };
+  return { year: c.get('year')!, month: c.get('month')!, day: c.get('day')! };
 }
 
 export function parseTime(text?: unknown): TimeParts | undefined {
@@ -37,10 +36,13 @@ export function parseTime(text?: unknown): TimeParts | undefined {
   if (/^\d{1,2}$/.test(s)) s = `${s}:00`;
   else if (/^\d{3}$/.test(s)) s = `${s.slice(0, 1)}:${s.slice(1)}`;
   else if (/^\d{4}$/.test(s)) s = `${s.slice(0, 2)}:${s.slice(2)}`;
-  const c: any = parse(s, new Date(), { forwardDate: true })[0]?.start;
+  const c = parse(s, new Date(), { forwardDate: true })[0]?.start;
   if (!c) return;
-  const p = { ...c.impliedValues, ...c.knownValues };
-  return { hour: p.hour, minute: p.minute ?? 0, second: p.second ?? 0 };
+  return {
+    hour: c.get('hour') ?? 0,
+    minute: c.get('minute') ?? 0,
+    second: c.get('second') ?? 0,
+  };
 }
 
 const toIsoDate = (d: DateParts) => DateTime.fromObject(d).toISODate()!;

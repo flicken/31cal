@@ -1,3 +1,5 @@
+import { CalendarEvent } from './models/types';
+import { FilterValues } from './lib/filters';
 import { eventDays } from './lib/events';
 import { debug } from './lib/log';
 import React, { useMemo } from 'react';
@@ -15,7 +17,7 @@ import {
 
 const features = tableFeatures({ rowSelectionFeature });
 type Features = typeof features;
-type Columns = ColumnDef<Features, any, any>[];
+type Columns = ColumnDef<Features, CalendarEvent, unknown>[];
 type ExpandedState = true | Record<string, boolean>;
 
 import { ViewEventSummary } from './ViewEvent';
@@ -35,8 +37,8 @@ function Table_({
   filters,
 }: {
   columns: Columns;
-  data: any[];
-  filters: any;
+  data: CalendarEvent[];
+  filters: FilterValues;
 }) {
   const user = React.useContext(userContext);
   const { ensureWriteAccess } = React.useContext(authContext);
@@ -299,7 +301,7 @@ export default function Table() {
         id: 'date',
         header: 'When',
         cell: ({ row }) => {
-          return row.original?.start ? (
+          return row.original?.start?.ms !== undefined ? (
             <span>{dateOf(row.original.start.ms)}</span>
           ) : null;
         },

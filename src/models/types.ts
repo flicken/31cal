@@ -1,3 +1,11 @@
+import type {
+  EventStatus,
+  GoogleAttachment,
+  GoogleAttendee,
+  GoogleEvent,
+} from '../google/calendarTypes';
+
+/** A calendar-list entry as stored locally (summaryOverride applied). */
 export type Calendar = {
   id: string;
   summary: string;
@@ -31,43 +39,22 @@ export type Millis = {
   ms?: number;
 };
 
-export type CalendarEvent = {
-  id: string;
+/**
+ * A Google event as stored locally: start/end gain `ms` for indexed range
+ * queries, plus the owning calendar and parsed 31cal schedules.
+ */
+export type CalendarEvent = Omit<GoogleEvent, 'start' | 'end' | 'updated'> & {
   calendarId: string;
-  summary?: string;
-  description?: string;
-  location?: string;
-  status?: 'confirmed' | 'tentative' | 'cancelled';
   start: StartEnd & Millis;
   end: StartEnd & Millis;
-  extendedProperties?: ExtendedProperties;
   updated: string;
+  status?: EventStatus;
   _schedules?: string[];
-  attachments?: Attachment[];
-  recurringEventId?: string;
-  originalStartTime?: StartEnd;
-  attendees?: Attendee[];
-  htmlLink?: string;
-  iCalUID?: string;
 };
 
-export type Attendee = {
-  displayName: string;
-  email: string;
-};
-
-export type Attachment = {
-  fileUrl: string;
-  title?: string;
-  mimeType?: string;
-  iconLink?: string;
-  fileId?: string;
-};
-
-export type ExtendedProperties = {
-  shared?: Record<string, string>;
-  private?: Record<string, string>;
-};
+export type Attendee = GoogleAttendee;
+export type Attachment = GoogleAttachment;
+export type ExtendedProperties = NonNullable<GoogleEvent['extendedProperties']>;
 
 export type UpdateState = {
   account: string;

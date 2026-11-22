@@ -12,6 +12,7 @@ import { Calendar, CalendarEvent } from '../models/types';
 import ensureClient from './ensureClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
 import { syncCalendars } from './sync';
+import type { CalendarApi, EventResource } from './calendarTypes';
 import { snapshot, undeletePatches, undoPatches } from './undo';
 
 export type BatchResult<T> = {
@@ -22,9 +23,10 @@ export type BatchResult<T> = {
 
 export const SKIPPED = Symbol('skipped');
 
-async function calendarApi() {
+async function calendarApi(): Promise<CalendarApi> {
   await ensureClient();
-  return (window as any).gapi.client.calendar;
+  return (window as unknown as { gapi: { client: { calendar: CalendarApi } } })
+    .gapi.client.calendar;
 }
 
 export async function runBatch<T>(
@@ -124,14 +126,18 @@ function withDefaultEnd(event: NewEvent, timeZone: string): NewEvent {
 }
 
 /** Strip local-only fields before sending to Google. */
-function toGoogle(event: NewEvent) {
-  const { calendarId, _schedules, start, end, ...rest } = event as any;
-  const clean = (v: any) => {
-    if (!v) return v;
-    const { ms, ...r } = v;
+function toGoogle(event: Record<string, unknown>): Record<string, unknown> {
+  const { calendarId: _c, _schedules: _s, start, end, ...rest } = event;
+  const clean = (v: unknown) => {
+    if (!v || typeof v !== 'object') return v;
+    const { ms: _ms, ...r } = v as Record<string, unknown>;
     return r;
   };
-  return { ...rest, start: clean(start), end: clean(end) };
+  return {
+    ...rest,
+    ...(start !== undefined && { start: clean(start) }),
+    ...(end !== undefined && { end: clean(end) }),
+  };
 }
 
 const describeEvent = (e: { summary?: string; id?: string }) =>
@@ -157,7 +163,7 @@ export async function saveEvents(
         return await api.events.insert({
           calendarId: calendar.id,
           supportsAttachments: true,
-          resource,
+          resource: resource as EventResource,
         });
       } catch (e) {
         // Re-importing an event with a deterministic id.
@@ -193,7 +199,7 @@ export async function patchEvents(
         calendarId,
         eventId,
         supportsAttachments: true,
-        resource: toGoogle(resource as NewEvent),
+        resource: toGoogle(resource),
       }),
     (p) => p.summary ?? p.eventId,
     {
