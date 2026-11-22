@@ -24,6 +24,22 @@ export function useEventCount(): number | undefined {
   return useLiveQuery(() => db.events.count());
 }
 
+/**
+ * Earliest start and latest end among cached events (two index reads), for
+ * the "Everything" / "All upcoming" date presets. Undefined until loaded or
+ * when nothing is cached.
+ */
+export function useEventBounds():
+  { first?: number; last?: number } | undefined {
+  return useLiveQuery(async () => {
+    const [first, last] = await Promise.all([
+      db.events.orderBy('[start.ms+end.ms]').first(),
+      db.events.orderBy('[start.ms+end.ms]').last(),
+    ]);
+    return { first: first?.start.ms, last: last?.end.ms ?? last?.start.ms };
+  });
+}
+
 const NO_IDS: string[] = [];
 
 /** [selected ids, setter, loaded]; ids are [] until the setting has loaded. */

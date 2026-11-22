@@ -191,3 +191,17 @@ export function rangeText({ start, end }: Range): string {
 export function dayText(d: DateTime): string {
   return d.toFormat('MMM d, yyyy');
 }
+
+const UPDATED_SINCE = /\s*updated[\s-]*since[\s:]+.*$/i;
+
+/** The range part of a search text, without any "updated since …" suffix. */
+export function stripUpdatedSince(text: string): string {
+  return text.replace(UPDATED_SINCE, '').trim();
+}
+
+/** Replace (or remove) the "updated since …" part of a search text. */
+export function withUpdatedSince(text: string, since?: DateTime): string {
+  const range = stripUpdatedSince(text);
+  if (!since) return range;
+  return `${range} updated since ${dayText(since)}`.trim();
+}

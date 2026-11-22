@@ -180,3 +180,22 @@ describe('text round trips', () => {
     expect(parseSearchText(dayText(d)).start?.toISODate()).toBe('2025-07-04');
   });
 });
+
+describe('updated since text', () => {
+  test('replaces, adds and removes the suffix', async () => {
+    const { withUpdatedSince } = await import('./dateRange');
+    const d = DateTime.local(2026, 2, 1);
+    expect(withUpdatedSince('next week', d)).toBe(
+      'next week updated since Feb 1, 2026',
+    );
+    expect(withUpdatedSince('next week updated since yesterday', d)).toBe(
+      'next week updated since Feb 1, 2026',
+    );
+    expect(withUpdatedSince('next week updated-since: monday')).toBe(
+      'next week',
+    );
+    const r = parseSearchText(withUpdatedSince('this month', d));
+    expect(r.updatedSince?.toISODate()).toBe('2026-02-01');
+    expect(r.start?.toISODate()).toBe('2026-02-01');
+  });
+});

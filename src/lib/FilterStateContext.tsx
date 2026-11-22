@@ -17,7 +17,6 @@ export type EventFilters = {
   start: DateTime;
   end: DateTime;
   updatedSince?: DateTime;
-  updatedSinceText?: string;
   showCancelled: boolean;
   calendarId?: string;
 };
@@ -40,7 +39,6 @@ export const defaultEventFilters = (): EventFilters => ({
   start: DateTime.now(),
   end: DateTime.now().plus({ months: 1 }).endOf('month'),
   updatedSince: undefined,
-  updatedSinceText: undefined,
   showCancelled: false,
   calendarId: undefined,
 });

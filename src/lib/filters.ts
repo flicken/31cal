@@ -11,7 +11,6 @@ export type FilterValues = {
 
 export type FilterInputs = {
   rangeText: string;
-  updatedSinceText?: string;
   searchText?: string;
   replaceText?: string;
 };

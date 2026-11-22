@@ -1,8 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 
 import Calendars from './Calendars';
-import DateTimeRangeInput, { DateTimeRange } from './DateTimeRangeInput';
-import DateTimeInput from './DateTimeInput';
+import DateRangeField from './DateRangeField';
 
 import { useCalendars } from './lib/hooks';
 import { Calendar } from './models/types';
@@ -25,33 +24,6 @@ function BulkFilters({
     }));
   };
 
-  const setRange = (newRange: DateTimeRange) => {
-    setFilters((f: any) => {
-      if (newRange && newRange.start && newRange.end) {
-        return {
-          ...f,
-          ...{
-            start: newRange?.start,
-            end: newRange?.end,
-            rangeText: newRange.text,
-          },
-        };
-      } else {
-        return f;
-      }
-    });
-  };
-
-  const setUpdatedSince = (newUpdatedSince: any) => {
-    setFilters((f: any) => {
-      return {
-        ...f,
-        updatedSince: newUpdatedSince?.date,
-        updatedSinceText: newUpdatedSince?.text,
-      };
-    });
-  };
-
   return (
     <div
       style={{
@@ -67,15 +39,23 @@ function BulkFilters({
           .filter(notEmpty)}
         onChange={onCalendarChange}
       />
-      <DateTimeRangeInput
-        value={{ ...filters, text: filters.rangeText }}
-        onChange={setRange}
-      />
-      <br />
-      Updated since{' '}
-      <DateTimeInput
-        value={{ text: filters.updatedSinceText, date: filters.updatedSince }}
-        onChange={setUpdatedSince}
+      <DateRangeField
+        label="Dates to edit"
+        value={{
+          text: filters.rangeText,
+          start: filters.start,
+          end: filters.end,
+          updatedSince: filters.updatedSince,
+        }}
+        onChange={(v) =>
+          setFilters((f) => ({
+            ...f,
+            rangeText: v.text,
+            start: v.start,
+            end: v.end,
+            updatedSince: v.updatedSince,
+          }))
+        }
       />
       <input
         name="search"

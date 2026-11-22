@@ -76,6 +76,8 @@ src/
     hooks.ts                # Dexie useLiveQuery hooks (useFilteredEvents, useCalendars, useDefaultCalendar, …)
     eventQueries.ts         # Indexed range queries, per-calendar counts / latest update
     chrono.ts               # componentsToDateTime(): chrono components → Luxon
+    dateRange.ts            # Presets, nudge (calendar-aligned), range labels/text that re-parses, updated-since text
+    searchTextParser.ts     # Range text → {start, end, updatedSince}; relative ranges (next week, past 30 days) + chrono
     contrast.ts             # WCAG contrast; readableOn()/readableTextOnWhite() for calendar colors
     newVersion.tsx          # Reload on stale chunks / newer DB schema (guarded; toast if unsaved work)
     filters.ts              # FilterValues type + filterForFilters()
@@ -100,6 +102,9 @@ src/
   VirtualList.tsx           # Virtualizes lists > 200 rows (scrolls inside #root); shorter lists stay Ctrl-F-able
   CalendarFilter.tsx        # Top-bar calendar picker
   BulkFilters.tsx           # Filter panel shared by ModMany and CopyFrom
+  DateRangeField.tsx        # Date control: free text (kept as typed), From/To chips, Calendar… presets + range, ‹ › nudge, Updated since
+  Calendar.tsx              # Small accessible Luxon month grid (single/range, keyboard); no calendar library by design
+  SearchBar.tsx             # Top-bar DateRangeField bound to the global filters
   BulkEntry.tsx             # Bulk create events with NLP date entry
   CopyFrom.tsx              # Copy events from one calendar to another
   Events.tsx                # Event list with filters
