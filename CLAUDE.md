@@ -95,10 +95,10 @@ src/
   useGoogleButton.tsx       # OAuth login flow, token refresh, read/write scopes
   authContext.ts            # isLoggedIn / hasWriteAccess / ensureWriteAccess context
 
-  # Feature views (several are React.lazy):
+  # Feature views (all statically imported; single bundle):
   EmptyState.tsx            # useEmptyState(): signed out / loading / no calendars / syncing / empty range
   VirtualList.tsx           # Virtualizes lists > 200 rows (scrolls inside #root); shorter lists stay Ctrl-F-able
-  CalendarFilter.tsx        # Top-bar calendar picker (lazy, keeps react-select out of the main chunk)
+  CalendarFilter.tsx        # Top-bar calendar picker
   BulkFilters.tsx           # Filter panel shared by ModMany and CopyFrom
   BulkEntry.tsx             # Bulk create events with NLP date entry
   CopyFrom.tsx              # Copy events from one calendar to another
@@ -151,7 +151,7 @@ src/
 
 ### Routing
 
-`wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. Every route except Home is `React.lazy`, as is the top-bar `CalendarFilter`. After a deploy, old tabs may request chunks that no longer exist; `index.tsx` handles `vite:preloadError` via `lib/newVersion` (one guarded reload, or a toast when `setUnsavedWork(true)`).
+`wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. All views are imported statically and the build is **one JS bundle by design** (`build.rolldownOptions.output.inlineDynamicImports` in `vite.config.mts`): Cloudflare Pages serves only the latest deployment's files, so a tab opened before a deploy must never need a chunk from its own build later. Don't add `React.lazy` or dynamic `import()`. `lib/newVersion` still handles Dexie `versionchange`/`blocked` (a newer tab upgrading the DB schema) and keeps the `vite:preloadError` reload as a safety net.
 
 ### Write access
 

@@ -6,9 +6,9 @@ import { reloadForNewVersion } from './lib/newVersion';
 import { GOOGLE_CLIENT_ID } from './config';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// A lazy chunk from an older deployment is gone: reload to get the new
-// build (unless there's unsaved work; then the error boundary shows and a
-// toast offers Reload).
+// Safety net only: the build is a single bundle, so a chunk from an older
+// deploy should never be requested. If one is, reload to get the new build
+// (unless there's unsaved work; then a toast offers Reload).
 window.addEventListener('vite:preloadError', (event) => {
   if (reloadForNewVersion()) event.preventDefault();
 });

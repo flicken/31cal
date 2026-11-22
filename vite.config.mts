@@ -16,6 +16,12 @@ export default defineConfig({
   // comment this out if that isn't relevant for your project
   build: {
     outDir: 'build',
+    // One JS bundle by design: an open tab never needs a chunk from an older
+    // deploy (Cloudflare Pages serves only the latest deployment's files).
+    rolldownOptions: {
+      output: { inlineDynamicImports: true },
+    },
+    chunkSizeWarningLimit: 1200,
   },
   test: {
     globals: true,

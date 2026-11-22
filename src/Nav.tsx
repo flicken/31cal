@@ -19,17 +19,17 @@ import 'react-toastify/dist/ReactToastify.css'; // part of layout
 import { googleButtonContext } from './googleButtonContext';
 
 // Every view except Home loads on demand.
-const Attachments = React.lazy(() => import('./Attachments'));
-const BulkEntry = React.lazy(() => import('./BulkEntry'));
-const CalendarsStatus = React.lazy(() => import('./CalendarsStatus'));
-const CopyFrom = React.lazy(() => import('./CopyFrom'));
-const Events = React.lazy(() => import('./Events'));
-const Paper = React.lazy(() => import('./Paper'));
-const CalendarFilter = React.lazy(() => import('./CalendarFilter'));
-const ImportFile = React.lazy(() => import('./ImportFile'));
-const ModMany = React.lazy(() => import('./ModMany'));
-const Schedule = React.lazy(() => import('./Schedule'));
-const Table = React.lazy(() => import('./Table'));
+import Attachments from './Attachments';
+import BulkEntry from './BulkEntry';
+import CalendarsStatus from './CalendarsStatus';
+import CopyFrom from './CopyFrom';
+import Events from './Events';
+import Paper from './Paper';
+import CalendarFilter from './CalendarFilter';
+import ImportFile from './ImportFile';
+import ModMany from './ModMany';
+import Schedule from './Schedule';
+import Table from './Table';
 
 const SmallLogo = (
   <svg

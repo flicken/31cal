@@ -7,7 +7,7 @@ import {
 } from './lib/hooks';
 import { Calendar } from './models/types';
 
-/** Top-bar calendar picker; lazy-loaded so react-select isn't in the main chunk. */
+/** Top-bar calendar picker. */
 export default function CalendarFilter() {
   const calOptions = useCalendars() ?? [];
   const calValue = useSelectedCalendars();

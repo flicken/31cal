@@ -1,6 +1,7 @@
 /**
  * Recovering when a newer 31cal is deployed or opened in another tab:
- * - a lazy chunk from the old build is gone (Cloudflare serves index.html),
+ * - (safety net) a chunk from the old build is requested; the build is a
+ *   single bundle, so this shouldn't happen,
  * - a newer tab upgraded the IndexedDB schema.
  * Reload automatically unless the user has unsaved work, or we reloaded
  * very recently (avoid loops); otherwise offer a Reload button.
