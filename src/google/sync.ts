@@ -16,7 +16,7 @@ import { Calendar, CalendarEvent, UpdateState } from '../models/types';
 import { eventSchedules } from '../lib/useScheduleList';
 import { debug } from '../lib/log';
 import { noteDurations } from '../lib/eventQueries';
-import ensureClient from './ensureClient';
+import { calendarApi } from './calendarClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
 import type {
   CalendarApi,
@@ -36,16 +36,7 @@ const RECENT_FUTURE = { months: 6 };
 export const calendarResource = (calendarId: string) =>
   `calendar/${calendarId}`;
 
-/** Overridable for tests. */
-let apiProvider = async (): Promise<CalendarApi> => {
-  await ensureClient();
-  return (window as unknown as { gapi: { client: { calendar: CalendarApi } } })
-    .gapi.client.calendar;
-};
-
-export function setCalendarApiProvider(provider: () => Promise<CalendarApi>) {
-  apiProvider = provider;
-}
+export { setCalendarApiProvider } from './calendarClient';
 
 /** Milliseconds for a Google start/end, or undefined when it is missing. */
 export function toMillis(
@@ -247,7 +238,7 @@ async function runSync<T extends { id: string }>(
     error: undefined,
   });
 
-  const api = await apiProvider();
+  const api = await calendarApi();
   let syncToken = previous?.nextSyncToken;
   let pageToken: string | undefined;
   let fullSync = !syncToken;

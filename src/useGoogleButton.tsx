@@ -6,9 +6,8 @@ import {
   useGoogleLogin,
 } from '@react-oauth/google';
 
-import { useLocalStorage, useScript } from 'usehooks-ts';
+import { useLocalStorage } from 'usehooks-ts';
 import { toast } from 'react-toastify';
-import ensureClient from './google/ensureClient';
 import { AUTH_EXPIRED_EVENT } from './google/googleErrors';
 import { on, off } from './lib/dispatcher';
 import { clearLocalData } from './models/db';
@@ -46,6 +45,19 @@ export type GoogleUser = {
 
 type TokenWithExp = TokenResponse & { exp?: number };
 
+/** The Google Identity Services global, loaded by @react-oauth/google. */
+function googleAccounts() {
+  return (
+    window as {
+      google?: {
+        accounts?: {
+          oauth2?: { revoke?: (token: string, done: () => void) => void };
+        };
+      };
+    }
+  ).google?.accounts;
+}
+
 function isTokenExpired(token: TokenResponse | null): boolean {
   if (!token) return true;
   const exp = (token as TokenWithExp).exp;
@@ -76,10 +88,6 @@ function use31CalGoogleLogin() {
 
   const [oauthError, setOauthError] = useState(false);
 
-  const status = useScript('https://apis.google.com/js/api.js', {
-    removeOnUnmount: false,
-  });
-
   // On startup: adopt existing data for the signed-in user (pre-upgrade
   // installs), and clear anything left behind by a signed-out session.
   useEffect(() => {
@@ -89,18 +97,6 @@ function use31CalGoogleLogin() {
     if (!user) claimLocalData(undefined).catch((e) => debug(e));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Initialize gapi client when token and script are ready
-  useEffect(() => {
-    if (!googleToken?.access_token || status !== 'ready') return;
-    ensureClient()
-      .then(() =>
-        (window as any).gapi?.client?.setToken({
-          access_token: googleToken.access_token,
-        }),
-      )
-      .catch((e) => debug('gapi init failed', e));
-  }, [status, googleToken]);
 
   // Google rejected the token during a sync or write: try to refresh it.
   useEffect(() => {
@@ -212,9 +208,7 @@ function use31CalGoogleLogin() {
   const logout = useCallback(async () => {
     const token = googleToken?.access_token;
     try {
-      if (token)
-        (window as any).google?.accounts?.oauth2?.revoke?.(token, () => {});
-      (window as any).gapi?.client?.setToken(null);
+      if (token) googleAccounts()?.oauth2?.revoke?.(token, () => {});
     } catch (e) {
       debug('Revoke failed', e);
     }

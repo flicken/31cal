@@ -9,10 +9,10 @@ import { DateTime } from 'luxon';
 
 import { db } from '../models/db';
 import { Calendar, CalendarEvent } from '../models/types';
-import ensureClient from './ensureClient';
+import { calendarApi } from './calendarClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
 import { syncCalendars } from './sync';
-import type { CalendarApi, EventResource } from './calendarTypes';
+import type { EventResource } from './calendarTypes';
 import { snapshot, undeletePatches, undoPatches } from './undo';
 
 export type BatchResult<T> = {
@@ -22,12 +22,6 @@ export type BatchResult<T> = {
 };
 
 export const SKIPPED = Symbol('skipped');
-
-async function calendarApi(): Promise<CalendarApi> {
-  await ensureClient();
-  return (window as unknown as { gapi: { client: { calendar: CalendarApi } } })
-    .gapi.client.calendar;
-}
 
 export async function runBatch<T>(
   label: string,
