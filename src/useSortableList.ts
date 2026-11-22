@@ -41,10 +41,7 @@ export function useSortableList(options: UseSortableListOptions = {}) {
       onReorder: (fromIndex: number, toIndex: number) => void,
     ) => {
       return (e: React.PointerEvent) => {
-        if (
-          ignoreSelector &&
-          (e.target as HTMLElement).closest(ignoreSelector)
-        )
+        if (ignoreSelector && (e.target as HTMLElement).closest(ignoreSelector))
           return;
 
         e.preventDefault();

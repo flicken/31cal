@@ -3,7 +3,6 @@ import { db } from '../models/db';
 
 import { useLiveQuery } from 'dexie-react-hooks';
 
-
 const SettingsContext = React.createContext<Object | undefined>(undefined);
 
 const useSetting = (id: string) => {

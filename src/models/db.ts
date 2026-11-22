@@ -3,9 +3,9 @@ import Dexie, { Table } from 'dexie';
 import { Calendar, CalendarEvent, Setting, UpdateState } from './types';
 
 export class DB extends Dexie {
-  calendars!: Table<Calendar & { dirty?: boolean }, string>;
-  events!: Table<CalendarEvent, string>;
-  updateState!: Table<UpdateState, string[]>;
+  calendars!: Table<Calendar, string>;
+  events!: Table<CalendarEvent, [string, string]>;
+  updateState!: Table<UpdateState, [string, string]>;
   settings!: Table<Setting, string>;
   constructor() {
     super('31cal');
@@ -32,8 +32,6 @@ export class DB extends Dexie {
     this.version(8).stores({
       events: '[id+calendarId], calendarId, dirty, [calendarId+start.ms]',
     });
-    // TODO: add multi-index for schedule
-    // https://dexie.org/docs/MultiEntry-Index
     this.version(12).stores({
       events:
         '[id+calendarId], calendarId, dirty, [calendarId+start.ms], *_schedules',
@@ -42,8 +40,38 @@ export class DB extends Dexie {
       events:
         '[id+calendarId], calendarId, dirty, [calendarId+start.ms], *_schedules, [start.ms+end.ms]',
     });
+    // Drop the never-read `dirty` index and field.
+    this.version(14)
+      .stores({
+        events:
+          '[id+calendarId], calendarId, [calendarId+start.ms], *_schedules, [start.ms+end.ms]',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('events')
+          .toCollection()
+          .modify((e: any) => {
+            delete e.dirty;
+            delete e.eventId;
+          });
+        await tx
+          .table('calendars')
+          .toCollection()
+          .modify((c: any) => {
+            delete c.dirty;
+          });
+      });
   }
 }
 export const db = new DB();
 
-(globalThis as any).db = db;
+/** Remove every cached calendar, event, sync state and setting. */
+export async function clearLocalData() {
+  await db.transaction('rw', db.tables, async () => {
+    await Promise.all(db.tables.map((t) => t.clear()));
+  });
+}
+
+if (import.meta.env.DEV) {
+  (globalThis as any).db = db;
+}

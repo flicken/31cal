@@ -1,13 +1,22 @@
 import React from 'react';
 
 export type AuthContextType = {
+  isLoggedIn: boolean;
   hasWriteAccess: boolean;
-  requestWriteAccess: () => Promise<void>;
+  /**
+   * Resolve true once write scope is granted (prompting if needed), false if
+   * the user declines or closes the popup. Call before any await in a click
+   * handler so the popup isn't blocked.
+   */
+  ensureWriteAccess: () => Promise<boolean>;
+  login: () => void;
 };
 
 const authContext = React.createContext<AuthContextType>({
+  isLoggedIn: false,
   hasWriteAccess: false,
-  requestWriteAccess: () => Promise.resolve(),
+  ensureWriteAccess: () => Promise.resolve(false),
+  login: () => {},
 });
 
 authContext.displayName = 'authContext';

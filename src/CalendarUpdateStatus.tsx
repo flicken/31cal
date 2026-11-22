@@ -9,7 +9,6 @@ import { DateTime } from 'luxon';
 import { useInterval } from 'usehooks-ts';
 
 import { UpdateState } from './models/types';
-import { fetchResource } from './google/useClientToFetch';
 import UpdateStatusIcon from './UpdateStatusIcon';
 
 function CalendarUpdateStatus() {
@@ -17,13 +16,13 @@ function CalendarUpdateStatus() {
   const updates = useLiveQuery(() => db.updateState.toArray());
 
   const requesting = updates?.find((u) => u.requesting)?.requesting;
-  const error = updates?.filter(u => !u.disabled).find((u) => u.error)?.error;
+  const error = updates?.filter((u) => !u.disabled).find((u) => u.error)?.error;
 
   const updatedAt = max(updates?.map((u) => u.updatedAt));
 
   useInterval(() => {
     setAsOf(DateTime.now());
-  }, 1000);
+  }, 30 * 1000);
 
   return (
     <UpdateStatusIcon

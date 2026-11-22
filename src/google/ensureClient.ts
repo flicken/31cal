@@ -1,3 +1,4 @@
+import { debug } from '../lib/log';
 function waitForGapi(timeoutMs = 10000): Promise<any> {
   const gapi = (window as any).gapi;
   if (gapi) return Promise.resolve(gapi);
@@ -22,9 +23,9 @@ function waitForGapi(timeoutMs = 10000): Promise<any> {
 }
 
 const ensureClient = async () => {
-  console.log('Ensuring client');
+  debug('Ensuring client');
   const gapi = await waitForGapi();
-  console.log('gapi', gapi);
+  debug('gapi', gapi);
 
   const initClient = () => {
     return gapi.client.init({

@@ -37,8 +37,13 @@ const SortCtx = createContext<SortContextType>(null!);
 
 function DraggableMultiValue(props: MultiValueProps<any>) {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const { itemRefs, onReorder, dragState, createPointerDownHandler, InnerMultiValue } =
-    useContext(SortCtx);
+  const {
+    itemRefs,
+    onReorder,
+    dragState,
+    createPointerDownHandler,
+    InnerMultiValue,
+  } = useContext(SortCtx);
   const index = props.index;
 
   useEffect(() => {
@@ -110,7 +115,13 @@ export default function MultiSelectSort(props: any) {
 
   return (
     <SortCtx.Provider
-      value={{ itemRefs, onReorder, dragState, createPointerDownHandler, InnerMultiValue }}
+      value={{
+        itemRefs,
+        onReorder,
+        dragState,
+        createPointerDownHandler,
+        InnerMultiValue,
+      }}
     >
       <Select
         isMulti

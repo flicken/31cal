@@ -7,8 +7,12 @@ import {
 } from '@react-oauth/google';
 
 import { useLocalStorage, useScript } from 'usehooks-ts';
+import { toast } from 'react-toastify';
 import ensureClient from './google/ensureClient';
-import { Link } from 'wouter';
+import { AUTH_EXPIRED_EVENT } from './google/googleErrors';
+import { on, off } from './lib/dispatcher';
+import { clearLocalData } from './models/db';
+import { debug } from './lib/log';
 
 const CALENDAR_READONLY = 'https://www.googleapis.com/auth/calendar.readonly';
 const EVENTS_READONLY =
@@ -21,7 +25,6 @@ const READ_SCOPES = [
   'profile',
   'email',
 ].join(' ');
-
 const WRITE_SCOPES = [
   CALENDAR_READONLY,
   EVENTS_READONLY,
@@ -29,6 +32,9 @@ const WRITE_SCOPES = [
   'profile',
   'email',
 ].join(' ');
+
+/** localStorage key recording whose data is in IndexedDB. */
+const DATA_OWNER_KEY = '31cal:dataOwner';
 
 export type GoogleUser = {
   email: string;
@@ -47,16 +53,26 @@ function isTokenExpired(token: TokenResponse | null): boolean {
   return Date.now() > exp;
 }
 
+/**
+ * Make sure the local cache belongs to `sub`; wipe it if another account's
+ * data is there (or if the owner is unknown and nobody is signed in).
+ */
+async function claimLocalData(sub: string | undefined) {
+  const owner = localStorage.getItem(DATA_OWNER_KEY);
+  if (owner !== (sub ?? null)) {
+    if (owner || !sub) await clearLocalData();
+    if (sub) localStorage.setItem(DATA_OWNER_KEY, sub);
+    else localStorage.removeItem(DATA_OWNER_KEY);
+  }
+}
+
 function use31CalGoogleLogin() {
-  const [user, setUser] = useLocalStorage<GoogleUser | null>(
+  const [user, setUser, removeUser] = useLocalStorage<GoogleUser | null>(
     'googleUser',
     null,
   );
-
-  const [googleToken, setGoogleToken] = useLocalStorage<TokenResponse | null>(
-    'googleToken',
-    null,
-  );
+  const [googleToken, setGoogleToken, removeGoogleToken] =
+    useLocalStorage<TokenResponse | null>('googleToken', null);
 
   const [oauthError, setOauthError] = useState(false);
 
@@ -64,35 +80,37 @@ function use31CalGoogleLogin() {
     removeOnUnmount: false,
   });
 
+  // On startup: adopt existing data for the signed-in user (pre-upgrade
+  // installs), and clear anything left behind by a signed-out session.
+  useEffect(() => {
+    if (user?.sub && !localStorage.getItem(DATA_OWNER_KEY)) {
+      localStorage.setItem(DATA_OWNER_KEY, user.sub);
+    }
+    if (!user) claimLocalData(undefined).catch((e) => debug(e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Initialize gapi client when token and script are ready
   useEffect(() => {
-    async function initGapiClient() {
-      if (googleToken?.error) {
-        setOauthError(true);
-        return;
-      }
-
-      setOauthError(false);
-
-      try {
-        const gapi = (window as any).gapi;
-        if (googleToken?.access_token && status === 'ready') {
-          await ensureClient();
-          if (gapi?.client) {
-            gapi.client.setToken({ access_token: googleToken.access_token });
-          }
-          console.log('User', user?.email);
-        }
-      } catch (e) {
-        console.log('Error', e);
-      }
-    }
-
-    initGapiClient();
+    if (!googleToken?.access_token || status !== 'ready') return;
+    ensureClient()
+      .then(() =>
+        (window as any).gapi?.client?.setToken({
+          access_token: googleToken.access_token,
+        }),
+      )
+      .catch((e) => debug('gapi init failed', e));
   }, [status, googleToken]);
 
+  // Google rejected the token during a sync or write: try to refresh it.
+  useEffect(() => {
+    const listener = () => setOauthError(true);
+    on(AUTH_EXPIRED_EVENT, listener);
+    return () => off(AUTH_EXPIRED_EVENT, listener);
+  }, []);
+
   const writeResolveRef = useRef<((value: void) => void) | null>(null);
-  const writeRejectRef = useRef<((reason: any) => void) | null>(null);
+  const writeRejectRef = useRef<((reason: unknown) => void) | null>(null);
 
   const handleSuccess = useCallback(
     async (tokenResponse: TokenResponse) => {
@@ -101,22 +119,20 @@ function use31CalGoogleLogin() {
         (tokenResponse as TokenWithExp).exp =
           Date.now() + tokenResponse.expires_in * 1000;
       }
-      setGoogleToken(tokenResponse);
       const result = await fetch(
         'https://www.googleapis.com/oauth2/v3/userinfo',
-        {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        },
+        { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } },
       );
-      const userInfo = JSON.parse(await result.text());
-      console.log(`Have user info ${JSON.stringify(userInfo)}`);
+      const userInfo: GoogleUser = await result.json();
+      await claimLocalData(userInfo.sub);
+      setGoogleToken(tokenResponse);
       setUser(userInfo);
     },
     [setGoogleToken, setUser],
   );
 
-  const handleError = useCallback((errorResponse: any) => {
-    console.log(errorResponse);
+  const handleError = useCallback((errorResponse: unknown) => {
+    debug('OAuth error', errorResponse);
     setOauthError(true);
   }, []);
 
@@ -127,20 +143,33 @@ function use31CalGoogleLogin() {
     hint: user?.email,
   });
 
+  const settleWrite = (error?: unknown) => {
+    if (error === undefined) writeResolveRef.current?.();
+    else writeRejectRef.current?.(error);
+    writeResolveRef.current = null;
+    writeRejectRef.current = null;
+  };
+
   const googleLoginWrite = useGoogleLogin({
     scope: WRITE_SCOPES,
     onSuccess: async (tokenResponse) => {
-      await handleSuccess(tokenResponse);
-      writeResolveRef.current?.(undefined);
-      writeResolveRef.current = null;
-      writeRejectRef.current = null;
+      try {
+        await handleSuccess(tokenResponse);
+        if (!hasGrantedAllScopesGoogle(tokenResponse, EVENTS_READWRITE)) {
+          settleWrite(new Error('Editing permission was not granted'));
+        } else {
+          settleWrite();
+        }
+      } catch (e) {
+        settleWrite(e);
+      }
     },
     onError: (errorResponse) => {
       handleError(errorResponse);
-      writeRejectRef.current?.(errorResponse);
-      writeResolveRef.current = null;
-      writeRejectRef.current = null;
+      settleWrite(errorResponse);
     },
+    // Popup closed or blocked: without this the promise never settles.
+    onNonOAuthError: (nonOAuthError) => settleWrite(nonOAuthError),
     hint: user?.email,
   });
 
@@ -149,12 +178,52 @@ function use31CalGoogleLogin() {
     : false;
 
   const requestWriteAccess = useCallback((): Promise<void> => {
+    // Reject any earlier request still waiting on a popup.
+    settleWrite(new Error('Superseded'));
     return new Promise((resolve, reject) => {
       writeResolveRef.current = resolve;
       writeRejectRef.current = reject;
       googleLoginWrite();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleLoginWrite]);
+
+  /**
+   * Resolve true once we can write. Must be called directly from a click
+   * handler (before any await) so the browser allows the consent popup.
+   */
+  const ensureWriteAccess = useCallback(async (): Promise<boolean> => {
+    if (hasWriteAccess) return true;
+    toast.info(
+      '31cal starts read-only. To change your calendar, allow "View and edit events" in the Google popup.',
+    );
+    try {
+      await requestWriteAccess();
+      return true;
+    } catch (e) {
+      debug('Write access not granted', e);
+      toast.error(
+        'Editing permission was not granted, so nothing was changed.',
+      );
+      return false;
+    }
+  }, [hasWriteAccess, requestWriteAccess]);
+
+  const logout = useCallback(async () => {
+    const token = googleToken?.access_token;
+    try {
+      if (token)
+        (window as any).google?.accounts?.oauth2?.revoke?.(token, () => {});
+      (window as any).gapi?.client?.setToken(null);
+    } catch (e) {
+      debug('Revoke failed', e);
+    }
+    removeGoogleToken();
+    removeUser();
+    localStorage.removeItem(DATA_OWNER_KEY);
+    await clearLocalData();
+    window.location.assign(import.meta.env.BASE_URL);
+  }, [googleToken, removeGoogleToken, removeUser]);
 
   const needsReconnect =
     Boolean(googleToken?.access_token) &&
@@ -162,35 +231,88 @@ function use31CalGoogleLogin() {
 
   // Proactively refresh token 5 minutes before expiry
   useEffect(() => {
-    const exp = (googleToken as any)?.exp;
+    const exp = (googleToken as TokenWithExp | null)?.exp;
     if (!exp) return;
-
     const refreshMs = Math.max(exp - Date.now() - 5 * 60 * 1000, 0);
-    const timer = setTimeout(() => {
-      console.log('Proactively refreshing Google token');
-      googleLogin({ prompt: 'none' });
-    }, refreshMs);
-
+    const timer = setTimeout(() => googleLogin({ prompt: 'none' }), refreshMs);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleToken]);
 
   // Reactively refresh on oauth error
   useEffect(() => {
-    if (oauthError) {
-      googleLogin({ prompt: 'none' });
-    }
+    if (oauthError) googleLogin({ prompt: 'none' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [oauthError]);
 
   return {
     googleLogin,
     user,
-    googleToken,
-    clearGoogleToken: () => setGoogleToken(null),
     isLoggedIn: Boolean(googleToken?.access_token),
     hasWriteAccess,
-    requestWriteAccess,
+    ensureWriteAccess,
+    logout,
     needsReconnect,
   };
+}
+
+function linkHandler(fn: () => void) {
+  return (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fn();
+  };
+}
+
+function GoogleButton({
+  isLoggedIn,
+  needsReconnect,
+  email,
+  onLogin,
+  onLogout,
+}: {
+  isLoggedIn: boolean;
+  needsReconnect: boolean;
+  email?: string;
+  onLogin: () => void;
+  onLogout: () => void;
+}) {
+  if (!isLoggedIn) {
+    return (
+      <button
+        type="button"
+        className="link-button"
+        onClick={linkHandler(onLogin)}
+      >
+        Sign in with Google
+      </button>
+    );
+  }
+
+  return (
+    <>
+      {needsReconnect && (
+        <>
+          <button
+            type="button"
+            className="link-button"
+            onClick={linkHandler(onLogin)}
+            style={{ color: '#a35d00' }}
+          >
+            Reconnect
+          </button>
+          {' - '}
+        </>
+      )}
+      <button
+        type="button"
+        className="link-button"
+        onClick={linkHandler(onLogout)}
+      >
+        {email ? `Sign out (${email})` : 'Sign out'}
+      </button>
+    </>
+  );
 }
 
 export function useGoogleButton() {
@@ -198,75 +320,36 @@ export function useGoogleButton() {
     user,
     googleLogin,
     isLoggedIn,
-    clearGoogleToken,
+    logout,
     hasWriteAccess,
-    requestWriteAccess,
+    ensureWriteAccess,
     needsReconnect,
   } = use31CalGoogleLogin();
 
-  const email = user?.email;
-
-  function GoogleButton({
-    onLogin,
-    onReconnect,
-    onLogout,
-  }: {
-    onLogin: () => void;
-    onReconnect: () => void;
-    onLogout: () => void;
-  }) {
-    if (!isLoggedIn) {
-      return (
-        <Link
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onLogin();
-          }}
-        >
-          Login with Google
-        </Link>
-      );
-    }
-
-    return (
-      <>
-        {needsReconnect && (
-          <Link
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onReconnect();
-            }}
-            style={{ color: '#c57000' }}
-          >
-            Reconnect
-          </Link>
-        )}
-        {needsReconnect && ' - '}
-        <Link
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onLogout();
-          }}
-        >
-          {email ? `Logout (${email})` : 'Logout'}
-        </Link>
-      </>
-    );
-  }
-
   const button = (
     <GoogleButton
-      onLogin={googleLogin}
-      onReconnect={googleLogin}
-      onLogout={clearGoogleToken}
+      isLoggedIn={isLoggedIn}
+      needsReconnect={needsReconnect}
+      email={user?.email}
+      onLogin={() => googleLogin()}
+      onLogout={() => {
+        if (
+          window.confirm(
+            'Sign out? This also removes the calendar data cached in this browser.',
+          )
+        ) {
+          logout();
+        }
+      }}
     />
   );
 
-  return { button, hasWriteAccess, requestWriteAccess };
+  return {
+    button,
+    user,
+    isLoggedIn,
+    hasWriteAccess,
+    ensureWriteAccess,
+    login: () => googleLogin(),
+  };
 }

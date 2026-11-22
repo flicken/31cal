@@ -1,3 +1,4 @@
+import { debug } from './lib/log';
 import React, { useState, useCallback, useEffect, ClipboardEvent } from 'react';
 
 import TextareaAutosize from 'react-textarea-autosize';
@@ -9,7 +10,8 @@ import EventList from './EventList';
 import { isEmpty } from './lib/utils';
 import useDefaultCalendar from './lib/useDefaultCalendar';
 
-import saveEvents from './google/saveEvents';
+import { saveEvents } from './google/writes';
+import { Link } from 'wouter';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 
@@ -29,7 +31,8 @@ function BulkEntry() {
     undefined as undefined | Attachment,
   );
   const user = React.useContext(userContext);
-  const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
+  const { ensureWriteAccess } = React.useContext(authContext);
+  const [busy, setBusy] = useState(false);
 
   const handleAttachmentChange = useCallback(
     (
@@ -38,7 +41,7 @@ function BulkEntry() {
       },
     ) => {
       const value = e.target.value;
-      console.log('attachment change', e);
+      debug('attachment change', e);
       if (isEmpty(value.trim())) {
         setAttachment(undefined);
       } else {
@@ -51,7 +54,7 @@ function BulkEntry() {
 
   const onPaste = useCallback(
     (e: ClipboardEvent<HTMLInputElement>) => {
-      console.log('onPaste', e);
+      debug('onPaste', e);
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
@@ -96,7 +99,7 @@ function BulkEntry() {
     const parsedEvents = new Array(lines?.length || 0);
     lines?.forEach((line: string, i: number) => {
       const parsed = parseEvent(line, parsedEvents.filter(Boolean));
-      console.log('prefix', prefix);
+      debug('prefix', prefix);
       if (parsed) {
         if (!isEmpty(prefix)) {
           parsed.summary = `${prefix}${parsed.summary}`;
@@ -112,26 +115,35 @@ function BulkEntry() {
 
   const handleSaveEvents = useCallback(async () => {
     if (!user?.email) {
-      toast(`Must be logged in to save. ${JSON.stringify(user)}`);
+      toast('Sign in with Google to save events.');
       return;
     }
-
-    if (!hasWriteAccess) {
-      toast('Write permission needed. Please grant access in the popup.');
-      await requestWriteAccess();
+    if (!(await ensureWriteAccess())) return;
+    setBusy(true);
+    try {
+      await saveEvents(defaultCalendar!, events, {
+        description,
+        account: user.email,
+      });
+    } finally {
+      setBusy(false);
     }
+  }, [defaultCalendar, events, description, user, ensureWriteAccess]);
 
-    await saveEvents(defaultCalendar!, events, description, user);
-  }, [defaultCalendar, events, description, user, hasWriteAccess, requestWriteAccess]);
-
-  let saveButton = <button disabled>Set default calendar first</button>;
+  let saveButton = (
+    <span>
+      <button disabled>Save</button> Choose a calendar in the calendar picker
+      above (or on the <Link href="/status">status</Link> page); the first
+      selected calendar is where new events are saved.
+    </span>
+  );
   if (isEmpty(events)) {
     saveButton = <button disabled>Enter events first</button>;
   } else if (defaultCalendar) {
     saveButton = (
       <button
         onClick={handleSaveEvents}
-        disabled={!(events?.length > 0)}
+        disabled={busy || !(events?.length > 0)}
         title={defaultCalendar?.id}
       >
         Save events to {defaultCalendar?.summary}

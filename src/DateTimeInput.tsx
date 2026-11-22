@@ -1,8 +1,8 @@
+import { debug } from './lib/log';
 import React from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
-import { omit } from 'lodash-es';
 import { pick, isEmpty } from './lib/utils';
 
 export type DateTimeRange = {
@@ -39,7 +39,7 @@ const dateTimeFromAll = (components: any) => {
     ],
   );
   const date = DateTime.fromObject(fields);
-  console.log('month', date.diffNow().as('months'));
+  debug('month', date.diffNow().as('months'));
   if (!components.isCertain('year') && date.diffNow().as('months') < -2) {
     fields.year += 1;
     return DateTime.fromObject(fields);
@@ -75,7 +75,7 @@ const dateTimeFrom = (
 
   const date = dateTimeFromAll(components);
   const roundToComponent = roundTo(components, text);
-  console.log('round to component', roundToComponent, components);
+  debug('round to component', roundToComponent, components);
   if (roundToComponent) {
     return start
       ? date?.startOf(roundToComponent as DateTimeUnit)
@@ -98,7 +98,7 @@ export default function DateTimeInput({ value, onChange }: Props) {
         return;
       }
       let datetimes = parse(text, new Date(), { forwardDate: false });
-      console.log('datetimes', datetimes);
+      debug('datetimes', datetimes);
       if (datetimes[0]) {
         const date = dateTimeFrom(true, datetimes[0].start, text);
         onChange({ date, text });

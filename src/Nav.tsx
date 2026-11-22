@@ -13,7 +13,8 @@ import {
 import { Calendar } from './models/types';
 import Calendars from './Calendars';
 import { sample } from './lib/utils';
-import { Link, Switch, Route } from 'wouter';
+import { Link, Switch, Route, useLocation } from 'wouter';
+import ErrorBoundary from './ErrorBoundary';
 import SearchBar from './SearchBar';
 import Paper from './Paper';
 import Attachments from './Attachments';
@@ -22,7 +23,7 @@ import CopyFrom from './CopyFrom';
 import CalendarsStatus from './CalendarsStatus';
 import Events from './Events';
 import { userContext } from './userContext';
-import useClientToFetch from './google/useClientToFetch';
+import useSync from './google/useSync';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
 
 import 'react-toastify/dist/ReactToastify.css'; // part of layout
@@ -126,10 +127,14 @@ export function Routes() {
       <Switch>
         {ROUTES[0].children.map(({ path, Component, ignored }) =>
           ignored ? (
-            <Route key="*"><Component /></Route>
+            <Route key="*">
+              <Component />
+            </Route>
           ) : (
-            <Route key={path} path={path}><Component /></Route>
-          )
+            <Route key={path} path={path}>
+              <Component />
+            </Route>
+          ),
         )}
       </Switch>
     </Layout>
@@ -142,13 +147,11 @@ type SortedRoute = {
   name?: string;
   shortcut?: string[];
   ignored?: boolean;
-}
+};
 
-const sortedRoutes: SortedRoute[] =
-  ROUTES[0]
-    .children!.filter((r) => !r.ignored && !r.index)
-    .sort((a, b) => compareProperty(a.path, b.path));
-
+const sortedRoutes: SortedRoute[] = ROUTES[0]
+  .children!.filter((r) => !r.ignored && !r.index)
+  .sort((a, b) => compareProperty(a.path, b.path));
 
 function randomRoute(routes: SortedRoute[]) {
   const route = sample(routes.filter((f) => !f.ignored))!;
@@ -183,7 +186,7 @@ function compareProperty(a?: string, b?: string) {
 function StatusBar() {
   const user = useContext(userContext);
   const googleButton = useContext(googleButtonContext);
-  useClientToFetch(user, 5 * 60 * 1000);
+  useSync(user, 5 * 60 * 1000);
 
   return (
     <div
@@ -324,29 +327,32 @@ function HomeNav() {
 }
 
 function TopBar() {
-  return <div className="topbar">
-    <HomeNav/>
-    <div className="topbar-status">
-      <StatusBar />
+  return (
+    <div className="topbar">
+      <HomeNav />
+      <div className="topbar-status">
+        <StatusBar />
+      </div>
+      <div className="topbar-search">
+        <SearchBar />
+      </div>
+      <div className="topbar-calendars">
+        <CalendarFilter />
+      </div>
     </div>
-    <div className="topbar-search">
-      <SearchBar />
-    </div>
-    <div className="topbar-calendars">
-      <CalendarFilter />
-    </div>
-  </div>;
+  );
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
   return (
     <div>
       <style>{topBarStyles}</style>
-      <TopBar/>
+      <TopBar />
       <hr />
-      <Suspense fallback={<span>Loading...</span>}>
-        {children}
-      </Suspense>
+      <ErrorBoundary resetKey={location}>
+        <Suspense fallback={<span>Loading…</span>}>{children}</Suspense>
+      </ErrorBoundary>
     </div>
   );
 }

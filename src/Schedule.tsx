@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
-import { useEvents, useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
+import {
+  useEvents,
+  useFilteredEvents,
+  useSelectedCalendarIds,
+} from './lib/hooks';
 import { asArray } from './utils';
 
 import { useScheduleList } from './lib/useScheduleList';

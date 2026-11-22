@@ -2,7 +2,12 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import { useOnClickOutside } from 'usehooks-ts';
 import { useFilterState } from './lib/FilterStateContext';
-import { parseSearchText, toStructuredText, formatDate, ParsedSearch } from './lib/searchTextParser';
+import {
+  parseSearchText,
+  toStructuredText,
+  formatDate,
+  ParsedSearch,
+} from './lib/searchTextParser';
 
 const DEFAULT_RANGE_TEXT = 'now to end of next month';
 
@@ -15,7 +20,8 @@ function defaultFilters() {
 }
 
 export default function SearchBar() {
-  const { eventFilters: filters, setEventFilters: setFilters } = useFilterState();
+  const { eventFilters: filters, setEventFilters: setFilters } =
+    useFilterState();
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [inputText, setInputText] = useState(filters.rangeText ?? '');
@@ -102,83 +108,93 @@ export default function SearchBar() {
 
   return (
     <div ref={barRef} style={{ position: 'relative', minWidth: 0 }}>
-        <div style={{
+      <div
+        style={{
           display: 'flex',
           alignItems: 'center',
           border: '1px solid #ccc',
           borderRadius: '4px',
           background: '#fff',
           padding: '0 4px',
-        }}>
-          <span style={{ flex: '0 0 auto', padding: '0 4px', color: '#888', fontSize: '14px' }} title="Date filter">
-            &#128197;
-          </span>
-          <input
-            type="text"
-            value={inputText}
-            onChange={onInputChange}
-            onFocus={() => setShowAdvanced(true)}
-            onBlur={commitText}
-            onKeyDown={onKeyDown}
-            placeholder="next week, january to march, updated since last monday..."
+        }}
+      >
+        <span
+          style={{
+            flex: '0 0 auto',
+            padding: '0 4px',
+            color: '#888',
+            fontSize: '14px',
+          }}
+          title="Date filter"
+        >
+          &#128197;
+        </span>
+        <input
+          type="text"
+          value={inputText}
+          onChange={onInputChange}
+          onFocus={() => setShowAdvanced(true)}
+          onBlur={commitText}
+          onKeyDown={onKeyDown}
+          placeholder="next week, january to march, updated since last monday..."
+          style={{
+            flex: 1,
+            padding: '6px 4px',
+            fontSize: '14px',
+            border: 'none',
+            outline: 'none',
+            background: 'transparent',
+            minWidth: 0,
+          }}
+        />
+        {inputText && inputText !== DEFAULT_RANGE_TEXT && (
+          <button
+            onClick={clearFilters}
+            title="Reset to default"
             style={{
-              flex: 1,
-              padding: '6px 4px',
-              fontSize: '14px',
+              flex: '0 0 auto',
+              background: 'none',
               border: 'none',
-              outline: 'none',
-              background: 'transparent',
-              minWidth: 0,
-            }}
-          />
-          {inputText && inputText !== DEFAULT_RANGE_TEXT && (
-            <button
-              onClick={clearFilters}
-              title="Reset to default"
-              style={{
-                flex: '0 0 auto',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#999',
-                fontSize: '16px',
-                padding: '0 4px',
-                lineHeight: 1,
-              }}
-            >
-              &times;
-            </button>
-          )}
-        </div>
-        {showAdvanced && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: '#fff',
-              border: '1px solid #ccc',
-              borderTop: 'none',
-              borderRadius: '0 0 4px 4px',
-              padding: '8px 12px',
-              zIndex: 10,
-              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-              fontSize: '13px',
-              color: '#444',
+              cursor: 'pointer',
+              color: '#999',
+              fontSize: '16px',
+              padding: '0 4px',
+              lineHeight: 1,
             }}
           >
-            <div>
-              <strong>Start:</strong> {formatDate(parsed.start)}
-            </div>
-            <div>
-              <strong>End:</strong> {formatDate(parsed.end)}
-            </div>
-            <div>
-              <strong>Updated since:</strong> {formatDate(parsed.updatedSince)}
-            </div>
-          </div>
+            &times;
+          </button>
         )}
+      </div>
+      {showAdvanced && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: '#fff',
+            border: '1px solid #ccc',
+            borderTop: 'none',
+            borderRadius: '0 0 4px 4px',
+            padding: '8px 12px',
+            zIndex: 10,
+            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+            fontSize: '13px',
+            color: '#444',
+          }}
+        >
+          <div>
+            <strong>Start:</strong> {formatDate(parsed.start)}
+          </div>
+          <div>
+            <strong>End:</strong> {formatDate(parsed.end)}
+          </div>
+          <div>
+            <strong>Updated since:</strong> {formatDate(parsed.updatedSince)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { debug } from './log';
 import { parse, ParsedComponents } from 'chrono-node';
 import { DateTime } from 'luxon';
 
@@ -41,14 +42,14 @@ const dateTimeFromAll = (components: any) => {
 
 const toGoogleTime = (components: ParsedComponents): StartEnd | undefined => {
   if (!components) return undefined;
-  console.log('toGoogleTime', components);
+  debug('toGoogleTime', components);
 
   if (components.isCertain('weekday')) {
     const date = dateTimeFromAll(components);
     return dateTimeToGoogleTime(date, components);
   } else if (components.isCertain('month') && components.isCertain('day')) {
     const kv: any = (components as any).knownValues;
-    console.log('kv', kv);
+    debug('kv', kv);
     const date = DateTime.fromObject({
       year: kv.year || (components as any).impliedValues.year,
       month: kv.month,
@@ -87,19 +88,19 @@ const parseInput = (
   context: CalendarEvent[] = [],
 ): Partial<CalendarEvent> | undefined => {
   const lastEvent = context[context.length - 1];
-  console.log('Last event', lastEvent);
+  debug('Last event', lastEvent);
   const referenceDatetime = toReferenceDatetime(lastEvent?.start);
-  console.log('Reference datetime', referenceDatetime);
+  debug('Reference datetime', referenceDatetime);
 
   let datetimes = parse(s, referenceDatetime, { forwardDate: true });
-  console.log('parsed', datetimes);
+  debug('parsed', datetimes);
   if (datetimes[0]) {
     let components: any = datetimes[0].start;
-    console.log('components', components);
+    debug('components', components);
 
     let values = { ...components.impliedValues, ...components.knownValues };
     let rest = s.replace(datetimes[0].text, '').trim();
-    console.log('values', values);
+    debug('values', values);
     const start = toGoogleTime(datetimes[0].start);
     const maybeEnd = toGoogleTime(datetimes[0].end ?? datetimes[0].start);
     // End of full-day calendar events must be on the next day.

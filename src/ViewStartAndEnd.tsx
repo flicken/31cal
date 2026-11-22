@@ -2,9 +2,10 @@ import React from 'react';
 import { StartEnd, isStartEndDate } from './models/types';
 import { dateOf, minusOneDay, timeOf } from './ViewEvent';
 
-
 export function ViewStartAndEnd({
-  start, end, showDate = true,
+  start,
+  end,
+  showDate = true,
 }: {
   start?: StartEnd;
   end?: StartEnd;

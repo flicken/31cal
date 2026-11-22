@@ -1,5 +1,5 @@
 import { Calendar, CalendarEvent } from './models/types';
-import React, { ChangeEventHandler } from 'react';
+import React from 'react';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
 import { keyFor } from './lib/events';
 
@@ -11,42 +11,36 @@ export function EventCheckList({
   calendars,
 }: {
   events: CalendarEvent[];
-  calendars: Record<string, Calendar & { dirty?: boolean }>;
+  calendars: Record<string, Calendar>;
   setChecked: (event: CalendarEvent, checked: boolean) => void;
   isChecked: (event: CalendarEvent) => boolean;
   onAllCheckedSelected: () => void;
 }) {
-  if (!events) {
-    return null;
-  }
-
-  const allChecked = events.length > 0 && events.every(isChecked);
+  const checkedCount = events.filter(isChecked).length;
+  const allChecked = events.length > 0 && checkedCount === events.length;
 
   return (
     <div>
-      <input
-        type="checkbox"
-        checked={allChecked}
-        onChange={() => {
-          onAllCheckedSelected();
-        }}
-      />
-      {events.map((e, i) => {
-        const checked = isChecked(e);
-        return (
-          <>
-            <ViewCheckEvent
-              key={keyFor(e)}
-              event={e}
-              calendar={calendars[e.calendarId]}
-              checked={checked}
-              onChange={() => {
-                setChecked(e, !checked);
-              }}
-            />
-          </>
-        );
-      })}
+      <label>
+        <input
+          type="checkbox"
+          checked={allChecked}
+          ref={(el) => {
+            if (el) el.indeterminate = checkedCount > 0 && !allChecked;
+          }}
+          onChange={onAllCheckedSelected}
+        />{' '}
+        Select all ({checkedCount} of {events.length} selected)
+      </label>
+      {events.map((e) => (
+        <ViewCheckEvent
+          key={keyFor(e)}
+          event={e}
+          calendar={calendars[e.calendarId]}
+          checked={isChecked(e)}
+          onChange={(on) => setChecked(e, on)}
+        />
+      ))}
     </div>
   );
 }
@@ -57,26 +51,30 @@ function ViewCheckEvent({
   checked,
   onChange,
 }: {
-  calendar: Calendar;
+  calendar?: Calendar;
   event: Partial<CalendarEvent>;
   checked: boolean;
-  onChange: ChangeEventHandler;
+  onChange: (checked: boolean) => void;
 }) {
   return (
-    <div
-      style={{ border: '2px dotted #bbb, padding: ', padding: '.5rem 1rem' }}
-    >
+    <label style={{ display: 'block', padding: '.5rem 1rem' }}>
       <span
+        title={calendar?.summary}
+        aria-hidden="true"
         style={{
-          color: calendar.foregroundColor,
-          backgroundColor: calendar.backgroundColor,
+          color: calendar?.foregroundColor,
+          backgroundColor: calendar?.backgroundColor,
         }}
       >
         &nbsp;
       </span>
-      <input type="checkbox" checked={checked} onChange={onChange} />
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
       <ViewStartAndEnd start={event.start} end={event.end} />{' '}
       <b style={{ display: 'inline' }}>{event.summary}</b>
-    </div>
+    </label>
   );
 }

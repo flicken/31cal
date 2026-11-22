@@ -5,7 +5,9 @@ import svgrPlugin from 'vite-plugin-svgr';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.CF_PAGES_URL || '/',
+  // Assets are served from the site root on every host (Cloudflare preview
+  // URLs included); CF_PAGES_URL is a full origin and must not be used here.
+  base: '/',
   server: {
     port: 3000,
     strictPort: true,

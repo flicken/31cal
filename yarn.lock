@@ -11,7 +11,6 @@ __metadata:
   dependencies:
     "@react-oauth/google": "npm:0.13.5"
     "@tanstack/react-table": "npm:9.3.1"
-    "@types/lodash-es": "npm:4.17.12"
     "@types/luxon": "npm:3.7.6"
     "@types/node": "npm:22.20.5"
     "@types/papaparse": "npm:5.5.2"
@@ -26,9 +25,7 @@ __metadata:
     dompurify: "npm:3.4.18"
     husky: "npm:9.1.7"
     lint-staged: "npm:17.6.0"
-    lodash-es: "npm:4.18.1"
     luxon: "npm:3.7.2"
-    nanoid: "npm:6.0.2"
     papaparse: "npm:5.7.1"
     prettier: "npm:3.10.1"
     prismjs: "npm:1.30.0"
@@ -868,22 +865,6 @@ __metadata:
   version: 1.0.6
   resolution: "@types/estree@npm:1.0.6"
   checksum: 10c0/cdfd751f6f9065442cd40957c07fd80361c962869aa853c1c2fd03e101af8b9389d8ff4955a43a6fcfa223dd387a089937f95be0f3eec21ca527039fd2d9859a
-  languageName: node
-  linkType: hard
-
-"@types/lodash-es@npm:4.17.12":
-  version: 4.17.12
-  resolution: "@types/lodash-es@npm:4.17.12"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10c0/5d12d2cede07f07ab067541371ed1b838a33edb3c35cb81b73284e93c6fd0c4bbeaefee984e69294bffb53f62d7272c5d679fdba8e595ff71e11d00f2601dde0
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:*":
-  version: 4.17.15
-  resolution: "@types/lodash@npm:4.17.15"
-  checksum: 10c0/2eb2dc6d231f5fb4603d176c08c8d7af688f574d09af47466a179cd7812d9f64144ba74bb32ca014570ffdc544eedc51b7a5657212bad083b6eecbd72223f9bb
   languageName: node
   linkType: hard
 
@@ -1944,13 +1925,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:4.18.1":
-  version: 4.18.1
-  resolution: "lodash-es@npm:4.18.1"
-  checksum: 10c0/35d4dcf87ef07f8d090f409447575800108057e360b445f590d0d25d09e3d1e33a163d2fc100d4d072b0f901d5e2fc533cd7c4bfd8eeb38a06abec693823c8b8
-  languageName: node
-  linkType: hard
-
 "lodash.debounce@npm:^4.0.8":
   version: 4.0.8
   resolution: "lodash.debounce@npm:4.0.8"
@@ -2125,15 +2099,6 @@ __metadata:
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: 10c0/d924b57e7312b3b63ad21fc5b3dc0af5e78d61a1fc7cfb5457edaf26326bf62be5307cc87ffb6862ef1c2b33b0233cdb5d4f01c4c958cc0d660948b65a287a48
-  languageName: node
-  linkType: hard
-
-"nanoid@npm:6.0.2":
-  version: 6.0.2
-  resolution: "nanoid@npm:6.0.2"
-  bin:
-    nanoid: bin/nanoid.js
-  checksum: 10c0/3c0223d2e658e6bab838af37112731df28eb5146b982e1b89bc1889b7a1476e0a36b4aa37ac6a567e7ebaf22a690d7916a80143a84cef77bd77416d0f1d20b9c
   languageName: node
   linkType: hard
 

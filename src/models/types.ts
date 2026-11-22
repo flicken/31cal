@@ -1,7 +1,3 @@
-export type MaybeDirty = {
-  dirty?: boolean;
-};
-
 export type Calendar = {
   id: string;
   summary: string;
@@ -9,7 +5,11 @@ export type Calendar = {
   timeZone: string;
   foregroundColor: string;
   backgroundColor: string;
-  primary: boolean;
+  primary?: boolean;
+  summaryOverride?: string;
+  originalSummary?: string;
+  description?: string;
+  accessRole?: 'freeBusyReader' | 'reader' | 'writer' | 'owner';
 };
 
 export function isStartEndDate(startEnd: StartEnd): startEnd is StartEndDate {
@@ -31,22 +31,24 @@ export type Millis = {
   ms?: number;
 };
 
-export type CalendarEvent = MaybeDirty & {
+export type CalendarEvent = {
   id: string;
   calendarId: string;
   summary?: string;
   description?: string;
   location?: string;
-  status?: string;
+  status?: 'confirmed' | 'tentative' | 'cancelled';
   start: StartEnd & Millis;
   end: StartEnd & Millis;
   extendedProperties?: ExtendedProperties;
   updated: string;
-  _schedules?: String[];
-  attachments: Attachment[];
+  _schedules?: string[];
+  attachments?: Attachment[];
   recurringEventId?: string;
   originalStartTime?: StartEnd;
-  attendees: Attendee[];
+  attendees?: Attendee[];
+  htmlLink?: string;
+  iCalUID?: string;
 };
 
 export type Attendee = {
@@ -63,8 +65,8 @@ export type Attachment = {
 };
 
 export type ExtendedProperties = {
-  shared: any;
-  private: any;
+  shared?: Record<string, string>;
+  private?: Record<string, string>;
 };
 
 export type UpdateState = {

@@ -3,7 +3,11 @@ import React from 'react';
 import { Calendar } from './models/types';
 
 import MultiSelectSort from './MultiSelectSort';
-import { components as rsComponents, StylesConfig, MultiValueProps } from 'react-select';
+import {
+  components as rsComponents,
+  StylesConfig,
+  MultiValueProps,
+} from 'react-select';
 import makeAnimated from 'react-select/animated';
 import { useMediaQuery } from 'usehooks-ts';
 
@@ -36,7 +40,10 @@ function CompactMultiValue(props: MultiValueProps<Calendar, true>) {
   // Only render the "+N" badge on the chip right after the cutoff
   if (index === maxChips) {
     const overflow = getValue().length - maxChips;
-    const hiddenNames = getValue().slice(maxChips).map(c => c.summary).join(', ');
+    const hiddenNames = getValue()
+      .slice(maxChips)
+      .map((c) => c.summary)
+      .join(', ');
     return (
       <span
         title={hiddenNames}
@@ -118,9 +125,7 @@ const compactStyles: StylesConfig<Calendar, true> = {
   control: (styles, state) => ({
     ...colorStyles.control!(styles, state),
     minHeight: '38px',
-    ...(state.menuIsOpen
-      ? {}
-      : { height: '38px', overflow: 'hidden' }),
+    ...(state.menuIsOpen ? {} : { height: '38px', overflow: 'hidden' }),
   }),
   valueContainer: (styles, state) => ({
     ...styles,
@@ -142,11 +147,11 @@ function Calendars({
   compact?: boolean;
 }) {
   const isNarrow = useMediaQuery('(max-width: 640px)');
-  const maxChips = isNarrow ? MAX_COLLAPSED_CHIPS_NARROW : MAX_COLLAPSED_CHIPS_WIDE;
+  const maxChips = isNarrow
+    ? MAX_COLLAPSED_CHIPS_NARROW
+    : MAX_COLLAPSED_CHIPS_WIDE;
 
-  const extraComponents = compact
-    ? { MultiValue: CompactMultiValue }
-    : {};
+  const extraComponents = compact ? { MultiValue: CompactMultiValue } : {};
 
   return (
     <MultiSelectSort

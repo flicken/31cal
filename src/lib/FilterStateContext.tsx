@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, Dispatch, SetStateAction } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 import { DateTime } from 'luxon';
 import { CalendarEvent } from '../models/types';
 import { FilterValues, FilterInputs } from './filters';
@@ -44,9 +50,16 @@ const defaultModEventFilters: ModEventFilters = {
   rangeText: 'now to end of next month',
 };
 
-export function FilterStateProvider({ children }: { children: React.ReactNode }) {
-  const [eventFilters, setEventFilters] = useState<EventFilters>(defaultEventFilters);
-  const [modEventFilters, setModEventFilters] = useState<ModEventFilters>(defaultModEventFilters);
+export function FilterStateProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [eventFilters, setEventFilters] =
+    useState<EventFilters>(defaultEventFilters);
+  const [modEventFilters, setModEventFilters] = useState<ModEventFilters>(
+    defaultModEventFilters,
+  );
   const [modEventMods, setModEventMods] = useState<Partial<CalendarEvent>>({});
 
   return (
@@ -67,6 +80,7 @@ export function FilterStateProvider({ children }: { children: React.ReactNode })
 
 export function useFilterState() {
   const ctx = useContext(FilterStateContext);
-  if (!ctx) throw new Error('useFilterState must be used within FilterStateProvider');
+  if (!ctx)
+    throw new Error('useFilterState must be used within FilterStateProvider');
   return ctx;
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { CalendarEvent, StartEnd } from './models/types';
 
 import { DateTime } from 'luxon';
-import dompurify from 'dompurify';
+import { sanitizeDescription } from './lib/sanitize';
 import { isEmpty } from './lib/utils';
 
 import { Attachment } from './models/types';
@@ -26,12 +26,12 @@ export function minusOneDay(date: string): string {
   return DateTime.fromISO(date).minus({ days: 1 }).toISODate()!;
 }
 
-export const sanitizer = dompurify.sanitize;
+export const sanitizer = sanitizeDescription;
 
 export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
   if (event.description) {
     return (
-      <details title={JSON.stringify(event, null, 2)}>
+      <details>
         <summary style={{ cursor: 'pointer', padding: '.5rem 1rem' }}>
           {event.summary}
         </summary>
@@ -61,29 +61,29 @@ export function ViewEventAttachments({
   return (
     <>
       {attachments.map((a) => {
-        const image = a.iconLink ? (
+        const icon = a.iconLink?.startsWith('https://')
+          ? a.iconLink
+          : `${import.meta.env.BASE_URL}unknown-file-16x16.png`;
+        const image = (
           <img
+            alt=""
             style={{ display: 'inline-block', verticalAlign: 'bottom' }}
             width={16}
             height={16}
-            src={'http://example.com/nothing.png'}
+            src={icon}
+            referrerPolicy="no-referrer"
             onError={({ currentTarget }) => {
               currentTarget.onerror = null; // prevents looping
-              currentTarget.src = '/unknown-file-16x16.png';
+              currentTarget.src = `${import.meta.env.BASE_URL}unknown-file-16x16.png`;
             }}
-          />
-        ) : (
-          <img
-            style={{ display: 'inline-block', verticalAlign: 'bottom' }}
-            width={16}
-            height={16}
-            src="/unknown-file-16x16.png"
           />
         );
         return (
           <span key={a.fileUrl}>
             {image}
-            <a href={a.fileUrl}>{isEmpty(a.title) ? '(no title)' : a.title}</a>
+            <a href={a.fileUrl} target="_blank" rel="noopener noreferrer">
+              {isEmpty(a.title) ? '(no title)' : a.title}
+            </a>
           </span>
         );
       })}

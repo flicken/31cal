@@ -1,8 +1,8 @@
+import { debug } from './lib/log';
 import React, { useState } from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
-import { omit } from 'lodash-es';
 import { pick, isEmpty } from './lib/utils';
 
 export type DateTimeRange = {
@@ -35,7 +35,7 @@ const dateTimeFromAll = (components: any) => {
     ],
   );
   const date = DateTime.fromObject(fields);
-  console.log('month', date.diffNow().as('months'));
+  debug('month', date.diffNow().as('months'));
   if (!components.isCertain('year') && date.diffNow().as('months') < -2) {
     fields.year += 1;
     return DateTime.fromObject(fields);
@@ -71,7 +71,7 @@ const dateTimeFrom = (
 
   const date = dateTimeFromAll(components);
   const roundToComponent = roundTo(components, text);
-  console.log('round to component', roundToComponent, components);
+  debug('round to component', roundToComponent, components);
   if (roundToComponent) {
     return start
       ? date?.startOf(roundToComponent as DateTimeUnit)
@@ -86,13 +86,13 @@ function parseText(text: string) {
     return {};
   }
   if (text.match(/^[0-9]{4}$/)) {
-    console.log('matched', text);
+    debug('matched', text);
     const start = DateTime.local(parseInt(text));
     return { start, text, end: start.endOf('year') };
   }
 
   let datetimes = parse(text, new Date(), { forwardDate: true });
-  console.log('datetimes', datetimes);
+  debug('datetimes', datetimes);
   if (datetimes[0]) {
     const start = dateTimeFrom(true, datetimes[0].start, text);
     const end = dateTimeFrom(
@@ -108,8 +108,8 @@ function parseText(text: string) {
         text.toLowerCase().startsWith('through ') ||
         text.toLowerCase().startsWith('thru '))
     ) {
-      console.log('Until / to branch');
-      console.log({ start: start, end: end });
+      debug('Until / to branch');
+      debug({ start: start, end: end });
       return { start: DateTime.now(), end: end, text };
     } else if (start && end && start.diff(end).valueOf() > 0) {
       return { start: end, end: start, text };
@@ -136,7 +136,7 @@ export default function DateTimeRangeInput({ value, onChange }: Props) {
   return (
     <>
       <input
-        title={JSON.stringify(omit(value, 'text'), null, 2)}
+        title={JSON.stringify({ ...value, text: undefined }, null, 2)}
         type="text"
         style={{ width: '40em' }}
         placeholder="next week"

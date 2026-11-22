@@ -2,23 +2,22 @@ import { db } from '../models/db';
 import { CalendarEvent } from '../models/types';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { unset, set } from 'lodash-es';
-
 const PROPERTY_PREFIX = /^31cal./;
 
-const eventSchedules = (e: CalendarEvent) => {
+function safeDecode(s: string) {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+/** Schedule names stored as shared extended properties `31cal/<name>`. */
+const eventSchedules = (e: Pick<CalendarEvent, 'extendedProperties'>) => {
   return Object.entries(e.extendedProperties?.shared ?? {})
     .filter((kv) => kv[0].startsWith('31cal') && !!kv[1])
     .map((kv) => kv[0].replace(PROPERTY_PREFIX, ''))
-    .map((k) => decodeURIComponent(k));
-};
-
-const addEventSchedule = (e: CalendarEvent, schedule: string) => {
-  set(e, `extendedProperties.shared.31cal/${schedule}`, schedule);
-};
-
-const removeEventSchedule = (e: CalendarEvent, schedule: string) => {
-  unset(e, `extendedProperties.shared.31cal/${schedule}`);
+    .map(safeDecode);
 };
 
 const useScheduleList = () => {
@@ -31,9 +30,4 @@ const useScheduleList = () => {
 
 export default useScheduleList;
 
-export {
-  useScheduleList,
-  eventSchedules,
-  addEventSchedule,
-  removeEventSchedule,
-};
+export { useScheduleList, eventSchedules };

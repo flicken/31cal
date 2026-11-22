@@ -133,7 +133,8 @@ function parseStructured(text: string): ParsedSearch | null {
   if (endMatch) {
     const isYearMonth = /^\d{4}-\d{2}$/.test(endMatch[1]);
     const dt = DateTime.fromISO(endMatch[1]);
-    if (dt.isValid) result.end = isYearMonth ? dt.endOf('month') : dt.endOf('day');
+    if (dt.isValid)
+      result.end = isYearMonth ? dt.endOf('month') : dt.endOf('day');
   }
   if (updatedMatch) {
     const dt = DateTime.fromISO(updatedMatch[1]);
@@ -150,9 +151,7 @@ export function parseSearchText(text: string): ParsedSearch {
   if (structured) return structured;
 
   // Extract "updated since ..." portion
-  const updatedSinceMatch = text.match(
-    /updated[\s-]*since[\s:]+(.+?)(?:$)/i,
-  );
+  const updatedSinceMatch = text.match(/updated[\s-]*since[\s:]+(.+?)(?:$)/i);
   let rangeText = text;
   let updatedSince: DateTime | undefined;
 
@@ -184,13 +183,16 @@ function formatYearMonth(dt: DateTime): string {
 export function toStructuredText(parsed: ParsedSearch): string {
   const parts: string[] = [];
   if (parsed.start) {
-    const startStr = isToday(parsed.start) ? 'now'
-      : isStartOfMonth(parsed.start) ? formatYearMonth(parsed.start)
-      : parsed.start.toISODate();
+    const startStr = isToday(parsed.start)
+      ? 'now'
+      : isStartOfMonth(parsed.start)
+        ? formatYearMonth(parsed.start)
+        : parsed.start.toISODate();
     parts.push(`start:${startStr}`);
   }
   if (parsed.end) {
-    const endStr = isEndOfMonth(parsed.end) ? formatYearMonth(parsed.end)
+    const endStr = isEndOfMonth(parsed.end)
+      ? formatYearMonth(parsed.end)
       : parsed.end.toISODate();
     parts.push(`end-of:${endStr}`);
   }

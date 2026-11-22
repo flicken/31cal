@@ -1,3 +1,4 @@
+import { debug } from './lib/log';
 import React, { useMemo } from 'react';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
@@ -20,14 +21,12 @@ import { ViewEventSummary } from './ViewEvent';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
 
 import { DateTime } from 'luxon';
-import { uniqWith, isEqual } from 'lodash-es';
 import { intersection, days } from './lib/utils';
 
-import deleteEvents from './google/deleteEvents';
+import { deleteEvents } from './google/writes';
 
 import { userContext } from './userContext';
 import { authContext } from './authContext';
-import { toast } from 'react-toastify';
 
 function Table_({
   columns,
@@ -39,7 +38,8 @@ function Table_({
   filters: any;
 }) {
   const user = React.useContext(userContext);
-  const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
+  const { ensureWriteAccess } = React.useContext(authContext);
+  const [busy, setBusy] = React.useState(false);
   const dates = React.useMemo(
     () => Array.from(days(filters.start, filters.end)),
     [filters.start, filters.end],
@@ -126,33 +126,52 @@ function Table_({
     return grouped;
   }, [table.getCoreRowModel().rows, dates]);
 
-  const onDelete = async () => {
-    if (!hasWriteAccess) {
-      toast('Write permission needed. Please grant access in the popup.');
-      await requestWriteAccess();
-    }
-
-    const selectedRows = table
+  const selectedEvents = (() => {
+    const seen = new Set<string>();
+    return table
       .getSelectedRowModel()
-      .flatRows.filter((r) => r.original);
-    const eventsToDelete = uniqWith(
-      selectedRows.flatMap((e) => {
-        const event = e.original;
-        if (event) {
-          return [
-            {
-              calendarId: event.calendarId,
-              eventId: event.id,
-              summary: event.summary,
-            },
-          ];
-        }
-        return [];
-      }),
-      isEqual,
-    );
-    console.log('eventsToDelete', eventsToDelete);
-    await deleteEvents(user, eventsToDelete);
+      .flatRows.map((r) => r.original)
+      .filter((e) => {
+        const key = `${e?.calendarId}/${e?.id}`;
+        if (!e || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  })();
+
+  const onDelete = async () => {
+    const n = selectedEvents.length;
+    if (
+      !window.confirm(
+        `Delete ${n} event${n === 1 ? '' : 's'}? This cannot be undone here.`,
+      )
+    )
+      return;
+    if (!(await ensureWriteAccess())) return;
+    setBusy(true);
+    try {
+      const { failed } = await deleteEvents(
+        selectedEvents.map((event) => ({
+          calendarId: event.calendarId,
+          eventId: event.id,
+          summary: event.summary,
+        })),
+        user?.email,
+      );
+      const failedKeys = new Set(
+        failed.map(({ item }) => `${item.calendarId}/${item.eventId}`),
+      );
+      setRowSelection((sel) =>
+        Object.fromEntries(
+          Object.entries(sel).filter(([rowId]) => {
+            const e = table.getRow(rowId, true)?.original;
+            return e && failedKeys.has(`${e.calendarId}/${e.id}`);
+          }),
+        ),
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const headerGroups = table.getHeaderGroups();
@@ -194,7 +213,12 @@ function Table_({
   return (
     <>
       <div>
-        <button onClick={onDelete}>Delete</button>
+        <button
+          disabled={busy || selectedEvents.length === 0}
+          onClick={onDelete}
+        >
+          Delete {selectedEvents.length || ''}
+        </button>
       </div>
       <table>
         <thead>
@@ -217,16 +241,21 @@ function Table_({
           {displayRows.map((item, i) => {
             if (item.type === 'group') {
               return (
-                <tr
-                  key={`group-${item.date}`}
-                  onClick={() => toggleDateExpanded(item.date)}
-                  style={{ cursor: 'pointer' }}
-                >
+                <tr key={`group-${item.date}`}>
                   <td
                     colSpan={allColumns.length}
                     style={{ fontWeight: 'bold' }}
                   >
-                    {item.date}
+                    <button
+                      type="button"
+                      className="link-button"
+                      aria-expanded={
+                        expanded === true || !!expanded[`date:${item.date}`]
+                      }
+                      onClick={() => toggleDateExpanded(item.date)}
+                    >
+                      {item.date} ({item.rowCount})
+                    </button>
                   </td>
                 </tr>
               );

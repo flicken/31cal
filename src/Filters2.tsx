@@ -84,7 +84,7 @@ function Filters2({
         type="text"
         size={80}
         placeholder="Search"
-        value={filters.searchText}
+        value={filters.searchText ?? ''}
         onChange={(e) => {
           setFilters((f) => ({ ...f, searchText: e.target.value }));
         }}

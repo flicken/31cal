@@ -3,228 +3,225 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 
-import TextareaAutosize from 'react-textarea-autosize';
-
-import { Calendar, CalendarEvent } from './models/types';
+import { CalendarEvent } from './models/types';
 import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
 import { useFilterState } from './lib/FilterStateContext';
 import { asArray } from './utils';
-import patchEvents, { EventPatch } from './google/patchEvents';
+import { deleteEvents, EventPatch, patchEvents } from './google/writes';
 
-import { getEvents } from './google/useClientToFetch';
-
-import { ViewStartAndEnd } from './ViewStartAndEnd';
-import { omit } from 'lodash-es';
-import { keyBy, sortBy } from './lib/utils';
+import { keyBy } from './lib/utils';
 import Filters2 from './Filters2';
-import { FilterInputs, FilterValues, filterForFilters } from './lib/filters';
-import { DateTime } from 'luxon';
 import { toast } from 'react-toastify';
 import JsonEditor from './JsonEditor';
 import { EventCheckList } from './EventCheckList';
-import { keyFor } from './lib/events';
+import { useEventSelection, useMatchingEvents } from './lib/useEventSelection';
 
-type Action = {
-  name: string;
-  Component: (props: {
-    events: CalendarEvent[];
-    calendars: Calendar[];
-  }) => React.JSX.Element;
-};
+/** Fields that identify or are derived for an event and must not be bulk-applied. */
+const READ_ONLY_FIELDS = [
+  'id',
+  'calendarId',
+  'eventId',
+  'iCalUID',
+  'recurringEventId',
+  'originalStartTime',
+  'sequence',
+  'created',
+  'updated',
+  '_schedules',
+  'eventType',
+  'etag',
+  'kind',
+  'htmlLink',
+  'creator',
+  'organizer',
+];
+
+function editableJson(event: CalendarEvent) {
+  const copy: Record<string, any> = { ...event };
+  READ_ONLY_FIELDS.forEach((f) => delete copy[f]);
+  for (const k of ['start', 'end']) {
+    if (copy[k]) {
+      const { ms, ...rest } = copy[k];
+      copy[k] = rest;
+    }
+  }
+  return JSON.stringify(copy, null, 2);
+}
 
 function ModMany() {
   const calendars = useCalendars() ?? [];
-  const allEventsArray = useEvents() ?? [];
-  const { eventFilters, modEventFilters: filters, setModEventFilters: setFilters, modEventMods: mods, setModEventMods: setMods } = useFilterState();
+  const allEvents = useEvents();
+  const {
+    eventFilters,
+    modEventFilters: filters,
+    setModEventFilters: setFilters,
+  } = useFilterState();
   const [selectedCalendarIds] = useSelectedCalendarIds();
+  const user = React.useContext(userContext);
+  const { ensureWriteAccess } = React.useContext(authContext);
 
-  const globalFilters = useMemo(
-    () => ({ ...eventFilters, calendarIds: asArray(selectedCalendarIds) }),
-    [eventFilters, selectedCalendarIds],
-  );
+  useEffect(() => {
+    // Start from the global filters each time the page opens.
+    setFilters((f) => ({
+      ...f,
+      ...eventFilters,
+      calendarIds: asArray(selectedCalendarIds),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const events = useMemo(() => {
-    const filter = filterForFilters(filters);
-    const searchRegex = new RegExp(filters.searchText ?? '', 'i');
-    const searchFilter = filters.searchText
-      ? (e: CalendarEvent) => !!e.summary?.match(searchRegex)
-      : () => true;
-    const modifications = filters.replaceText
-      ? (e: CalendarEvent) => {
-          return {
-            ...e,
-            summary: e.summary?.replace(searchRegex, filters.replaceText!),
-          };
-        }
-      : (e: CalendarEvent) => e;
-    return sortBy(
-      allEventsArray.filter(filter).filter(searchFilter).map(modifications),
-      (e) => [e.start.ms, e.end?.ms],
-    );
-  }, [allEventsArray, filters]);
+  const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
+  const { isChecked, setChecked, toggleAll, selected, replace } =
+    useEventSelection(events);
+  const calendarsById = useMemo(() => keyBy(calendars, 'id'), [calendars]);
 
+  const [busy, setBusy] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [jsonText, setJsonText] = useState('');
 
-  try {
-    useEffect(() => {
-      // default to global filters
-      setFilters(globalFilters);
-    }, []);
-
-    const user = React.useContext(userContext);
-    const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
-
-    const [checked, setChecked] = useState<Set<string>>(new Set());
-
-    const isChecked = (event: CalendarEvent) => checked.has(keyFor(event));
-
-    async function applyPatches(
-      f: (e: CalendarEvent) => Omit<EventPatch, 'eventId' | 'calendarId'>,
-    ) {
-      if (!hasWriteAccess) {
-        toast('Write permission needed. Please grant access in the popup.');
-        await requestWriteAccess();
-      }
-
-      const patches = events.filter(isChecked).map((e) => ({
-        eventId: e.id,
-        calendarId: e.calendarId,
-        ...f(e),
-      }));
-      console.log(patches);
-      await patchEvents(patches);
-
-      const calendarIds = new Set(patches.map((p) => p.calendarId));
-      await getEvents(
-        user,
-        calendars.filter((c) => calendarIds.has(c.id)),
+  /** Run a write with write access, a busy state, and failed rows left checked. */
+  async function run(
+    write: () => Promise<{
+      failed: { item: { calendarId: string; eventId: string } }[];
+    }>,
+  ) {
+    if (!(await ensureWriteAccess())) return;
+    setBusy(true);
+    try {
+      const { failed } = await write();
+      const failedKeys = new Set(
+        failed.map(({ item }) => `${item.calendarId}/${item.eventId}`),
       );
+      replace(
+        selected.filter((e) => failedKeys.has(`${e.calendarId}/${e.id}`)),
+      );
+    } finally {
+      setBusy(false);
     }
+  }
 
-    return (
-      <div>
-        <div>
-          <Filters2 {...{ setFilters, filters }} />
+  const patchSelected = (
+    f: (e: CalendarEvent) => Omit<EventPatch, 'eventId' | 'calendarId'>,
+  ) =>
+    run(() =>
+      patchEvents(
+        selected.map((e) => ({
+          ...f(e),
+          eventId: e.id,
+          calendarId: e.calendarId,
+        })),
+        user?.email,
+      ),
+    );
+
+  const onDelete = () => {
+    const calendarCount = new Set(selected.map((e) => e.calendarId)).size;
+    if (
+      !window.confirm(
+        `Delete ${selected.length} event${selected.length === 1 ? '' : 's'} from ${calendarCount} calendar${calendarCount === 1 ? '' : 's'}? This cannot be undone here.`,
+      )
+    )
+      return;
+    run(() =>
+      deleteEvents(
+        selected.map((e) => ({
+          eventId: e.id,
+          calendarId: e.calendarId,
+          summary: e.summary,
+        })),
+        user?.email,
+      ),
+    );
+  };
+
+  const onSaveJson = () => {
+    let json: Record<string, unknown>;
+    try {
+      json = JSON.parse(jsonText);
+    } catch (e) {
+      toast.error(`The JSON is not valid: ${(e as Error).message}`);
+      return;
+    }
+    if (
+      selected.length > 1 &&
+      ('start' in json || 'end' in json) &&
+      !window.confirm(
+        `This sets the same start and end time on all ${selected.length} selected events. Continue?`,
+      )
+    )
+      return;
+    READ_ONLY_FIELDS.forEach((f) => delete json[f]);
+    setShowEditor(false);
+    patchSelected(() => json);
+  };
+
+  const nothingSelected = selected.length === 0;
+
+  return (
+    <div>
+      <Filters2 {...{ setFilters, filters }} />
+      {regexError && (
+        <div role="alert" style={{ color: '#a00' }}>
+          Search is not a valid pattern ({regexError}); matching it as plain
+          text.
         </div>
-        <div>
+      )}
+      <div>
+        <label>
+          Replace matches with{' '}
           <input
             name="replace"
             type="text"
-            size={80}
-            placeholder="Replace"
+            size={60}
+            style={{ maxWidth: '100%' }}
+            value={filters.replaceText ?? ''}
             onChange={(e) => {
               setFilters((f) => ({ ...f, replaceText: e.target.value }));
             }}
           />
-        </div>
-
-        <div>
-          <button
-            disabled={
-              !filters.replaceText || events.length === 0 || checked.size === 0
-            }
-            onClick={async () => {
-              await applyPatches((e) => ({ summary: e.summary }));
-            }}
-          >
-            Modify
-          </button>
-
-          <button
-            disabled={events.length === 0 || checked.size < 1}
-            onClick={async () => {
-              await applyPatches(() => ({ status: 'cancelled' }));
-            }}
-          >
-            Delete
-          </button>
-          <button
-            disabled={events.length === 0 || checked.size < 1}
-            onClick={() => {
-              setShowEditor((show) => !show);
-              const firstEvent = events.find(isChecked)!;
-              setJsonText(
-                JSON.stringify(
-                  omit(
-                    firstEvent as any,
-                    'id',
-                    'eventId',
-                    'iCalUID',
-                    'recurringEventId',
-                    'originalStartTime',
-                    'sequence',
-                    'created',
-                    'updated',
-                    '_schedules',
-                    'eventType',
-                    'etag',
-                    'kind',
-                    'start.ms',
-                    'end.ms',
-                    'htmlLink',
-                  ),
-                  null,
-                  2,
-                ),
-              );
-            }}
-          >
-            JSON
-          </button>
-          {showEditor ? (
-            <button
-              disabled={events.length === 0 || checked.size < 1}
-              onClick={() => {
-                const json = JSON.parse(jsonText);
-
-                applyPatches((e) => json);
-
-                setShowEditor((show) => !show);
-              }}
-            >
-              Save
-            </button>
-          ) : null}
-        </div>
-        {showEditor ? (
-          <div>
-            <JsonEditor value={jsonText} onChange={setJsonText} />
-          </div>
-        ) : null}
-        <EventCheckList
-          calendars={keyBy(calendars, 'id')}
-          events={events}
-          setChecked={(event, checked) => {
-            setChecked((oldChecked) => {
-              const newChecked = new Set(oldChecked);
-              if (checked) {
-                newChecked.add(keyFor(event));
-              } else {
-                newChecked.delete(keyFor(event));
-              }
-              return newChecked;
-            });
-          }}
-          isChecked={isChecked}
-          onAllCheckedSelected={() => {
-            if (events.every((e) => checked.has(keyFor(e)))) {
-              setChecked(new Set());
-            } else {
-              setChecked(new Set(events.map(keyFor)));
-            }
-          }}
-        />
+        </label>
       </div>
-    );
-  } catch (e: any) {
-    console.log(e);
-    return (
+
       <div>
-        Error {e.message} <pre>{JSON.stringify(e)}</pre>
+        <button
+          disabled={busy || !filters.replaceText || nothingSelected}
+          onClick={() => patchSelected((e) => ({ summary: e.summary }))}
+        >
+          Rename {selected.length || ''}
+        </button>{' '}
+        <button disabled={busy || nothingSelected} onClick={onDelete}>
+          Delete {selected.length || ''}
+        </button>{' '}
+        <button
+          disabled={busy || nothingSelected}
+          onClick={() => {
+            if (!showEditor) setJsonText(editableJson(selected[0]));
+            setShowEditor((show) => !show);
+          }}
+        >
+          Edit JSON
+        </button>
+        {showEditor && (
+          <button disabled={busy || nothingSelected} onClick={onSaveJson}>
+            Apply JSON to {selected.length}
+          </button>
+        )}
+        {busy && <span aria-live="polite"> Working…</span>}
       </div>
-    );
-  }
+      {showEditor && <JsonEditor value={jsonText} onChange={setJsonText} />}
+      {allEvents === undefined ? (
+        <p>Loading events…</p>
+      ) : (
+        <EventCheckList
+          calendars={calendarsById}
+          events={events}
+          setChecked={setChecked}
+          isChecked={isChecked}
+          onAllCheckedSelected={toggleAll}
+        />
+      )}
+    </div>
+  );
 }
 
 export default ModMany;

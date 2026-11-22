@@ -16,7 +16,7 @@ import {
 import { keyBy, sortBy } from './lib/utils';
 import { DateTime } from 'luxon';
 
-import { fetchResource } from './google/useClientToFetch';
+import { syncResource } from './google/sync';
 
 import { useInterval } from 'usehooks-ts';
 import UpdateStatusIcon from './UpdateStatusIcon';
@@ -37,7 +37,8 @@ function Calendars() {
   const calList = useCalendars();
   const counts = useCountsByCalendar() ?? {};
   const latest = useLatestUpdateByCalendar() ?? {};
-  const [selectedCalendarIds_, setSelectedCalendarIds] = useSelectedCalendarIds();
+  const [selectedCalendarIds_, setSelectedCalendarIds] =
+    useSelectedCalendarIds();
   const updates = useLiveQuery(() => db.updateState.toArray());
   const updatesMap = keyBy(updates, 'resource');
 
@@ -49,9 +50,13 @@ function Calendars() {
 
   const onToggle = React.useCallback(
     (calendarId: string) => {
-      const oldCalendarIds = Array.isArray(selectedCalendarIds_) ? selectedCalendarIds_ : [selectedCalendarIds_];
+      const oldCalendarIds = Array.isArray(selectedCalendarIds_)
+        ? selectedCalendarIds_
+        : [selectedCalendarIds_];
       if (oldCalendarIds.includes(calendarId)) {
-        setSelectedCalendarIds(oldCalendarIds.filter((id: string) => id !== calendarId));
+        setSelectedCalendarIds(
+          oldCalendarIds.filter((id: string) => id !== calendarId),
+        );
       } else {
         setSelectedCalendarIds([...oldCalendarIds, calendarId]);
       }
@@ -97,7 +102,9 @@ function Calendars() {
                 <td>{update?.disabled ? null : counts[c.id]}</td>
                 <td>{update?.disabled ? null : latest[c.id]}</td>
                 <td>
-                  {update?.disabled ? null : <UpdateStatusIcon update={update} />}
+                  {update?.disabled ? null : (
+                    <UpdateStatusIcon update={update} />
+                  )}
                 </td>
               </tr>
             );
@@ -120,10 +127,8 @@ function UpdateStatus({ update }: { update?: UpdateState }) {
           onClick={async () => {
             await db.updateState.update([update.account, update.resource], {
               nextSyncToken: undefined,
-              nextPageToken: undefined,
-              etag: undefined,
             });
-           await fetchResource(update.account, update.resource);
+            await syncResource(update.account, update.resource).catch(() => {});
           }}
         >
           <UpdateStatusIcon update={update} />
@@ -135,7 +140,6 @@ function UpdateStatus({ update }: { update?: UpdateState }) {
 
   return <UpdateStatusIcon update={update} />;
 }
-
 
 function run<T>(f: () => T): T {
   return f();

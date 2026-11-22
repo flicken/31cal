@@ -1,3 +1,4 @@
+import { safeRegExp } from './lib/regex';
 import React from 'react';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -5,7 +6,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { DateTime, Interval } from 'luxon';
 
 import { useFilterState } from './lib/FilterStateContext';
-import { useFilteredEvents, usePaperColumns, useSelectedCalendarIds } from './lib/hooks';
+import {
+  useFilteredEvents,
+  usePaperColumns,
+  useSelectedCalendarIds,
+} from './lib/hooks';
 import { asArray } from './utils';
 import { days } from './lib/utils';
 
@@ -52,13 +57,9 @@ const TextFilter = ({
   );
 };
 
-
 type EventFilter = (e: CalendarEvent) => Boolean;
 
-const splitByFilters = (
-  events: CalendarEvent[],
-  filters: EventFilter[],
-) => {
+const splitByFilters = (events: CalendarEvent[], filters: EventFilter[]) => {
   const matchedIds = new Set();
 
   const matched = filters.map((f) =>
@@ -217,13 +218,21 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
       {matched.map((columnEvents, index) => (
         <td key={index}>
           {columnEvents.map((event) => (
-            <EL key={`${index}/${event.calendarId}/${event.id}`} event={event} day={day} />
+            <EL
+              key={`${index}/${event.calendarId}/${event.id}`}
+              event={event}
+              day={day}
+            />
           ))}
         </td>
       ))}
       <td key="unmatched">
         {unmatched.map((event) => (
-          <EL key={`unmatched/${event.calendarId}/${event.id}`} event={event} day={day} />
+          <EL
+            key={`unmatched/${event.calendarId}/${event.id}`}
+            event={event}
+            day={day}
+          />
         ))}
       </td>
     </tr>
@@ -263,16 +272,16 @@ export default function Paper() {
   let eventsByDate = byDate(events, dates);
 
   let filters = columns
-    .map((c) => c && new RegExp(c.replace(/\?/g, ''), 'i'))
+    .map((c) => c && safeRegExp(c.replace(/\?/g, '')).regex)
     .map((regex) => (event: CalendarEvent) => {
       if (regex) {
         return (
           search(regex, event.summary) ||
           search(regex, event.description) ||
           search(regex, event.location) ||
-          event.attendees?.findIndex(
+          !!event.attendees?.some(
             (a) => search(regex, a.displayName) || search(regex, a.email),
-          ) >= 0
+          )
         );
       } else {
         return false;

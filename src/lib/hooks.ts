@@ -5,7 +5,6 @@ import { Calendar, CalendarEvent } from '../models/types';
 import { sortBy, countBy } from './utils';
 import { filterForFilters, FilterValues } from './filters';
 import { asArray } from '../utils';
-import { groupBy, mapValues } from 'lodash-es';
 
 export async function calendarsQuery(): Promise<Calendar[]> {
   return db.calendars.orderBy('summary').toArray();
@@ -15,7 +14,7 @@ export function useCalendars(): Calendar[] | undefined {
   return useLiveQuery(calendarsQuery);
 }
 
-export async function eventsQuery(): Promise<CalendarEvent[]>  {
+export async function eventsQuery(): Promise<CalendarEvent[]> {
   return db.events.orderBy('[start.ms+end.ms]').toArray();
 }
 
@@ -23,10 +22,7 @@ export function useEvents(): CalendarEvent[] | undefined {
   return useLiveQuery(eventsQuery);
 }
 
-export function useSelectedCalendarIds(): [
-  string[],
-  (ids: string[]) => void,
-] {
+export function useSelectedCalendarIds(): [string[], (ids: string[]) => void] {
   const ids =
     useLiveQuery(() =>
       db.settings.get('selectedCalendars').then((v) => (v ? v.value : [])),
@@ -87,15 +83,24 @@ export function useCountsByCalendar(): Record<string, number> | undefined {
   );
 }
 
-export function useLatestUpdateByCalendar(): Record<string, string> | undefined {
+export function useLatestUpdateByCalendar():
+  Record<string, string> | undefined {
   const events = useEvents();
   return useMemo(
     () =>
       events
-        ? mapValues(groupBy(
-            events.filter((e) => e.status != 'cancelled'),
-            (e) => e.calendarId,
-          ), es => es.map(e => e.updated).sort().at(-1)!)
+        ? events.reduce(
+            (latest, e) => {
+              if (
+                e.status !== 'cancelled' &&
+                !(latest[e.calendarId] >= e.updated)
+              ) {
+                latest[e.calendarId] = e.updated;
+              }
+              return latest;
+            },
+            {} as Record<string, string>,
+          )
         : undefined,
     [events],
   );
@@ -116,7 +121,9 @@ export function useDefaultCalendarValues() {
   );
 }
 
-export function useFilteredEvents(filters: FilterValues): CalendarEvent[] | undefined {
+export function useFilteredEvents(
+  filters: FilterValues,
+): CalendarEvent[] | undefined {
   const events = useEvents();
   return useMemo(() => {
     if (!events) return undefined;

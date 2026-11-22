@@ -1,5 +1,9 @@
 import { DateTime, Settings } from 'luxon';
-import { parseSearchText, toStructuredText, formatDate } from './searchTextParser';
+import {
+  parseSearchText,
+  toStructuredText,
+  formatDate,
+} from './searchTextParser';
 
 // Fix "now" to a known date for deterministic tests
 const NOW = DateTime.local(2026, 2, 10, 12, 0, 0);
@@ -50,7 +54,9 @@ describe('parseSearchText', () => {
     });
 
     test('parses all structured fields together', () => {
-      const result = parseSearchText('start:2025-01-01 end-of:2025-03 updated-since:2026-01-01');
+      const result = parseSearchText(
+        'start:2025-01-01 end-of:2025-03 updated-since:2026-01-01',
+      );
       expect(result.start?.toISODate()).toBe('2025-01-01');
       expect(result.end?.toISODate()).toBe('2025-03-31');
       expect(result.updatedSince?.toISODate()).toBe('2026-01-01');
@@ -131,7 +137,9 @@ describe('toStructuredText', () => {
   });
 
   test('formats end-of-month as year-month', () => {
-    const result = toStructuredText({ end: DateTime.local(2025, 3, 31).endOf('day') });
+    const result = toStructuredText({
+      end: DateTime.local(2025, 3, 31).endOf('day'),
+    });
     expect(result).toBe('end-of:2025-03');
   });
 
@@ -141,7 +149,9 @@ describe('toStructuredText', () => {
   });
 
   test('formats updatedSince', () => {
-    const result = toStructuredText({ updatedSince: DateTime.local(2026, 1, 1) });
+    const result = toStructuredText({
+      updatedSince: DateTime.local(2026, 1, 1),
+    });
     expect(result).toBe('updated-since:2026-01-01');
   });
 
@@ -151,7 +161,9 @@ describe('toStructuredText', () => {
       end: DateTime.local(2025, 3, 31).endOf('day'),
       updatedSince: DateTime.local(2026, 1, 1),
     });
-    expect(result).toBe('start:2025-01 end-of:2025-03 updated-since:2026-01-01');
+    expect(result).toBe(
+      'start:2025-01 end-of:2025-03 updated-since:2026-01-01',
+    );
   });
 });
 

@@ -27,8 +27,8 @@ export default function UpdateStatusIcon({
         update.requesting || update.nextPageToken
           ? Loading
           : update.error
-          ? Error
-          : Ok
+            ? Error
+            : Ok
       }
     />
   );

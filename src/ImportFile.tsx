@@ -1,196 +1,52 @@
 import React, { useState, useCallback, useMemo } from 'react';
-
-import PapaParse from 'papaparse';
-
-import { CalendarEvent } from './models/types';
-
-import { useDropzone, FileRejection, DropEvent } from 'react-dropzone';
-
-import { parse } from 'chrono-node';
-import { DateTime } from 'luxon';
-
-import EventList from './EventList';
+import { useDropzone } from 'react-dropzone';
 import { Link } from 'wouter';
-
-import saveEvents from './google/saveEvents';
-import useDefaultCalendar from './lib/useDefaultCalendar';
-
-import { customAlphabet } from 'nanoid';
-
-import { userContext } from './userContext';
-import { authContext } from './authContext';
 import { toast } from 'react-toastify';
 
-/* See https://developers.google.com/calendar/api/v3/reference/events
- * characters allowed in the ID are those used in base32hex encoding, i.e. lowercase letters a-v and digits 0-9, see section 3.1.2 in RFC2938
- * the length of the ID must be between 5 and 1024 characters
- * the ID must be unique per calendar
- */
-const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuv', 26);
-
-const parserOptions = {
-  header: true,
-  dynamicTyping: true,
-  skipEmptyLines: true,
-  transformHeader: (header: string) => header.toLowerCase().replace(/\W/g, ''),
-};
+import { saveEvents } from './google/writes';
+import useDefaultCalendar from './lib/useDefaultCalendar';
+import { userContext } from './userContext';
+import { authContext } from './authContext';
+import { ViewStartAndEnd } from './ViewStartAndEnd';
+import { eventIdFor, ImportRow, parseCsv } from './lib/importCsv';
 
 const baseStyle = {
-  flex: 1,
   display: 'flex',
-  flexDirection: 'column' as 'column',
+  flexDirection: 'column' as const,
   alignItems: 'center',
   padding: '20px',
   borderWidth: 2,
   borderRadius: 2,
-  borderColor: '#eeeeee',
+  borderColor: '#ccc',
   borderStyle: 'dashed',
   backgroundColor: '#fafafa',
-  color: '#bdbdbd',
-  outline: 'none',
+  color: '#555',
   transition: 'border .24s ease-in-out',
 };
 
-const focusedStyle = {
-  borderColor: '#2196f3',
-};
-
-const acceptStyle = {
-  borderColor: '#00e676',
-};
-
-const rejectStyle = {
-  borderColor: '#ff1744',
-};
-
-const parseDate = (date?: string) => {
-  if (!date) return;
-
-  const components: any = parse(date, new Date(), { forwardDate: true })[0]
-    ?.start;
-
-  if (!components) {
-    return;
-  }
-
-  let parts = { ...components.impliedValues, ...components.knownValues };
-  return {
-    year: parts.year,
-    month: parts.month,
-    day: parts.day,
-  };
-};
-
-const parseTime = (time?: string) => {
-  if (!time) return;
-
-  let sanitized = time.toString().trim();
-  if (sanitized.match(/^[0-9]{1,2}$/)) {
-    sanitized = `${sanitized}:00`;
-  } else if (sanitized.match(/^[0-9]{3}$/)) {
-    sanitized = sanitized.slice(0, 1) + ':' + sanitized.slice(1);
-  } else if (sanitized.match(/^[0-9]{4}$/)) {
-    sanitized = sanitized.slice(0, 2) + ':' + sanitized.slice(2);
-  }
-
-  const components: any = parse(sanitized, new Date(), { forwardDate: true })[0]
-    ?.start;
-  if (!components) {
-    return;
-  }
-
-  let parts = { ...components.impliedValues, ...components.knownValues };
-
-  return {
-    hour: parts.hour,
-    minute: parts.minute,
-    second: parts.second,
-  };
-};
-
-const toGoogleDateTime = (
-  date?: string,
-  time?: string,
-): { dateTime: string; ms: number } | undefined => {
-  const dateParts = parseDate(date);
-  const timeParts = parseTime(time);
-
-  if (dateParts && timeParts) {
-    const dateTime = DateTime.fromObject({ ...dateParts, ...timeParts });
-    const dateTimeIso = dateTime.toISO();
-    return dateTimeIso
-      ? {
-          dateTime: dateTimeIso,
-          ms: dateTime.toMillis(),
-        }
-      : undefined;
-  } else if (dateParts) {
-    const date = DateTime.fromObject({ ...dateParts });
-    const dateIso = date.toISO();
-    return dateIso
-      ? {
-          dateTime: dateIso,
-          ms: date.toMillis(),
-        }
-      : undefined;
-  }
-
-  return;
-};
-
-const toEvent = (input: any): Partial<CalendarEvent> => {
-  const start = toGoogleDateTime(input['startdate'], input['starttime']);
-  const end = toGoogleDateTime(input['enddate'], input['endtime']);
-  const u = nanoid();
-
-  return {
-    id: u.toString().replaceAll(/-/g, ''),
-    summary: input['subject'] || input['summary'],
-    description: input['description'],
-    location: input['location'],
-    start: start,
-    end: end,
-  };
-};
+const LARGE_IMPORT = 200;
 
 function ImportFile() {
   const defaultCalendar = useDefaultCalendar();
   const user = React.useContext(userContext);
-  const { hasWriteAccess, requestWriteAccess } = React.useContext(authContext);
+  const { ensureWriteAccess } = React.useContext(authContext);
 
-  const [events, setEvents] = useState<Array<Partial<CalendarEvent>>>([]);
-  const onDrop = useCallback(
-    async (acceptedFiles: File[], fileRejections: FileRejection[], e: DropEvent) => {
-      if (!hasWriteAccess) {
-        toast('Write permission needed. Please grant access in the popup.');
-        await requestWriteAccess();
+  const [rows, setRows] = useState<ImportRow[]>([]);
+  const [fileNames, setFileNames] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const parsed: ImportRow[] = [];
+    for (const file of acceptedFiles) {
+      try {
+        parsed.push(...parseCsv(await file.text()));
+      } catch (e) {
+        toast.error(`Couldn't read ${file.name}: ${(e as Error).message}`);
       }
-
-      const fileEncoding = 'UTF-8';
-      const onError = (error: any) => {
-        console.log(onError);
-      };
-      acceptedFiles.forEach((file) => {
-        let reader: FileReader = new FileReader();
-        reader.onload = (_event: Event) => {
-          const csvData = PapaParse.parse(
-            reader.result as string,
-            Object.assign(parserOptions, {
-              error: onError,
-              encoding: fileEncoding,
-            }),
-          );
-          const data = csvData?.data ?? [];
-          const newEvents = data.map(toEvent);
-          saveEvents(defaultCalendar!, newEvents, '', user).catch(console.log);
-          setEvents((previousEvents) => [...previousEvents, ...newEvents]);
-        };
-
-        reader.readAsText(file, fileEncoding);
-      });
-    },
-    [setEvents, defaultCalendar, hasWriteAccess, requestWriteAccess],
-  );
+    }
+    setRows(parsed);
+    setFileNames(acceptedFiles.map((f) => f.name));
+  }, []);
 
   const {
     getRootProps,
@@ -203,37 +59,121 @@ function ImportFile() {
   const style = useMemo(
     () => ({
       ...baseStyle,
-      ...(isDragActive ? focusedStyle : {}),
-      ...(isDragAccept ? acceptStyle : {}),
-      ...(isDragReject ? rejectStyle : {}),
+      ...(isDragActive ? { borderColor: '#2196f3' } : {}),
+      ...(isDragAccept ? { borderColor: '#00a152' } : {}),
+      ...(isDragReject ? { borderColor: '#d50000' } : {}),
     }),
     [isDragActive, isDragAccept, isDragReject],
   );
 
+  const valid = rows.filter((r) => r.event && r.errors.length === 0);
+  const invalid = rows.length - valid.length;
+
+  const onImport = async () => {
+    if (!defaultCalendar) return;
+    if (
+      valid.length > LARGE_IMPORT &&
+      !window.confirm(
+        `Import ${valid.length} events into ${defaultCalendar.summary}?`,
+      )
+    )
+      return;
+    if (!(await ensureWriteAccess())) return;
+    setBusy(true);
+    try {
+      const events = await Promise.all(
+        valid.map(async (r) => ({
+          ...r.event!,
+          id: await eventIdFor(defaultCalendar.id, r.event!),
+        })),
+      );
+      const { failed } = await saveEvents(defaultCalendar, events, {
+        account: user?.email,
+      });
+      const failedIds = new Set(failed.map((f) => f.item.id));
+      const failedRows = new Set(
+        valid.filter((_, i) => failedIds.has(events[i].id)),
+      );
+      // Keep only failed and invalid rows on screen so they can be fixed.
+      setRows((old) =>
+        old.filter((r) => !valid.includes(r) || failedRows.has(r)),
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (!defaultCalendar) {
     return (
       <div>
-        Must select default <Link href="/calendars">calendar</Link> before
-        importing.
+        Choose a calendar in the calendar picker above before importing. The
+        first selected calendar receives imported events (see{' '}
+        <Link href="/status">status</Link>).
       </div>
     );
   }
+
   return (
     <>
       <div {...getRootProps({ style })}>
-        <input {...getInputProps()} />
-        {isDragActive ? (
-          <p>
-            Drop to import into <b>{defaultCalendar.summary}</b>
-          </p>
-        ) : (
-          <p>
-            Drag 'n' drop csv file(s) to import into{' '}
-            <b>{defaultCalendar.summary}</b>, or click to select files
-          </p>
-        )}
+        <input {...getInputProps()} aria-label="CSV file to import" />
+        <p>
+          Drop a CSV file here, or click to choose one. Nothing is saved until
+          you review it and press Import.
+        </p>
+        <p style={{ fontSize: 'smaller' }}>
+          Columns: Subject, Start Date, Start Time, End Date, End Time,
+          Description, Location (Google Calendar CSV format). Rows without a
+          time become all-day events.
+        </p>
       </div>
-      <EventList events={events} />
+      {rows.length > 0 && (
+        <div>
+          <p>
+            {fileNames.join(', ')}: {valid.length} event
+            {valid.length === 1 ? '' : 's'} ready
+            {invalid > 0 &&
+              `, ${invalid} row${invalid === 1 ? '' : 's'} with problems (skipped)`}
+            .{' '}
+            <button disabled={busy || valid.length === 0} onClick={onImport}>
+              Import {valid.length} to {defaultCalendar.summary}
+            </button>{' '}
+            <button disabled={busy} onClick={() => setRows([])}>
+              Clear
+            </button>
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>When</th>
+                <th>What</th>
+                <th>Problems</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr
+                  key={r.line}
+                  style={r.errors.length ? { color: '#a00' } : undefined}
+                >
+                  <td>{r.line}</td>
+                  <td>
+                    {r.event && (
+                      <ViewStartAndEnd
+                        start={r.event.start}
+                        end={r.event.end}
+                      />
+                    )}
+                  </td>
+                  <td>{r.event?.summary}</td>
+                  <td>{r.errors.join('; ')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 }
