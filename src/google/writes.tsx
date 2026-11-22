@@ -12,6 +12,7 @@ import { Calendar, CalendarEvent } from '../models/types';
 import ensureClient from './ensureClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
 import { syncCalendars } from './sync';
+import { snapshot, undeletePatches, undoPatches } from './undo';
 
 export type BatchResult<T> = {
   succeeded: T[];
@@ -31,6 +32,12 @@ export async function runBatch<T>(
   items: T[],
   fn: (item: T) => Promise<unknown>,
   describe: (item: T) => string,
+  {
+    undo,
+  }: {
+    /** Given what succeeded, an action that reverses it (or undefined). */
+    undo?: (succeeded: T[]) => (() => void) | undefined;
+  } = {},
 ): Promise<BatchResult<T>> {
   const result: BatchResult<T> = { succeeded: [], skipped: [], failed: [] };
   if (items.length === 0) return result;
@@ -50,10 +57,25 @@ export async function runBatch<T>(
   if (result.skipped.length)
     parts.push(`${result.skipped.length} already done`);
   if (result.failed.length) parts.push(`${result.failed.length} failed`);
+  const onUndo = result.succeeded.length ? undo?.(result.succeeded) : undefined;
   toast.update(toastId, {
     render: (
       <div>
         <b>{label}</b>: {parts.join(', ')}
+        {onUndo && (
+          <>
+            {' '}
+            <button
+              type="button"
+              onClick={() => {
+                toast.dismiss(toastId);
+                onUndo();
+              }}
+            >
+              Undo
+            </button>
+          </>
+        )}
         {result.failed.length > 0 && (
           <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
             {result.failed.slice(0, 10).map(({ item, error }, i) => (
@@ -75,7 +97,8 @@ export async function runBatch<T>(
           ? 'warning'
           : 'error',
     isLoading: false,
-    autoClose: result.failed.length ? false : 5000,
+    // Leave time to press Undo.
+    autoClose: result.failed.length ? false : onUndo ? 15000 : 5000,
     closeButton: true,
   });
   return result;
@@ -155,10 +178,15 @@ export type EventPatch = {
   [key: string]: unknown;
 };
 
-export async function patchEvents(patches: EventPatch[], account?: string) {
+export async function patchEvents(
+  patches: EventPatch[],
+  account?: string,
+  { label, undoable = true }: { label?: string; undoable?: boolean } = {},
+) {
   const api = await calendarApi();
+  const before = undoable ? await snapshot(patches) : new Map();
   const result = await runBatch(
-    `Updating ${patches.length} events`,
+    label ?? `Updating ${patches.length} events`,
     patches,
     ({ eventId, calendarId, ...resource }) =>
       api.events.patch({
@@ -168,6 +196,17 @@ export async function patchEvents(patches: EventPatch[], account?: string) {
         resource: toGoogle(resource as NewEvent),
       }),
     (p) => p.summary ?? p.eventId,
+    {
+      undo: (succeeded) => {
+        const restore = undoPatches(succeeded, before) as EventPatch[];
+        if (!undoable || restore.length === 0) return undefined;
+        return () =>
+          void patchEvents(restore, account, {
+            label: `Undoing ${restore.length} changes`,
+            undoable: false,
+          });
+      },
+    },
   );
   await syncCalendars(
     account,
@@ -196,6 +235,13 @@ export async function deleteEvents(events: EventRef[], account?: string) {
       }
     },
     (e) => e.summary ?? e.eventId,
+    {
+      undo: (succeeded) => () =>
+        void patchEvents(undeletePatches(succeeded) as EventPatch[], account, {
+          label: `Restoring ${succeeded.length} events`,
+          undoable: false,
+        }),
+    },
   );
   // Optimistic: hide deleted events until the next sync confirms.
   const done = [...result.succeeded, ...result.skipped];
