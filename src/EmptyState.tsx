@@ -83,7 +83,10 @@ export function useEmptyState(
   }
   return (
     <Message title="No events in this range">
-      <p>Try a wider range in the search box, such as “next 3 months”.</p>
+      <p>
+        Try a wider range in the search box, such as “this month” or “january to
+        march”.
+      </p>
     </Message>
   );
 }

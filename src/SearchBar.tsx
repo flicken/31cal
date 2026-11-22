@@ -11,6 +11,7 @@ import {
   formatDate,
   ParsedSearch,
 } from './lib/searchTextParser';
+import { SEARCH_EXAMPLES } from './lib/syntaxExamples';
 
 export default function SearchBar() {
   const { eventFilters: filters, setEventFilters: setFilters } =
@@ -69,6 +70,27 @@ export default function SearchBar() {
       setFilters((f) => ({ ...f, rangeText: structured }));
     }
   }, [inputText, applyFilters, setFilters]);
+
+  /** Fill the box with an example and apply it right away. */
+  const applyExample = useCallback(
+    (text: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      const result = parseSearchText(text);
+      setInputText(text);
+      setParsed(result);
+      setFilters((f) => ({
+        ...f,
+        ...(result.start && result.end
+          ? { start: result.start, end: result.end, rangeText: text }
+          : {}),
+        updatedSince: result.updatedSince,
+        updatedSinceText: result.updatedSince
+          ? formatDate(result.updatedSince)
+          : undefined,
+      }));
+    },
+    [setFilters],
+  );
 
   const clearFilters = useCallback(() => {
     const { start, end, rangeText } = defaultEventFilters();
@@ -163,6 +185,9 @@ export default function SearchBar() {
       </div>
       {showAdvanced && (
         <div
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setShowAdvanced(false);
+          }}
           style={{
             position: 'absolute',
             top: '100%',
@@ -187,6 +212,21 @@ export default function SearchBar() {
           </div>
           <div>
             <strong>Updated since:</strong> {formatDate(parsed.updatedSince)}
+          </div>
+          <div style={{ marginTop: 6 }}>
+            Try:{' '}
+            {SEARCH_EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                className="example-chip"
+                // Keep focus in the input so blur doesn't commit the old text.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyExample(ex)}
+              >
+                {ex}
+              </button>
+            ))}
           </div>
         </div>
       )}

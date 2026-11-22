@@ -107,3 +107,27 @@ select {
   overflow-x: auto;
   max-width: 100%;
 }
+
+.example-chip {
+  font: inherit;
+  font-size: 0.95em;
+  margin: 2px 4px 2px 0;
+  padding: 1px 6px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #f7f7f7;
+  color: #222;
+  cursor: pointer;
+}
+.example-chip:hover {
+  background: #eaeaea;
+}
+
+.syntax-help {
+  max-width: 40em;
+  margin: 0.5em 0;
+}
+.syntax-help ul {
+  margin: 0.25em 0;
+  padding-left: 1.2em;
+}

@@ -76,8 +76,11 @@ const parseInput = (
     if (start && end && 'dateTime' in start && 'dateTime' in end) {
       const startDt = DateTime.fromISO(start.dateTime, { setZone: true });
       let endDt = DateTime.fromISO(end.dateTime, { setZone: true });
-      while (endDt <= startDt && datetimes[0].end)
-        endDt = endDt.plus({ days: 1 });
+      if (!datetimes[0].end) {
+        // A single time ("Sat 3pm Soccer") is a one-hour event.
+        endDt = startDt.plus({ hours: 1 });
+      }
+      while (endDt <= startDt) endDt = endDt.plus({ days: 1 });
       end = { ...end, dateTime: endDt.toISO()! };
     }
 

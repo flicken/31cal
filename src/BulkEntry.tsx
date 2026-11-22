@@ -19,6 +19,7 @@ import { useDefaultCalendar } from './lib/hooks';
 
 import { saveEvents } from './google/writes';
 import { Link } from 'wouter';
+import { BULK_EXAMPLES } from './lib/syntaxExamples';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 
@@ -170,8 +171,47 @@ function BulkEntry() {
           style={{ width: '40em', maxWidth: '100%' }}
           placeholder={placeholderEntry}
           aria-label="Events, one per line (e.g. Saturday 3pm rehearsal)"
+          aria-describedby="bulk-help"
+          value={eventsText}
           onChange={handleEventsChange}
         />
+        <details id="bulk-help" className="syntax-help">
+          <summary>How to write events</summary>
+          <ul>
+            <li>One event per line: a date and/or time, then the title.</li>
+            <li>
+              No time means an all-day event; a single time lasts one hour.
+            </li>
+            <li>
+              A line without a date continues after the line above, so a list of
+              times builds a schedule.
+            </li>
+            <li>Ranges that cross midnight end the next day.</li>
+            <li>A time zone like “EST” is respected; otherwise it’s yours.</li>
+            <li>
+              The prefix, description and attachment apply to every event.
+            </li>
+          </ul>
+          <p>Examples (click to add):</p>
+          <ul>
+            {BULK_EXAMPLES.map(({ text, note }) => (
+              <li key={text}>
+                <button
+                  type="button"
+                  className="example-chip"
+                  onClick={() =>
+                    setEventsText((t) =>
+                      t && !t.endsWith('\n') ? `${t}\n${text}` : `${t}${text}`,
+                    )
+                  }
+                >
+                  {text}
+                </button>{' '}
+                <span className="hint">{note}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
         <br />
         <TextareaAutosize
           name="description"
