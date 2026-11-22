@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { setUnsavedWork } from './lib/newVersion';
 import { useDropzone } from 'react-dropzone';
 import { Link } from 'wouter';
 import { toast } from 'react-toastify';
@@ -32,6 +33,11 @@ function ImportFile() {
   const { ensureWriteAccess } = React.useContext(authContext);
 
   const [rows, setRows] = useState<ImportRow[]>([]);
+  // Don't auto-reload for a new version while a preview is on screen.
+  useEffect(() => {
+    setUnsavedWork(rows.length > 0);
+    return () => setUnsavedWork(false);
+  }, [rows.length]);
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 

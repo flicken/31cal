@@ -7,23 +7,10 @@ import React, {
   useState,
 } from 'react';
 import { authContext } from './authContext';
-import {
-  useCalendars,
-  useSelectedCalendarIds,
-  useSelectedCalendars,
-} from './lib/hooks';
-import { Calendar } from './models/types';
-import Calendars from './Calendars';
 import { sample } from './lib/utils';
 import { Link, Switch, Route, useLocation } from 'wouter';
 import ErrorBoundary from './ErrorBoundary';
 import SearchBar from './SearchBar';
-import Paper from './Paper';
-import Attachments from './Attachments';
-import BulkEntry from './BulkEntry';
-import CopyFrom from './CopyFrom';
-import CalendarsStatus from './CalendarsStatus';
-import Events from './Events';
 import { userContext } from './userContext';
 import useSync from './google/useSync';
 import CalendarUpdateStatus from './CalendarUpdateStatus';
@@ -31,6 +18,14 @@ import CalendarUpdateStatus from './CalendarUpdateStatus';
 import 'react-toastify/dist/ReactToastify.css'; // part of layout
 import { googleButtonContext } from './googleButtonContext';
 
+// Every view except Home loads on demand.
+const Attachments = React.lazy(() => import('./Attachments'));
+const BulkEntry = React.lazy(() => import('./BulkEntry'));
+const CalendarsStatus = React.lazy(() => import('./CalendarsStatus'));
+const CopyFrom = React.lazy(() => import('./CopyFrom'));
+const Events = React.lazy(() => import('./Events'));
+const Paper = React.lazy(() => import('./Paper'));
+const CalendarFilter = React.lazy(() => import('./CalendarFilter'));
 const ImportFile = React.lazy(() => import('./ImportFile'));
 const ModMany = React.lazy(() => import('./ModMany'));
 const Schedule = React.lazy(() => import('./Schedule'));
@@ -209,25 +204,6 @@ function StatusBar() {
   );
 }
 
-function CalendarFilter() {
-  const calOptions = useCalendars() ?? [];
-  const calValue = useSelectedCalendars();
-  const [, setSelectedCalendarIds] = useSelectedCalendarIds();
-
-  const onCalendarChange = (calendars: Calendar[]) => {
-    setSelectedCalendarIds(calendars.filter((c) => c).map((c) => c?.id));
-  };
-
-  return (
-    <Calendars
-      options={calOptions}
-      value={calValue}
-      onChange={onCalendarChange}
-      compact
-    />
-  );
-}
-
 const topBarStyles = `
   .topbar {
     display: flex;
@@ -380,7 +356,9 @@ function TopBar() {
         <SearchBar />
       </div>
       <div className="topbar-calendars">
-        <CalendarFilter />
+        <Suspense fallback={<div aria-hidden="true" style={{ height: 38 }} />}>
+          <CalendarFilter />
+        </Suspense>
       </div>
     </div>
   );

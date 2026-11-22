@@ -76,6 +76,8 @@ src/
     hooks.ts                # Dexie useLiveQuery hooks (useFilteredEvents, useCalendars, useDefaultCalendar, …)
     eventQueries.ts         # Indexed range queries, per-calendar counts / latest update
     chrono.ts               # componentsToDateTime(): chrono components → Luxon
+    contrast.ts             # WCAG contrast; readableOn()/readableTextOnWhite() for calendar colors
+    newVersion.tsx          # Reload on stale chunks / newer DB schema (guarded; toast if unsaved work)
     filters.ts              # FilterValues type + filterForFilters()
     FilterStateContext.tsx  # Global filter state context
     dispatcher.ts           # Custom DOM event bus (on/off/trigger)
@@ -95,6 +97,8 @@ src/
 
   # Feature views (several are React.lazy):
   EmptyState.tsx            # useEmptyState(): signed out / loading / no calendars / syncing / empty range
+  VirtualList.tsx           # Virtualizes lists > 200 rows (scrolls inside #root); shorter lists stay Ctrl-F-able
+  CalendarFilter.tsx        # Top-bar calendar picker (lazy, keeps react-select out of the main chunk)
   BulkFilters.tsx           # Filter panel shared by ModMany and CopyFrom
   BulkEntry.tsx             # Bulk create events with NLP date entry
   CopyFrom.tsx              # Copy events from one calendar to another
@@ -147,7 +151,7 @@ src/
 
 ### Routing
 
-`wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. Several routes use `React.lazy` for code splitting: `ImportFile`, `ModMany`, `Schedule`, `Table`.
+`wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. Every route except Home is `React.lazy`, as is the top-bar `CalendarFilter`. After a deploy, old tabs may request chunks that no longer exist; `index.tsx` handles `vite:preloadError` via `lib/newVersion` (one guarded reload, or a toast when `setUnsavedWork(true)`).
 
 ### Write access
 

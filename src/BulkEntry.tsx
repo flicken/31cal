@@ -1,5 +1,12 @@
 import { debug } from './lib/log';
-import React, { useState, useCallback, useMemo, ClipboardEvent } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  ClipboardEvent,
+} from 'react';
+import { setUnsavedWork } from './lib/newVersion';
 
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -24,6 +31,11 @@ const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
 function BulkEntry() {
   const defaultCalendar = useDefaultCalendar();
   const [eventsText, setEventsText] = useState('');
+  // Don't auto-reload for a new version while there's typed text.
+  useEffect(() => {
+    setUnsavedWork(eventsText.trim() !== '');
+    return () => setUnsavedWork(false);
+  }, [eventsText]);
   const [description, setDescription] = useState('');
   const [prefix, setPrefix] = useState('');
   const [attachment, setAttachment] = useState(

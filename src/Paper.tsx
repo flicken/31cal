@@ -282,57 +282,59 @@ export default function Paper() {
 
   const columnsToShow = [...columns, ''];
   let list = (
-    <table
-      style={{
-        margin: '0px',
-        textAlign: 'left',
-        borderCollapse: 'collapse',
-      }}
-      width="100%"
-    >
-      <thead>
-        <tr>
-          <th key="day" style={{ minWidth: '100px' }}>
-            Day
-          </th>
-          {columnsToShow.map((column, index) => (
-            <th key={`column-${index}`} style={{ minWidth: '15%' }}>
-              <TextFilter
-                key={`filter-${index}`}
-                filter={column}
-                placeholder="Search events..."
-                aria-label={`Column ${index + 1}: show events matching`}
-                autoFocus={index === 0}
-                onValueChange={(v: string) => {
-                  const c = [...columns];
-                  c[index] = v;
-
-                  // delete empty items at end
-                  while (c.length > 0 && !c[c.length - 1]) {
-                    c.pop();
-                  }
-                  setColumns(c);
-                }}
-              />
+    <div className="table-scroll">
+      <table
+        style={{
+          margin: '0px',
+          textAlign: 'left',
+          borderCollapse: 'collapse',
+        }}
+        width="100%"
+      >
+        <thead>
+          <tr>
+            <th key="day" style={{ minWidth: '100px' }}>
+              Day
             </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {dates.map((day, index) => {
-          const even = index % 2;
-          return (
-            <Row
-              key={day}
-              day={day}
-              events={eventsByDate.get(day) || []}
-              filters={filters}
-              style={{ backgroundColor: even ? '#fff' : '#f2f2f2' }}
-            />
-          );
-        })}
-      </tbody>
-    </table>
+            {columnsToShow.map((column, index) => (
+              <th key={`column-${index}`} style={{ minWidth: '15%' }}>
+                <TextFilter
+                  key={`filter-${index}`}
+                  filter={column}
+                  placeholder="Search events..."
+                  aria-label={`Column ${index + 1}: show events matching`}
+                  autoFocus={index === 0}
+                  onValueChange={(v: string) => {
+                    const c = [...columns];
+                    c[index] = v;
+
+                    // delete empty items at end
+                    while (c.length > 0 && !c[c.length - 1]) {
+                      c.pop();
+                    }
+                    setColumns(c);
+                  }}
+                />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {dates.map((day, index) => {
+            const even = index % 2;
+            return (
+              <Row
+                key={day}
+                day={day}
+                events={eventsByDate.get(day) || []}
+                filters={filters}
+                style={{ backgroundColor: even ? '#fff' : '#f2f2f2' }}
+              />
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 
   return list;

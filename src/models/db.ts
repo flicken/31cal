@@ -1,6 +1,7 @@
 import Dexie, { Table } from 'dexie';
 
 import { Calendar, CalendarEvent, Setting, UpdateState } from './types';
+import { reloadForNewVersion, showNewVersionToast } from '../lib/newVersion';
 
 /** Per-calendar facts that make range queries cheap. */
 export type CalendarStats = {
@@ -95,6 +96,19 @@ export class DB extends Dexie {
   }
 }
 export const db = new DB();
+
+// Another tab opened a newer schema: let it upgrade, then reload into it.
+db.on('versionchange', () => {
+  db.close();
+  reloadForNewVersion();
+  return false;
+});
+// Our upgrade is waiting for an older tab to close.
+db.on('blocked', () => {
+  showNewVersionToast(
+    '31cal was updated. Close other 31cal tabs to finish the update.',
+  );
+});
 
 /** Remove every cached calendar, event, sync state and setting. */
 export async function clearLocalData() {

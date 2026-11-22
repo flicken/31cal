@@ -89,3 +89,21 @@
   font-size: 0.85em;
   color: #555;
 }
+
+/* Never let a form control push the page wider than the screen. */
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+/* Grid cells may shrink below their content's intrinsic width. */
+.two-column > * {
+  min-width: 0;
+}
+
+/* Wide tables scroll sideways on their own instead of the whole page. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}

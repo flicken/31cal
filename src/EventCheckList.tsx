@@ -3,6 +3,7 @@ import { Calendar, CalendarEvent } from './models/types';
 import React from 'react';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
 import { keyFor } from './lib/events';
+import VirtualList from './VirtualList';
 
 export function EventCheckList({
   events,
@@ -33,15 +34,18 @@ export function EventCheckList({
         />{' '}
         Select all ({checkedCount} of {events.length} selected)
       </label>
-      {events.map((e) => (
-        <ViewCheckEvent
-          key={keyFor(e)}
-          event={e}
-          calendar={calendars[e.calendarId]}
-          checked={isChecked(e)}
-          onChange={(on) => setChecked(e, on)}
-        />
-      ))}
+      <VirtualList
+        items={events}
+        getKey={(e) => keyFor(e)}
+        renderItem={(e) => (
+          <ViewCheckEvent
+            event={e}
+            calendar={calendars[e.calendarId]}
+            checked={isChecked(e)}
+            onChange={(on) => setChecked(e, on)}
+          />
+        )}
+      />
     </div>
   );
 }
