@@ -1,3 +1,4 @@
+import { readableOn } from './lib/contrast';
 import { Calendar, CalendarEvent } from './models/types';
 import React from 'react';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
@@ -62,7 +63,9 @@ function ViewCheckEvent({
         title={calendar?.summary}
         aria-hidden="true"
         style={{
-          color: calendar?.foregroundColor,
+          color:
+            calendar &&
+            readableOn(calendar.backgroundColor, calendar.foregroundColor),
           backgroundColor: calendar?.backgroundColor,
         }}
       >

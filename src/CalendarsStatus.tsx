@@ -1,3 +1,4 @@
+import { readableOn } from './lib/contrast';
 import React from 'react';
 
 import { Calendar, UpdateState } from './models/types';
@@ -84,7 +85,7 @@ function Calendars() {
                 key={c.id}
                 style={{
                   backgroundColor: c.backgroundColor,
-                  color: c.foregroundColor,
+                  color: readableOn(c.backgroundColor, c.foregroundColor),
                   fontWeight: defaultCalendar?.id == c.id ? 'bold' : undefined,
                 }}
               >

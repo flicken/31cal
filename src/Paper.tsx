@@ -1,3 +1,4 @@
+import { RECURRING_COLOR, SINGLE_COLOR } from './lib/paperColors';
 import { useEmptyState } from './EmptyState';
 import { dayOfWeek, eventDays } from './lib/events';
 import { safeRegExp } from './lib/regex';
@@ -141,8 +142,15 @@ const EL = ({ event, day }: ELProps) => {
       (event.start as StartEndDateTime).dateTime;
 
   return (
-    <span style={{ color: recurring ? 'green' : 'blue' }}>
+    <span style={{ color: recurring ? RECURRING_COLOR : SINGLE_COLOR }}>
       <b>{showTime(event, day)}</b>
+      {recurring && (
+        <span title="Repeats">
+          {' '}
+          <span aria-hidden="true">↻</span>
+          <span className="sr-only">(repeats)</span>
+        </span>
+      )}
       <br />
       {event.summary || event.description || JSON.stringify(event)}
       <br />

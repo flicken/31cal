@@ -1,3 +1,4 @@
+import { readableOn } from './lib/contrast';
 import React from 'react';
 
 import { Calendar } from './models/types';
@@ -69,44 +70,46 @@ function CompactMultiValue(props: MultiValueProps<Calendar, true>) {
   return null;
 }
 
+/** Calendar text color, replaced with black/white if it isn't readable. */
+const fg = (c: Calendar) => readableOn(c.backgroundColor, c.foregroundColor);
+
 const colorStyles: StylesConfig<Calendar, true> = {
   control: (styles) => ({ ...styles, backgroundColor: 'white' }),
   option: (styles, { data, isDisabled, isFocused }) => {
     return {
       ...styles,
       backgroundColor: data.backgroundColor,
-      color: data.foregroundColor,
+      color: fg(data),
       cursor: isDisabled ? 'not-allowed' : 'default',
-      filter: isFocused ? 'brightness(110%)' : undefined,
-      borderStyle: isFocused ? ('outset' as any) : undefined,
+      // Outline instead of a brightness filter, which could break contrast.
+      boxShadow: isFocused ? `inset 0 0 0 2px ${fg(data)}` : undefined,
 
       ':active': {
         ...styles[':active'],
-        color: data.foregroundColor,
+        color: fg(data),
         backgroundColor: data.backgroundColor,
         fontWeight: isFocused ? 'bold' : undefined,
-        filter: isFocused ? 'brightness(125%)' : undefined,
       },
     };
   },
   multiValue: (styles, { data }) => {
     return {
       ...styles,
-      color: data.foregroundColor,
+      color: fg(data),
       backgroundColor: data.backgroundColor,
     };
   },
   multiValueLabel: (styles, { data }) => ({
     ...styles,
-    color: data.foregroundColor,
+    color: fg(data),
     backgroundColor: data.backgroundColor,
   }),
   multiValueRemove: (styles, { data }) => ({
     ...styles,
-    color: data.foregroundColor,
+    color: fg(data),
     backgroundColor: data.backgroundColor,
     ':hover': {
-      backgroundColor: data.foregroundColor,
+      backgroundColor: fg(data),
       color: data.backgroundColor,
     },
   }),
