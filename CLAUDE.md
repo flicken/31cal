@@ -151,7 +151,7 @@ src/
 
 ### Routing
 
-`wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. All views are imported statically and the build is **one JS bundle by design** (`build.rolldownOptions.output.inlineDynamicImports` in `vite.config.mts`): Cloudflare Pages serves only the latest deployment's files, so a tab opened before a deploy must never need a chunk from its own build later. Don't add `React.lazy` or dynamic `import()`. `lib/newVersion` still handles Dexie `versionchange`/`blocked` (a newer tab upgrading the DB schema) and keeps the `vite:preloadError` reload as a safety net.
+`wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. All views are imported statically and the build is **one JS bundle by design** (`build.rolldownOptions.output.inlineDynamicImports` in `vite.config.mts`): Cloudflare Pages serves only the latest deployment's files, so a tab opened before a deploy must never need a chunk from its own build later. Don't add `React.lazy` or dynamic `import()`. `public/reload-on-fail.js` (unhashed, `no-cache`, loaded by `index.html` before the bundle) covers a deploy landing mid-load: if an `/assets/` script/stylesheet fails or the bundle never sets `window.__31calBooted` within 10 s, it reloads once (sessionStorage guard: not again within 60 s). `lib/newVersion` still handles Dexie `versionchange`/`blocked` (a newer tab upgrading the DB schema) and keeps the `vite:preloadError` reload as a safety net.
 
 ### Write access
 

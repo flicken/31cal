@@ -12,3 +12,6 @@
 
 /index.html
   Cache-Control: no-cache
+
+/reload-on-fail.js
+  Cache-Control: no-cache

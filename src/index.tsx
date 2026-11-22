@@ -1,3 +1,6 @@
+// Tells public/reload-on-fail.js that the bundle loaded and ran.
+(window as any).__31calBooted = true;
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
