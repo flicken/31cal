@@ -3,16 +3,18 @@ import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
 import { asArray } from './utils';
 import {
-  useReactTable,
-  getCoreRowModel,
-  getGroupedRowModel,
-  getExpandedRowModel,
+  useTable,
+  tableFeatures,
+  rowSelectionFeature,
   flexRender,
   ColumnDef,
-  GroupingState,
-  ExpandedState,
   RowSelectionState,
 } from '@tanstack/react-table';
+
+const features = tableFeatures({ rowSelectionFeature });
+type Features = typeof features;
+type Columns = ColumnDef<Features, any, any>[];
+type ExpandedState = true | Record<string, boolean>;
 
 import { ViewEventSummary } from './ViewEvent';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
@@ -32,7 +34,7 @@ function Table_({
   data,
   filters,
 }: {
-  columns: ColumnDef<any, any>[];
+  columns: Columns;
   data: any[];
   filters: any;
 }) {
@@ -54,8 +56,8 @@ function Table_({
     [dates],
   );
 
-  const [grouping] = React.useState<GroupingState>(['date']);
-  const [expanded, setExpanded] = React.useState<ExpandedState>(initialExpanded);
+  const [expanded, setExpanded] =
+    React.useState<ExpandedState>(initialExpanded);
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   // Reset expanded state when dates change
@@ -63,7 +65,7 @@ function Table_({
     setExpanded(initialExpanded);
   }, [initialExpanded]);
 
-  const allColumns = React.useMemo<ColumnDef<any, any>[]>(
+  const allColumns = React.useMemo<Columns>(
     () => [
       {
         id: 'selection',
@@ -71,7 +73,9 @@ function Table_({
           <div>
             <IndeterminateCheckbox
               checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
+              indeterminate={
+                table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+              }
               onChange={table.getToggleAllRowsSelectedHandler()}
             />
           </div>
@@ -91,32 +95,18 @@ function Table_({
     [columns],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     columns: allColumns,
     data,
-    state: {
-      grouping,
-      expanded,
-      rowSelection,
-    },
-    onExpandedChange: setExpanded,
+    state: { rowSelection },
     onRowSelectionChange: setRowSelection,
-    getGroupedRowModel: getGroupedRowModel(),
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    enableGrouping: true,
-    enableExpanding: true,
     enableRowSelection: true,
-    groupedColumnMode: false,
-    columnResizeMode: undefined as any,
-    meta: {
-      dates,
-    },
   });
 
   // Custom grouping: assign rows to date buckets based on event start/end
   const customGroupedRows = React.useMemo(() => {
-    const flatRows = table.getPreGroupedRowModel().rows;
+    const flatRows = table.getCoreRowModel().rows;
     const grouped: Record<string, typeof flatRows> = {};
     for (const row of flatRows) {
       const start = row.original?.start?.ms
@@ -134,7 +124,7 @@ function Table_({
       }
     }
     return grouped;
-  }, [table.getPreGroupedRowModel().rows, dates]);
+  }, [table.getCoreRowModel().rows, dates]);
 
   const onDelete = async () => {
     if (!hasWriteAccess) {
@@ -147,16 +137,18 @@ function Table_({
       .flatRows.filter((r) => r.original);
     const eventsToDelete = uniqWith(
       selectedRows.flatMap((e) => {
-          const event = e.original;
-          if (event) {
-            return [{
+        const event = e.original;
+        if (event) {
+          return [
+            {
               calendarId: event.calendarId,
               eventId: event.id,
               summary: event.summary,
-            }];
-          }
-          return [];
-        }),
+            },
+          ];
+        }
+        return [];
+      }),
       isEqual,
     );
     console.log('eventsToDelete', eventsToDelete);
@@ -167,17 +159,24 @@ function Table_({
 
   // Build display rows: date group headers + their child rows
   const displayRows = React.useMemo(() => {
+    const flatRows = table.getCoreRowModel().rows;
     const result: Array<
       | { type: 'group'; date: string; rowCount: number }
-      | { type: 'row'; row: (typeof table extends { getRowModel: () => { rows: (infer R)[] } } ? R : never) }
+      | { type: 'row'; row: (typeof flatRows)[number] }
     > = [];
     const sortedDates = Object.keys(customGroupedRows).sort();
     for (const date of sortedDates) {
-      const isExpanded = expanded === true || (expanded as Record<string, boolean>)[`date:${date}`];
-      result.push({ type: 'group', date, rowCount: customGroupedRows[date].length });
+      const isExpanded =
+        expanded === true ||
+        (expanded as Record<string, boolean>)[`date:${date}`];
+      result.push({
+        type: 'group',
+        date,
+        rowCount: customGroupedRows[date].length,
+      });
       if (isExpanded) {
         for (const row of customGroupedRows[date]) {
-          result.push({ type: 'row', row: row as any });
+          result.push({ type: 'row', row });
         }
       }
     }
@@ -235,7 +234,7 @@ function Table_({
             const row = item.row;
             return (
               <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
+                {row.getAllCells().map((cell) => (
                   <td key={cell.id} style={{ background: 'white' }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -271,7 +270,7 @@ function dateOf(ms: number) {
 }
 
 export default function Table() {
-  const columns = React.useMemo<ColumnDef<any, any>[]>(
+  const columns = React.useMemo<Columns>(
     () => [
       {
         id: 'date',

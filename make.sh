@@ -1,5 +1,5 @@
 #!/bin/sh
 
-yarn
+yarn install --immutable
 yarn test
 yarn build
