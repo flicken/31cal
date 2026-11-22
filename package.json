@@ -2,7 +2,7 @@
   "name": "31cal",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "yarn@4.18.1+sha512.b2e1e7524f654f2749d32b4ebcb4622473cb5bcbc485df2007e12a154e50162a4d795526768bc5f5b8f81717bfd79deb2472813d86fb5ae2eb551fa9c872b08f",
+  "packageManager": "pnpm@12.21.0",
   "dependencies": {
     "@react-oauth/google": "0.13.5",
     "@tanstack/react-table": "9.3.1",
@@ -31,11 +31,11 @@
     "tsc": "tsc --noEmit",
     "prepare": "husky",
     "lint": "oxlint",
-    "check": "yarn tsc && yarn lint && yarn test && yarn build"
+    "check": "pnpm tsc && pnpm lint && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@types/luxon": "3.7.6",
-    "@types/node": "22.20.5",
+    "@types/node": "26.6.6",
     "@types/papaparse": "5.5.2",
     "@types/prismjs": "1.26.6",
     "@types/react": "19.3.0",
@@ -61,6 +61,6 @@
     ]
   },
   "engines": {
-    "node": ">=22.22.1"
+    "node": ">=26.13.1"
   }
 }

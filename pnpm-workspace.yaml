@@ -1,0 +1,9 @@
+# Security: only install package versions published at least 7 days ago
+# (in minutes), so freshly-published malicious versions have time to be
+# caught and unpublished.
+minimumReleaseAge: 10080
+
+# Security: never run dependency install scripts (preinstall/install/
+# postinstall). Nothing in this project needs them; add a package here with
+# `true` only after reviewing its script.
+allowBuilds: {}

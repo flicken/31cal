@@ -26,12 +26,12 @@ The search bar at the top accepts ranges such as `now to end of next month`,
 
 ## Getting started
 
-Requirements: Node 22.22+ (see `.tool-versions`) and Corepack (ships with
-Node), which provides the pinned Yarn 4.
+Requirements: Node 26 LTS (see `.node-version`) and pnpm 12 (pinned in
+`package.json` → `packageManager`).
 
 ```bash
-corepack enable
-yarn install
+npm install -g pnpm@12.21.0
+pnpm install
 ```
 
 Create `.env.local` with a Google OAuth **web** client id whose authorized
@@ -42,8 +42,8 @@ VITE_GOOGLE_CLIENT_ID=<your-client-id>.apps.googleusercontent.com
 ```
 
 ```bash
-yarn start   # dev server on http://localhost:3000
-yarn check   # type-check, lint, test and build (same as CI)
+pnpm start   # dev server on http://localhost:3000
+pnpm check   # type-check, lint, test and build (same as CI)
 ```
 
 ### Permissions
@@ -55,10 +55,14 @@ deletes the local copy of your calendars from the browser.
 
 ## Deployment
 
-Deployed on Cloudflare Pages: build command `yarn build`, output directory
-`build`. `public/_headers` sets security and caching headers. Pages serves
-`index.html` for unknown paths (SPA routing) and `/legal/privacy` from
-`legal/privacy.html` without extra configuration.
+Deployed on Cloudflare Pages (v3 build image):
+
+- Build command `pnpm build`, output directory `build`.
+- Environment variable `PNPM_VERSION=12.21.0` (Pages does not read
+  `packageManager`). Node comes from `.node-version`.
+- `public/_headers` sets security and caching headers.
+- Pages serves `index.html` for unknown paths (SPA routing) and
+  `/legal/privacy` from `legal/privacy.html` without extra configuration.
 
 ## Security model
 
@@ -72,7 +76,7 @@ Deployed on Cloudflare Pages: build command `yarn build`, output directory
 - A Content-Security-Policy and other security headers are set in
   `public/_headers`.
 - Dependencies must be at least 7 days old and install scripts are disabled
-  (`.yarnrc.yml`, `renovate.json`).
+  (`pnpm-workspace.yaml`, `renovate.json`).
 
 ## Roadmap
 

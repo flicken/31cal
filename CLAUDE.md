@@ -20,25 +20,25 @@
 | Syntax highlighting | prismjs + codejar                                                                        |
 | Testing             | vitest + happy-dom + fake-indexeddb                                                      |
 | Linting/formatting  | oxlint (typescript-eslint can't run on TS 7) + Prettier (lint-staged + husky pre-commit) |
-| Package manager     | **yarn** (v4, Berry) via Corepack                                                        |
+| Package manager     | **pnpm** 12 (`packageManager`); Node 26 LTS (`.node-version`)                            |
 | TypeScript          | 7 (native `tsc`, no JS compiler API)                                                     |
 
 ## Commands
 
 ```bash
-yarn start        # dev server on port 3000 (strict)
-yarn build        # tsc + vite build → build/
-yarn test         # vitest run
-yarn serve        # preview production build
-yarn tsc          # type-check only
-yarn lint         # oxlint
-yarn check        # tsc + lint + test + build (what CI runs)
+pnpm start        # dev server on port 3000 (strict)
+pnpm build        # tsc + vite build → build/
+pnpm test         # vitest run
+pnpm serve        # preview production build
+pnpm tsc          # type-check only
+pnpm lint         # oxlint
+pnpm check        # tsc + lint + test + build (what CI runs)
 ```
 
 ## Dependency security
 
-- 7 days after release
-- no scripts on install
+- 7 days after release (`minimumReleaseAge` in `pnpm-workspace.yaml`, `minimumReleaseAge` in `renovate.json`)
+- no scripts on install (`allowBuilds: {}` in `pnpm-workspace.yaml`; pnpm fails the install if a dependency wants to build)
 
 ## Environment variables
 
@@ -149,11 +149,11 @@ Write operations (save/patch/delete) require `EVENTS_READWRITE` scope. The app s
 ## Testing
 
 - Test files live next to source (`*.test.ts`). Sync tests use `fake-indexeddb` and inject a fake Google API with `setCalendarApiProvider()`.
-- Run with `yarn test` (vitest, happy-dom). Date logic should pass in any `TZ` (try `TZ=America/Los_Angeles yarn test`).
+- Run with `pnpm test` (vitest, happy-dom). Date logic should pass in any `TZ` (try `TZ=America/Los_Angeles pnpm test`).
 
 ## Build + Deployment
 
-- Deployed on Cloudflare Pages; builds to `build/` directory.
+- Deployed on Cloudflare Pages (v3 image) with `PNPM_VERSION=12.21.0` set in the dashboard; builds to `build/` directory.
 - `.github/workflows/ci.yml` runs tsc, lint, test, build.
 - `renovate.json` automated dependency updates.
 - `public/_headers` — Cloudflare Pages (CSP and security headers)
