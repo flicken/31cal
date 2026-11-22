@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 
 import { CalendarEvent } from './models/types';
 import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
-import { useFilterState } from './lib/FilterStateContext';
-import { asArray } from './utils';
+import { useFilterState, useSeedModFilters } from './lib/FilterStateContext';
 import { deleteEvents, EventPatch, patchEvents } from './google/writes';
 
 import { keyBy } from './lib/utils';
@@ -51,24 +50,14 @@ function editableJson(event: CalendarEvent) {
 function ModMany() {
   const calendars = useCalendars() ?? [];
   const allEvents = useEvents();
-  const {
-    eventFilters,
-    modEventFilters: filters,
-    setModEventFilters: setFilters,
-  } = useFilterState();
-  const [selectedCalendarIds] = useSelectedCalendarIds();
+  const { modEventFilters: filters, setModEventFilters: setFilters } =
+    useFilterState();
+  const [selectedCalendarIds, , loaded] = useSelectedCalendarIds();
   const user = React.useContext(userContext);
   const { ensureWriteAccess } = React.useContext(authContext);
 
-  useEffect(() => {
-    // Start from the global filters each time the page opens.
-    setFilters((f) => ({
-      ...f,
-      ...eventFilters,
-      calendarIds: asArray(selectedCalendarIds),
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Start from the global filters each time the page opens.
+  useSeedModFilters(loaded ? selectedCalendarIds : undefined);
 
   const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
   const { isChecked, setChecked, toggleAll, selected, replace } =

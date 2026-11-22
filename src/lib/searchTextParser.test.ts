@@ -121,6 +121,12 @@ describe('toStructuredText', () => {
     expect(toStructuredText({})).toBe('');
   });
 
+  test('keeps start of today as "today" so committing does not drop earlier events', () => {
+    const result = toStructuredText({ start: NOW.startOf('day') });
+    expect(result).toBe('start:today');
+    expect(+parseSearchText(result).start!).toBe(+NOW.startOf('day'));
+  });
+
   test('formats start as "now" when start is today', () => {
     const result = toStructuredText({ start: NOW });
     expect(result).toBe('start:now');

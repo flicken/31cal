@@ -1,3 +1,4 @@
+import { dayOfWeek, eventDays } from './lib/events';
 import { safeRegExp } from './lib/regex';
 import React from 'react';
 
@@ -117,25 +118,11 @@ function showTime(event: CalendarEvent, day: string) {
 }
 
 const byDate = (events: CalendarEvent[], dates: string[]) => {
-  let eventsByDate = new Map<string, CalendarEvent[]>();
-  dates.forEach((date) => {
-    eventsByDate.set(date, []);
-  });
+  const eventsByDate = new Map<string, CalendarEvent[]>();
+  dates.forEach((date) => eventsByDate.set(date, []));
   events.forEach((event) => {
-    const start = event.start?.ms
-      ? DateTime.fromMillis(event.start.ms)
-      : undefined;
-    const end = event.end?.ms ? DateTime.fromMillis(event.end.ms) : undefined;
-    if (start && end) {
-      const keys = intersection(Array.from(days(start, end)), dates);
-      for (const resKey of keys) {
-        let eventsOnDate = eventsByDate.get(resKey);
-        if (!Array.isArray(eventsOnDate)) {
-          eventsOnDate = [];
-          eventsByDate.set(resKey, eventsOnDate);
-        }
-        eventsOnDate.push(event);
-      }
+    for (const day of eventDays(event)) {
+      eventsByDate.get(day)?.push(event);
     }
   });
   return eventsByDate;
@@ -188,9 +175,9 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
       }
     : null;
 
-  const dayOfWeek = new Date(day).getDay();
+  const weekday = dayOfWeek(day);
   const dayStyle =
-    dayOfWeek == 1
+    weekday === 1
       ? ({
           borderTopWidth: 'thin',
           borderTopStyle: 'dashed',
@@ -215,7 +202,7 @@ const Row = ({ day, filters, events, style, ...rest }: RowProps) => {
       {...rest}
     >
       <td key="day" style={{ minWidth: '7em', fontWeight: 'bold' }}>
-        {day} {dayNames[dayOfWeek]}
+        {day} {dayNames[weekday]}
       </td>
       {matched.map((columnEvents, index) => (
         <td key={index}>

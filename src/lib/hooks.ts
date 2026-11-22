@@ -22,17 +22,25 @@ export function useEvents(): CalendarEvent[] | undefined {
   return useLiveQuery(eventsQuery);
 }
 
-export function useSelectedCalendarIds(): [string[], (ids: string[]) => void] {
-  const ids =
-    useLiveQuery(() =>
-      db.settings.get('selectedCalendars').then((v) => (v ? v.value : [])),
-    ) ?? [];
+const NO_IDS: string[] = [];
+
+/** [selected ids, setter, loaded]; ids are [] until the setting has loaded. */
+export function useSelectedCalendarIds(): [
+  string[],
+  (ids: string[]) => void,
+  boolean,
+] {
+  const ids = useLiveQuery(() =>
+    db.settings
+      .get('selectedCalendars')
+      .then((v) => asArray(v ? v.value : []) as string[]),
+  );
 
   const setIds = (newIds: string[]) => {
     db.settings.put({ id: 'selectedCalendars', value: newIds });
   };
 
-  return [asArray(ids) as string[], setIds];
+  return [ids ?? NO_IDS, setIds, ids !== undefined];
 }
 
 export function autoSelectCalendarIds(calendars: Calendar[]): string[] {

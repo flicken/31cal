@@ -1,6 +1,6 @@
 import { debug } from './log';
 import { parse, ParsedComponents } from 'chrono-node';
-import { DateTime } from 'luxon';
+import { DateTime, FixedOffsetZone } from 'luxon';
 
 import { CalendarEvent, StartEnd, StartEndDate } from '../models/types';
 
@@ -14,10 +14,11 @@ function dateTimeToGoogleTime(
     return { date: dateMaybeTime.toISODate()! };
   }
 
-  return {
-    dateTime: dateMaybeTime.toString(),
-    timeZone: dateMaybeTime.zoneName!,
-  };
+  // Google needs an IANA zone name; fixed offsets ("3pm EST") stay in the
+  // dateTime's offset only.
+  return dateMaybeTime.zone.type === 'iana'
+    ? { dateTime: dateMaybeTime.toISO()!, timeZone: dateMaybeTime.zoneName! }
+    : { dateTime: dateMaybeTime.toISO()! };
 }
 
 const dateTimeFromAll = (components: any) => {
@@ -37,7 +38,13 @@ const dateTimeFromAll = (components: any) => {
       'millisecond',
     ],
   );
-  return DateTime.fromObject(fields);
+  const offset = components.knownValues?.timezoneOffset;
+  return DateTime.fromObject(
+    fields,
+    typeof offset === 'number'
+      ? { zone: FixedOffsetZone.instance(offset) }
+      : {},
+  );
 };
 
 const toGoogleTime = (components: ParsedComponents): StartEnd | undefined => {
@@ -50,15 +57,20 @@ const toGoogleTime = (components: ParsedComponents): StartEnd | undefined => {
   } else if (components.isCertain('month') && components.isCertain('day')) {
     const kv: any = (components as any).knownValues;
     debug('kv', kv);
-    const date = DateTime.fromObject({
-      year: kv.year || (components as any).impliedValues.year,
-      month: kv.month,
-      day: kv.day,
-      hour: kv.hour,
-      minute: kv.minute,
-      second: kv.second,
-      millisecond: kv.millisecond,
-    });
+    const date = DateTime.fromObject(
+      {
+        year: kv.year || (components as any).impliedValues.year,
+        month: kv.month,
+        day: kv.day,
+        hour: kv.hour,
+        minute: kv.minute,
+        second: kv.second,
+        millisecond: kv.millisecond,
+      },
+      typeof kv.timezoneOffset === 'number'
+        ? { zone: FixedOffsetZone.instance(kv.timezoneOffset) }
+        : {},
+    );
     return dateTimeToGoogleTime(date, components);
   } else if (components.isCertain('hour')) {
     const date = dateTimeFromAll(components);
@@ -107,7 +119,15 @@ const parseInput = (
     // For example, an event on "Saturday", would have e.g.
     //    start: {date: "2023-05-27"}
     //    end:   {date: "2023-05-28"}
-    const end = maybeEnd && 'date' in maybeEnd ? addOneDay(maybeEnd) : maybeEnd;
+    let end = maybeEnd && 'date' in maybeEnd ? addOneDay(maybeEnd) : maybeEnd;
+    // "11pm-1am" ends the next day; Google rejects ends before starts.
+    if (start && end && 'dateTime' in start && 'dateTime' in end) {
+      const startDt = DateTime.fromISO(start.dateTime, { setZone: true });
+      let endDt = DateTime.fromISO(end.dateTime, { setZone: true });
+      while (endDt <= startDt && datetimes[0].end)
+        endDt = endDt.plus({ days: 1 });
+      end = { ...end, dateTime: endDt.toISO()! };
+    }
 
     return {
       summary: rest,

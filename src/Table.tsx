@@ -1,3 +1,4 @@
+import { eventDays } from './lib/events';
 import { debug } from './lib/log';
 import React, { useMemo } from 'react';
 import { useFilterState } from './lib/FilterStateContext';
@@ -112,18 +113,9 @@ function Table_({
     const flatRows = coreRows;
     const grouped: Record<string, typeof flatRows> = {};
     for (const row of flatRows) {
-      const start = row.original?.start?.ms
-        ? DateTime.fromMillis(row.original.start.ms)
-        : undefined;
-      const end = row.original?.end?.ms
-        ? DateTime.fromMillis(row.original.end.ms)
-        : undefined;
-      if (start && end) {
-        const keys = intersection(Array.from(days(start, end)), dates);
-        for (const key of keys) {
-          if (!grouped[key]) grouped[key] = [];
-          grouped[key].push(row);
-        }
+      if (!row.original) continue;
+      for (const key of intersection(eventDays(row.original), dates)) {
+        (grouped[key] ??= []).push(row);
       }
     }
     return grouped;

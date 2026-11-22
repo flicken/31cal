@@ -125,6 +125,8 @@ function parseStructured(text: string): ParsedSearch | null {
   if (startMatch) {
     if (startMatch[1] === 'now') {
       result.start = DateTime.now();
+    } else if (startMatch[1] === 'today') {
+      result.start = DateTime.now().startOf('day');
     } else {
       const dt = DateTime.fromISO(startMatch[1]);
       if (dt.isValid) result.start = dt;
@@ -184,7 +186,9 @@ export function toStructuredText(parsed: ParsedSearch): string {
   const parts: string[] = [];
   if (parsed.start) {
     const startStr = isToday(parsed.start)
-      ? 'now'
+      ? +parsed.start === +parsed.start.startOf('day')
+        ? 'today'
+        : 'now'
       : isStartOfMonth(parsed.start)
         ? formatYearMonth(parsed.start)
         : parsed.start.toISODate();

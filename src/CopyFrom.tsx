@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useCalendars, useEvents, useSelectedCalendarIds } from './lib/hooks';
-import { useFilterState } from './lib/FilterStateContext';
-import { asArray } from './utils';
+import { useFilterState, useSeedModFilters } from './lib/FilterStateContext';
 import { Calendar, CalendarEvent } from './models/types';
 import { keyBy, pick } from './lib/utils';
 import { userContext } from './userContext';
@@ -25,22 +24,12 @@ function CopyFrom() {
   const allEvents = useEvents();
   const user = React.useContext(userContext);
   const { ensureWriteAccess } = React.useContext(authContext);
-  const {
-    eventFilters,
-    modEventFilters: filters,
-    setModEventFilters: setFilters,
-  } = useFilterState();
-  const [selectedCalendarIds] = useSelectedCalendarIds();
+  const { modEventFilters: filters, setModEventFilters: setFilters } =
+    useFilterState();
+  const [selectedCalendarIds, , loaded] = useSelectedCalendarIds();
 
-  useEffect(() => {
-    // Start from the global filters each time the page opens.
-    setFilters((f) => ({
-      ...f,
-      ...eventFilters,
-      calendarIds: asArray(selectedCalendarIds),
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Start from the global filters each time the page opens.
+  useSeedModFilters(loaded ? selectedCalendarIds : undefined);
 
   const { events, regexError } = useMatchingEvents(allEvents ?? [], filters);
   const { isChecked, setChecked, toggleAll, selected, replace } =
