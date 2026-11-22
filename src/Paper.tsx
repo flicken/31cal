@@ -3,9 +3,9 @@ import { dayOfWeek, eventDays } from './lib/events';
 import { safeRegExp } from './lib/regex';
 import React from 'react';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
-import { DateTime, Interval } from 'luxon';
+import { DateTime } from 'luxon';
 
 import { useFilterState } from './lib/FilterStateContext';
 import {
@@ -13,7 +13,7 @@ import {
   usePaperColumns,
   useSelectedCalendarIds,
 } from './lib/hooks';
-import { asArray } from './utils';
+import { asArray } from './lib/utils';
 import { days } from './lib/utils';
 
 import {
@@ -22,8 +22,6 @@ import {
   StartEndDate,
   StartEndDateTime,
 } from './models/types';
-
-import { intersection } from './lib/utils';
 
 type TextFilterProps = React.JSX.IntrinsicElements['input'] & {
   filter: string;

@@ -8,7 +8,6 @@ import { DateTime } from 'luxon';
 
 import { useInterval } from 'usehooks-ts';
 
-import { UpdateState } from './models/types';
 import UpdateStatusIcon from './UpdateStatusIcon';
 import { authContext } from './authContext';
 

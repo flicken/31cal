@@ -9,7 +9,7 @@ import {
   latestUpdateByCalendar,
 } from './eventQueries';
 import { filterForFilters, FilterValues } from './filters';
-import { asArray } from '../utils';
+import { asArray } from './utils';
 
 export async function calendarsQuery(): Promise<Calendar[]> {
   return db.calendars.orderBy('summary').toArray();
@@ -104,7 +104,7 @@ export function useLatestUpdateByCalendar():
   );
 }
 
-export function useDefaultCalendarValues() {
+export function useDefaultCalendar() {
   const calendars = useCalendars();
   const defaultId = useLiveQuery(() =>
     db.settings.get('selectedCalendars').then((v) => {

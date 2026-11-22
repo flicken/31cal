@@ -4,7 +4,7 @@ import { Calendar, UpdateState } from './models/types';
 import { db } from './models/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import useDefaultCalendar from './lib/useDefaultCalendar';
+import { useDefaultCalendar } from './lib/hooks';
 
 import {
   useCalendars,
@@ -32,7 +32,8 @@ function sortKey(c: Calendar): string {
 }
 
 function Calendars() {
-  const [asOf, setAsOf] = React.useState(DateTime.now());
+  // Re-render every 30s so relative times stay current.
+  const [, setAsOf] = React.useState(DateTime.now());
   const defaultCalendar = useDefaultCalendar();
   const calList = useCalendars();
   const counts = useCountsByCalendar() ?? {};
@@ -41,8 +42,6 @@ function Calendars() {
     useSelectedCalendarIds();
   const updates = useLiveQuery(() => db.updateState.toArray());
   const updatesMap = keyBy(updates, 'resource');
-
-  const listUpdate = updatesMap['calendarList'];
 
   useInterval(() => {
     setAsOf(DateTime.now());
@@ -139,10 +138,6 @@ function UpdateStatus({ update }: { update?: UpdateState }) {
   }
 
   return <UpdateStatusIcon update={update} />;
-}
-
-function run<T>(f: () => T): T {
-  return f();
 }
 
 export default Calendars;

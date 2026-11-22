@@ -14,7 +14,7 @@ import { useFilterState, useSeedModFilters } from './lib/FilterStateContext';
 import { deleteEvents, EventPatch, patchEvents } from './google/writes';
 
 import { keyBy } from './lib/utils';
-import Filters2 from './Filters2';
+import BulkFilters from './BulkFilters';
 import { toast } from 'react-toastify';
 import JsonEditor from './JsonEditor';
 import { EventCheckList } from './EventCheckList';
@@ -45,7 +45,7 @@ function editableJson(event: CalendarEvent) {
   READ_ONLY_FIELDS.forEach((f) => delete copy[f]);
   for (const k of ['start', 'end']) {
     if (copy[k]) {
-      const { ms, ...rest } = copy[k];
+      const { ms: _ms, ...rest } = copy[k];
       copy[k] = rest;
     }
   }
@@ -154,7 +154,7 @@ function ModMany() {
 
   return (
     <div>
-      <Filters2 {...{ setFilters, filters }} />
+      <BulkFilters {...{ setFilters, filters }} />
       {regexError && (
         <div role="alert" style={{ color: '#a00' }}>
           Search is not a valid pattern ({regexError}); matching it as plain

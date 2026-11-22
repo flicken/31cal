@@ -1,5 +1,5 @@
 import { useEmptyState } from './EmptyState';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
 import {
@@ -7,7 +7,7 @@ import {
   useFilteredEvents,
   useSelectedCalendarIds,
 } from './lib/hooks';
-import { asArray } from './utils';
+import { asArray } from './lib/utils';
 
 import { useScheduleList } from './lib/useScheduleList';
 import { useSetting } from './lib/settings';

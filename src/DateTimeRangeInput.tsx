@@ -1,5 +1,5 @@
 import { debug } from './lib/log';
-import React, { useState } from 'react';
+import React from 'react';
 
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';

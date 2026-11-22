@@ -1,19 +1,13 @@
+import { CalendarEvent } from './models/types';
 import { useEmptyState } from './EmptyState';
 import React, { useMemo } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
-import { asArray } from './utils';
+import { asArray } from './lib/utils';
 
-import { db } from './models/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-
-import useDefaultCalendar from './lib/useDefaultCalendar';
-import { useScheduleList, eventSchedules } from './lib/useScheduleList';
-import { useSetting } from './lib/settings';
 import EventList from './EventList';
 
-import { DateTime } from 'luxon';
 import { ViewAttachment } from './ViewAttachment';
 
 function Attachments() {
@@ -29,15 +23,15 @@ function Attachments() {
   const empty = useEmptyState(events, filters.calendarIds);
   if (empty || !events) return empty;
   const eventsWithAttachments = events.filter((e) => e.attachments);
-  const attachmentUrl2Events = new Map();
+  const attachmentUrl2Events = new Map<string, CalendarEvent[]>();
   eventsWithAttachments.forEach((e) => {
     (e.attachments ?? []).forEach((a) => {
-      let events = attachmentUrl2Events.get(a.fileUrl);
-      if (!events) {
-        events = [];
-        attachmentUrl2Events.set(a.fileUrl, events);
+      let forUrl = attachmentUrl2Events.get(a.fileUrl);
+      if (!forUrl) {
+        forUrl = [];
+        attachmentUrl2Events.set(a.fileUrl, forUrl);
       }
-      events.push(e);
+      forUrl.push(e);
     });
   });
 
@@ -48,10 +42,10 @@ function Attachments() {
         {eventsWithAttachments.length} events.
       </div>
       <div>
-        {Array.from(attachmentUrl2Events).map(([attachmentUrl, events]) => (
+        {Array.from(attachmentUrl2Events).map(([attachmentUrl, forUrl]) => (
           <div key={attachmentUrl} className="two-column">
             <div>
-              <EventList events={events} />
+              <EventList events={forUrl} />
             </div>
             <div>
               <ViewAttachment

@@ -3,7 +3,12 @@ import { parse, ParsedComponents } from 'chrono-node';
 import { DateTime } from 'luxon';
 import { componentsToDateTime } from './chrono';
 
-import { CalendarEvent, StartEnd, StartEndDate } from '../models/types';
+import {
+  CalendarEvent,
+  isStartEndDate,
+  StartEnd,
+  StartEndDate,
+} from '../models/types';
 
 function dateTimeToGoogleTime(
   dateMaybeTime: DateTime,
@@ -34,10 +39,6 @@ const toGoogleTime = (components: ParsedComponents): StartEnd | undefined => {
 
   return undefined;
 };
-
-function isStartEndDate(value: StartEnd): value is StartEndDate {
-  return Object.prototype.hasOwnProperty.call(value, 'date');
-}
 
 const toReferenceDatetime = (startEnd: StartEnd) => {
   if (!startEnd) return new Date();

@@ -75,9 +75,9 @@ export function useSortableList(options: UseSortableListOptions = {}) {
           return closest;
         };
 
-        const onMove = (e: PointerEvent) => {
-          const dx = e.clientX - startX;
-          const dy = e.clientY - startY;
+        const onMove = (move: PointerEvent) => {
+          const dx = move.clientX - startX;
+          const dy = move.clientY - startY;
 
           if (!dragging) {
             if (Math.hypot(dx, dy) < threshold) return;

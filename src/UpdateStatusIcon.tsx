@@ -3,7 +3,7 @@ import React from 'react';
 import Error from './assets/error.svg';
 import Loading from './assets/loading.svg';
 import Ok from './assets/ok.svg';
-import { toRelativeDate } from './utils';
+import { toRelativeDate } from './lib/utils';
 import { UpdateState } from './models/types';
 
 export default function UpdateStatusIcon({

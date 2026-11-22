@@ -10,11 +10,11 @@ import { Calendar, CalendarEvent } from './models/types';
 import { keyBy, pick } from './lib/utils';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
-import Filters2 from './Filters2';
+import BulkFilters from './BulkFilters';
 import { EventCheckList } from './EventCheckList';
 import Calendars from './Calendars';
 import { saveEvents } from './google/writes';
-import useDefaultCalendar from './lib/useDefaultCalendar';
+import { useDefaultCalendar } from './lib/hooks';
 import { useEventSelection, useMatchingEvents } from './lib/useEventSelection';
 import { toast } from 'react-toastify';
 
@@ -130,7 +130,7 @@ function CopyFrom() {
 
   return (
     <div>
-      <Filters2 {...{ setFilters, filters }} />
+      <BulkFilters {...{ setFilters, filters }} />
       {regexError && (
         <div role="alert" style={{ color: '#a00' }}>
           Search is not a valid pattern ({regexError}); matching it as plain

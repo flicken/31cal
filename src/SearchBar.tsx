@@ -1,23 +1,16 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { DateTime } from 'luxon';
 import { useOnClickOutside } from 'usehooks-ts';
-import { useFilterState } from './lib/FilterStateContext';
+import {
+  DEFAULT_RANGE,
+  defaultEventFilters,
+  useFilterState,
+} from './lib/FilterStateContext';
 import {
   parseSearchText,
   toStructuredText,
   formatDate,
   ParsedSearch,
 } from './lib/searchTextParser';
-
-const DEFAULT_RANGE_TEXT = 'now to end of next month';
-
-function defaultFilters() {
-  return {
-    start: DateTime.now(),
-    end: DateTime.now().plus({ months: 1 }).endOf('month'),
-    updatedSince: undefined as DateTime | undefined,
-  };
-}
 
 export default function SearchBar() {
   const { eventFilters: filters, setEventFilters: setFilters } =
@@ -78,14 +71,14 @@ export default function SearchBar() {
   }, [inputText, applyFilters, setFilters]);
 
   const clearFilters = useCallback(() => {
-    const defaults = defaultFilters();
-    setInputText(DEFAULT_RANGE_TEXT);
-    setParsed(defaults);
+    const { start, end, rangeText } = defaultEventFilters();
+    setInputText(rangeText);
+    setParsed({ start, end, updatedSince: undefined });
     setFilters((f) => ({
       ...f,
-      start: defaults.start,
-      end: defaults.end,
-      rangeText: DEFAULT_RANGE_TEXT,
+      start,
+      end,
+      rangeText,
       updatedSince: undefined,
       updatedSinceText: undefined,
     }));
@@ -148,7 +141,7 @@ export default function SearchBar() {
             minWidth: 0,
           }}
         />
-        {inputText && inputText !== DEFAULT_RANGE_TEXT && (
+        {inputText && inputText !== DEFAULT_RANGE && (
           <button
             onClick={clearFilters}
             title="Reset to default"

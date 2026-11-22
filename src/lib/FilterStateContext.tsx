@@ -33,9 +33,9 @@ type FilterState = {
 
 const FilterStateContext = createContext<FilterState | null>(null);
 
-const DEFAULT_RANGE = 'now to end of next month';
+export const DEFAULT_RANGE = 'now to end of next month';
 
-const defaultEventFilters = (): EventFilters => ({
+export const defaultEventFilters = (): EventFilters => ({
   rangeText: DEFAULT_RANGE,
   start: DateTime.now(),
   end: DateTime.now().plus({ months: 1 }).endOf('month'),

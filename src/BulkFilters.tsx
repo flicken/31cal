@@ -6,10 +6,10 @@ import DateTimeInput from './DateTimeInput';
 
 import { useCalendars } from './lib/hooks';
 import { Calendar } from './models/types';
-import { notEmpty } from './utils';
+import { notEmpty } from './lib/utils';
 import { FilterValues, FilterInputs } from './lib/filters';
 
-function Filters2({
+function BulkFilters({
   filters,
   setFilters,
 }: {
@@ -91,4 +91,4 @@ function Filters2({
   );
 }
 
-export default Filters2;
+export default BulkFilters;

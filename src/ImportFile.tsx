@@ -4,7 +4,7 @@ import { Link } from 'wouter';
 import { toast } from 'react-toastify';
 
 import { saveEvents } from './google/writes';
-import useDefaultCalendar from './lib/useDefaultCalendar';
+import { useDefaultCalendar } from './lib/hooks';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 import { ViewStartAndEnd } from './ViewStartAndEnd';

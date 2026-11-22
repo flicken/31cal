@@ -8,7 +8,7 @@ import parseEvent from './lib/parseEvent';
 import EventList from './EventList';
 
 import { isEmpty } from './lib/utils';
-import useDefaultCalendar from './lib/useDefaultCalendar';
+import { useDefaultCalendar } from './lib/hooks';
 
 import { saveEvents } from './google/writes';
 import { Link } from 'wouter';

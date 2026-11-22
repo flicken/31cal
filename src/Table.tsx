@@ -2,11 +2,10 @@ import { useEmptyState } from './EmptyState';
 import { CalendarEvent } from './models/types';
 import { FilterValues } from './lib/filters';
 import { eventDays } from './lib/events';
-import { debug } from './lib/log';
 import React, { useMemo } from 'react';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
-import { asArray } from './utils';
+import { asArray } from './lib/utils';
 import {
   useTable,
   tableFeatures,
@@ -235,7 +234,7 @@ function Table_({
           ))}
         </thead>
         <tbody>
-          {displayRows.map((item, i) => {
+          {displayRows.map((item) => {
             if (item.type === 'group') {
               return (
                 <tr key={`group-${item.date}`}>

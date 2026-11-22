@@ -1,6 +1,7 @@
 import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
-import { pick, isEmpty } from './utils';
+import { isEmpty } from './utils';
+import { componentsToDateTime } from './chrono';
 
 export type ParsedSearch = {
   start?: DateTime;
@@ -8,28 +9,11 @@ export type ParsedSearch = {
   updatedSince?: DateTime;
 };
 
-const dateTimeFromAll = (components: any) => {
-  if (!components) return undefined;
-  const fields = pick(
-    { ...components.knownValues, ...components.impliedValues },
-    [
-      'year',
-      'month',
-      'day',
-      'ordinal',
-      'weekYear',
-      'weekNumber',
-      'weekday',
-      'hour',
-      'minute',
-      'second',
-      'millisecond',
-    ],
-  );
-  const date = DateTime.fromObject(fields);
+/** A date from chrono; a month/day without a year more than 2 months ago means next year. */
+const dateTimeFromAll = (components: ParsedComponents) => {
+  const date = componentsToDateTime(components);
   if (!components.isCertain('year') && date.diffNow().as('months') < -2) {
-    fields.year += 1;
-    return DateTime.fromObject(fields);
+    return date.plus({ years: 1 });
   }
   return date;
 };

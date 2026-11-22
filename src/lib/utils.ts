@@ -85,3 +85,18 @@ export function* days(
     cursor = cursor.plus({ days: 1 });
   }
 }
+
+/** Short relative time, e.g. "3 min. ago" (narrow style). */
+export function toRelativeDate(d: number | DateTime): string | null {
+  if (!d) return null;
+  const date = typeof d === 'number' ? DateTime.fromMillis(d) : d;
+  return date.toRelative({ style: 'narrow' });
+}
+
+export function notEmpty<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
+}
+
+export function asArray<T>(v: T | T[]): T[] {
+  return Array.isArray(v) ? v : [v];
+}

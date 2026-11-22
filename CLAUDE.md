@@ -14,7 +14,7 @@
 | Local DB            | Dexie 4 (IndexedDB)                                                                      |
 | Date/time           | Luxon + chrono-node (NLP date parsing)                                                   |
 | Tables              | @tanstack/react-table                                                                    |
-| Google OAuth        | @react-oauth/google + gapi (loaded at runtime)                                           |
+| Google OAuth / API  | @react-oauth/google (GIS token client); Calendar REST via `fetch` (no gapi)              |
 | CSV import          | papaparse                                                                                |
 | Toasts              | react-toastify                                                                           |
 | Syntax highlighting | prismjs + codejar                                                                        |
@@ -68,10 +68,14 @@ src/
     useSync.ts              # Hook: polls on interval, auto-selects calendars, marks unselected disabled
     writes.tsx              # saveEvents/patchEvents/deleteEvents via runBatch (retry, progress toast, results)
     googleErrors.ts         # callGoogle(): retry/backoff; auth errors fire AUTH_EXPIRED_EVENT
-    ensureClient.ts         # Loads gapi client
+    calendarClient.ts       # Typed fetch client for Calendar v3 (Bearer token); setCalendarApiProvider() test seam
+    calendarTypes.ts        # Hand-written types for the Calendar API subset we use
+    undo.ts                 # Snapshot + undo payloads for bulk patch/delete
 
   lib/
-    hooks.ts                # Dexie useLiveQuery hooks (useEvents, useCalendars, etc.)
+    hooks.ts                # Dexie useLiveQuery hooks (useFilteredEvents, useCalendars, useDefaultCalendar, …)
+    eventQueries.ts         # Indexed range queries, per-calendar counts / latest update
+    chrono.ts               # componentsToDateTime(): chrono components → Luxon
     filters.ts              # FilterValues type + filterForFilters()
     FilterStateContext.tsx  # Global filter state context
     dispatcher.ts           # Custom DOM event bus (on/off/trigger)
@@ -84,12 +88,14 @@ src/
     parseEvent.ts           # chrono-node NLP → Google Calendar StartEnd objects
     settings.tsx            # SettingsProvider + useSetting hook (DB-backed)
     useScheduleList.ts      # Schedule-related logic
-    utils.ts                # General helpers
+    utils.ts                # General helpers (asArray, notEmpty, toRelativeDate, days, …)
 
   useGoogleButton.tsx       # OAuth login flow, token refresh, read/write scopes
   authContext.ts            # isLoggedIn / hasWriteAccess / ensureWriteAccess context
 
   # Feature views (several are React.lazy):
+  EmptyState.tsx            # useEmptyState(): signed out / loading / no calendars / syncing / empty range
+  BulkFilters.tsx           # Filter panel shared by ModMany and CopyFrom
   BulkEntry.tsx             # Bulk create events with NLP date entry
   CopyFrom.tsx              # Copy events from one calendar to another
   Events.tsx                # Event list with filters
@@ -107,8 +113,9 @@ src/
 ### Data layer (Dexie / IndexedDB)
 
 - Single `DB` class in `src/models/db.ts` with versioned schema migrations.
-- Four tables: `calendars`, `events`, `updateState`, `settings`.
-- Events are keyed on `[id+calendarId]` (composite) and indexed on `calendarId`, `[calendarId+start.ms]`, `[start.ms+end.ms]`, `*_schedules` (multi-entry).
+- Five tables: `calendars`, `events`, `updateState`, `settings`, `calendarStats` (longest event per calendar).
+- Events are keyed on `[id+calendarId]` (composite) and indexed on `calendarId`, `[calendarId+start.ms]`, `[calendarId+status]`, `[calendarId+updated]`, `[start.ms+end.ms]`, `*_schedules` (multi-entry).
+- Views never load the whole table: `eventsInRange()` reads `[calendarId+start.ms]` from `start − max(longest event, 7 days)` to `end`.
 - `start.ms` / `end.ms` are milliseconds added at fetch time for efficient range queries.
 - `db` is exposed as `globalThis.db` in dev builds only.
 - The cache belongs to one Google account (`31cal:dataOwner` in localStorage); `clearLocalData()` runs on sign-out and on account change.
@@ -117,7 +124,7 @@ src/
 
 1. `useSync` (called from `StatusBar` in `Nav.tsx`) polls on a 5-minute interval and when the calendar selection changes.
 2. It syncs `calendarList` first (removed calendars are deleted with their events); if no `selectedCalendars` setting exists, auto-selects primary + `selected` calendars.
-3. Then syncs events for each selected calendar via `syncResource`: pages are stored as they arrive, the sync token is saved after the last page, a 410 triggers a full sync that purges rows Google no longer returns, and cancelled instances without start/end update the existing row.
+3. Then syncs events for each selected calendar via `syncResource`. A full sync (first time or after 410) first fetches a recent window (1 month back to 6 months ahead) so views fill fast, then backfills all history (`updateState.backfilling`); pages are stored as they arrive, the sync token is saved after the last page, a 410 triggers a full sync that purges rows Google no longer returns, and cancelled instances without start/end update the existing row.
 4. Sync state per `[account, resource]` is stored in `updateState`. Errors are recorded there; 401s (and scope 403s) fire `AUTH_EXPIRED_EVENT` so `useGoogleButton` re-authenticates.
 
 ### Contexts
@@ -144,7 +151,7 @@ src/
 
 ### Write access
 
-Write operations (save/patch/delete) require `EVENTS_READWRITE` scope. The app starts with read-only scope; every write starts with `if (!(await ensureWriteAccess())) return;` called directly from the click handler (so the popup isn't blocked). It resolves false if the user declines or closes the popup. All writes go through `google/writes.tsx`; destructive bulk actions confirm first.
+Write operations (save/patch/delete) require `EVENTS_READWRITE` scope. The app starts with read-only scope; every write starts with `if (!(await ensureWriteAccess())) return;` called directly from the click handler (so the popup isn't blocked). It resolves false if the user declines or closes the popup. All writes go through `google/writes.tsx`; destructive bulk actions confirm first, and bulk patch/delete toasts offer Undo.
 
 ## Testing
 

@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents } from './lib/hooks';
 import { useSelectedCalendarIds } from './lib/hooks';
-import { asArray } from './utils';
+import { asArray } from './lib/utils';
 
 import EventList from './EventList';
 

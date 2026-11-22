@@ -71,8 +71,7 @@ function CompactMultiValue(props: MultiValueProps<Calendar, true>) {
 
 const colorStyles: StylesConfig<Calendar, true> = {
   control: (styles) => ({ ...styles, backgroundColor: 'white' }),
-  option: (styles, { data, isDisabled, isFocused, isSelected }) => {
-    const color = data.foregroundColor;
+  option: (styles, { data, isDisabled, isFocused }) => {
     return {
       ...styles,
       backgroundColor: data.backgroundColor,
@@ -91,7 +90,6 @@ const colorStyles: StylesConfig<Calendar, true> = {
     };
   },
   multiValue: (styles, { data }) => {
-    const color = data.foregroundColor;
     return {
       ...styles,
       color: data.foregroundColor,
