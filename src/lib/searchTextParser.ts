@@ -2,6 +2,7 @@ import { DateTime, DateTimeUnit } from 'luxon';
 import { parse, ParsedComponents } from 'chrono-node';
 import { isEmpty } from './utils';
 import { componentsToDateTime } from './chrono';
+import { nextUnits, pastUnits, unitRange } from './dateRange';
 
 export type ParsedSearch = {
   start?: DateTime;
@@ -53,16 +54,59 @@ const dateTimeFrom = (
   }
 };
 
+const UNIT_WORDS: Record<string, 'days' | 'weeks' | 'months' | 'years'> = {
+  day: 'days',
+  days: 'days',
+  week: 'weeks',
+  weeks: 'weeks',
+  month: 'months',
+  months: 'months',
+  year: 'years',
+  years: 'years',
+};
+
+/**
+ * Relative ranges chrono reads as a single day: "this week", "next month",
+ * "last year", "next 7 days", "past 2 weeks". Weeks follow the locale.
+ */
+export function parseRelativeRange(
+  text: string,
+  now = DateTime.now(),
+): { start: DateTime; end: DateTime } | undefined {
+  const t = text.trim().toLowerCase().replace(/\s+/g, ' ');
+  let m = t.match(/^(this|current|next|last|previous) (day|week|month|year)$/);
+  if (m) {
+    const offset =
+      m[1] === 'next' ? 1 : m[1] === 'last' || m[1] === 'previous' ? -1 : 0;
+    return unitRange(now, m[2] as DateTimeUnit, offset);
+  }
+  m = t.match(
+    /^(?:the )?(next|coming|last|past|previous) (\d+) (days?|weeks?|months?|years?)$/,
+  );
+  if (m) {
+    const count = parseInt(m[2], 10);
+    const unit = UNIT_WORDS[m[3]];
+    return m[1] === 'next' || m[1] === 'coming'
+      ? nextUnits(now, count, unit)
+      : pastUnits(now, count, unit);
+  }
+  return undefined;
+}
+
 function parseRange(text: string): { start?: DateTime; end?: DateTime } {
   if (isEmpty(text)) {
     return {};
   }
+  const relative = parseRelativeRange(text);
+  if (relative) return relative;
   if (text.match(/^[0-9]{4}$/)) {
     const start = DateTime.local(parseInt(text));
     return { start, end: start.endOf('year') };
   }
 
-  const datetimes = parse(text, new Date(), { forwardDate: true });
+  const datetimes = parse(text, DateTime.now().toJSDate(), {
+    forwardDate: true,
+  });
   if (datetimes[0]) {
     const start = dateTimeFrom(true, datetimes[0].start, text);
     const end = dateTimeFrom(
@@ -90,7 +134,9 @@ function parseRange(text: string): { start?: DateTime; end?: DateTime } {
 
 function parseSingleDate(text: string): DateTime | undefined {
   if (isEmpty(text)) return undefined;
-  const datetimes = parse(text, new Date(), { forwardDate: false });
+  const datetimes = parse(text, DateTime.now().toJSDate(), {
+    forwardDate: false,
+  });
   if (datetimes[0]) {
     return dateTimeFrom(true, datetimes[0].start, text);
   }

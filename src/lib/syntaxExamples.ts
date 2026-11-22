@@ -9,7 +9,11 @@ const year = new Date().getFullYear();
 export const SEARCH_EXAMPLES = [
   'today',
   'this week',
+  'next week',
+  'next 7 days',
   'this month',
+  'next 3 months',
+  'past 30 days',
   'march',
   'january to march',
   'until end of next month',
