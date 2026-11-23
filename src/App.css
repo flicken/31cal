@@ -473,6 +473,9 @@ textarea.autosize {
   border-radius: 3px;
   cursor: grab;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   border-left: 3px solid transparent;
   border-right: 3px solid transparent;
 }
@@ -503,6 +506,21 @@ textarea.autosize {
 }
 .ms-chip-remove:hover {
   outline: 1px solid currentColor;
+}
+/* Bigger hit area than the visible ×, so a fingertip lands on it instead of
+   on the chip (which would start a drag). */
+.ms-chip-remove {
+  position: relative;
+}
+.ms-chip-remove::after {
+  content: '';
+  position: absolute;
+  inset: -6px -4px;
+}
+@media (pointer: coarse) {
+  .ms-chip-remove::after {
+    inset: -12px -10px -12px -6px;
+  }
 }
 .ms-clear {
   color: #666;
