@@ -1,63 +1,77 @@
-import React, { useRef, useEffect, useLayoutEffect, useCallback } from 'react';
-import { CodeJar } from 'codejar';
-import Prism from 'prismjs';
-import 'prismjs/components/prism-json';
-import 'prismjs/themes/prism.css';
+import React, { useId, useMemo, useRef } from 'react';
 
 interface JsonEditorProps {
   value: string;
   onChange: (value: string) => void;
 }
 
+/** Validation message for the editor ("" when valid). */
+export function jsonError(text: string): string {
+  try {
+    JSON.parse(text);
+    return '';
+  } catch (e) {
+    return e instanceof Error ? e.message : String(e);
+  }
+}
+
+/**
+ * Plain monospace JSON editor with live validation. Tab inserts two spaces;
+ * press Escape first to move focus out with Tab (so the keyboard isn't trapped).
+ */
 export default function JsonEditor({ value, onChange }: JsonEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const jarRef = useRef<ReturnType<typeof CodeJar> | null>(null);
-  const onChangeRef = useRef(onChange);
-  useLayoutEffect(() => {
-    onChangeRef.current = onChange;
-  });
+  const helpId = useId();
+  const statusId = useId();
+  const tabMovesFocus = useRef(false);
+  const error = useMemo(() => jsonError(value), [value]);
 
-  const highlight = useCallback((el: HTMLElement) => {
-    el.textContent = el.textContent ?? '';
-    Prism.highlightElement(el);
-  }, []);
-
-  useEffect(() => {
-    if (!editorRef.current) return;
-
-    const jar = CodeJar(editorRef.current, highlight, { tab: '  ' });
-    jar.updateCode(value);
-    jar.onUpdate((code) => onChangeRef.current(code));
-    jarRef.current = jar;
-
-    return () => {
-      jar.destroy();
-      jarRef.current = null;
-    };
-    // Create the editor once; later value changes go through updateCode below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (jarRef.current && jarRef.current.toString() !== value) {
-      jarRef.current.updateCode(value);
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape') {
+      tabMovesFocus.current = true;
+      return;
     }
-  }, [value]);
+    if (e.key !== 'Tab' || e.shiftKey || tabMovesFocus.current) return;
+    e.preventDefault();
+    // execCommand keeps the browser's undo history; fall back if unsupported.
+    if (!document.execCommand?.('insertText', false, '  ')) {
+      e.currentTarget.setRangeText(
+        '  ',
+        e.currentTarget.selectionStart,
+        e.currentTarget.selectionEnd,
+        'end',
+      );
+      onChange(e.currentTarget.value);
+    }
+  };
 
   return (
-    <div
-      ref={editorRef}
-      className="language-json"
-      style={{
-        fontFamily: 'monospace',
-        fontSize: 14,
-        padding: 10,
-        border: '1px solid #ccc',
-        borderRadius: 4,
-        minHeight: 200,
-        whiteSpace: 'pre-wrap',
-        overflowY: 'auto',
-      }}
-    />
+    <div>
+      <textarea
+        className="json-editor"
+        aria-label="Event JSON"
+        aria-describedby={`${helpId} ${statusId}`}
+        aria-invalid={!!error}
+        spellCheck={false}
+        autoCapitalize="off"
+        autoCorrect="off"
+        rows={14}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+        onFocus={() => {
+          tabMovesFocus.current = false;
+        }}
+      />
+      <div id={helpId} className="json-editor-help">
+        Tab indents; press Esc then Tab to leave the editor.
+      </div>
+      <div
+        id={statusId}
+        role="status"
+        className={error ? 'json-editor-error' : 'json-editor-ok'}
+      >
+        {error ? `Not valid JSON: ${error}` : 'Valid JSON'}
+      </div>
+    </div>
   );
 }

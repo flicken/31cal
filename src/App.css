@@ -410,3 +410,29 @@ textarea.autosize {
 .dropzone-reject {
   border-color: #d50000;
 }
+
+.json-editor {
+  display: block;
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 14px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+.json-editor[aria-invalid='true'] {
+  border-color: #c00;
+}
+.json-editor-help {
+  font-size: smaller;
+  color: #555;
+}
+.json-editor-error {
+  color: #a00;
+}
+.json-editor-ok {
+  color: #1b5e20;
+}
