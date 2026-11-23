@@ -7,18 +7,19 @@ sync.
 
 ## Views and tools
 
-| Route          | What it does                                                                                         |
-| -------------- | ---------------------------------------------------------------------------------------------------- |
-| `/events`      | All events on one page with descriptions and attachments (easy to search with Ctrl-F)                |
-| `/paper`       | Multi-column "paper calendar": one row per day, one column per keyword filter                        |
-| `/table`       | Spreadsheet-style table grouped by day, with multi-select delete                                     |
-| `/schedule`    | Events tagged with a 31cal schedule (shared extended property `31cal/<name>`)                        |
-| `/bulk`        | Create many events at once from natural-language lines ("Saturday 3pm rehearsal")                    |
-| `/import`      | Import a CSV (Google Calendar columns) with a preview before anything is saved                       |
-| `/mod`         | Find events in a period, then rename (search/replace), delete, or apply JSON changes to all of them  |
-| `/copy`        | Copy events from one calendar to another, with an optional prefix; already-copied events are skipped |
-| `/attachments` | View the attachments of events in range (Drive/Docs previews)                                        |
-| `/status`      | Which calendars are synced, event counts and sync errors                                             |
+| Route          | What it does                                                                                                                                                                      |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/events`      | All events on one page with descriptions and attachments (easy to search with Ctrl-F)                                                                                             |
+| `/paper`       | Multi-column "paper calendar": one row per day, one column per keyword filter                                                                                                     |
+| `/table`       | Spreadsheet-style table grouped by day, with multi-select delete                                                                                                                  |
+| `/schedule`    | Events tagged with a 31cal schedule (shared extended property `31cal/<name>`)                                                                                                     |
+| `/bulk`        | Create many events at once from natural-language lines ("Saturday 3pm rehearsal")                                                                                                 |
+| `/import`      | Import a CSV (Google Calendar columns) with a preview before anything is saved                                                                                                    |
+| `/pipeline`    | **Experimental.** Bulk edit in one place: filter (kept in the URL), pick events, choose Rename / Delete / Copy / Edit JSON, review a before → after preview, then run (with Undo) |
+| `/mod`         | Find events in a period, then rename (search/replace), delete, or apply JSON changes to all of them                                                                               |
+| `/copy`        | Copy events from one calendar to another, with an optional prefix; already-copied events are skipped                                                                              |
+| `/attachments` | View the attachments of events in range (Drive/Docs previews)                                                                                                                     |
+| `/status`      | Which calendars are synced, event counts and sync errors                                                                                                                          |
 
 The search bar at the top accepts ranges such as `now to end of next month`,
 `march`, `next week`, `updated since yesterday`, or the structured form

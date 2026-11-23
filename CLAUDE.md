@@ -113,6 +113,17 @@ src/
   Events.tsx                # Event list with filters
   ImportFile.tsx            # Drag-and-drop CSV import
   ModMany.tsx               # Bulk modify/delete events
+  Pipeline.tsx              # /pipeline (experimental): Filter → Select → Act → Preview → Run
+  pipeline/
+    filters.ts              # Condition types, compile()/matches(), URL round-trip, chip text
+    selection.ts            # Selection = default (all/none) + exceptions; ranges, groups, counts
+    actions.ts              # Action registry (Rename, Delete, Copy, Edit JSON): pure plan() → Change[]
+    query.ts                # queryPipelineEvents()/usePipelineEvents(): indexed range query + conditions
+    run.ts                  # Group a plan's changes into writes.tsx calls; failed source keys
+    ConditionChips.tsx      # Filter chips + editors + "Add filter" menu
+    ResultsList.tsx         # Day-grouped selectable rows (shift-click ranges)
+    ActionForms.tsx         # One small form per action
+    Preview.tsx             # Before → after table with warnings and per-row skip (cards on phones)
   Paper.tsx                 # Multi-column paper calendar view
   Schedule.tsx              # Schedule/agenda view
   Attachments.tsx           # View file attachments on events
@@ -159,6 +170,18 @@ src/
 ### Routing
 
 `wouter` with `Switch`/`Route`. Routes are defined in `ROUTES` array in `Nav.tsx`. All views are imported statically and the build is **one JS bundle by design** (`build.rolldownOptions.output.inlineDynamicImports` in `vite.config.mts`): Cloudflare Pages serves only the latest deployment's files, so a tab opened before a deploy must never need a chunk from its own build later. Don't add `React.lazy` or dynamic `import()`. `public/reload-on-fail.js` (unhashed, `no-cache`, loaded by `index.html` before the bundle) covers a deploy landing mid-load: if an `/assets/` script/stylesheet fails or the bundle never sets `window.__31calBooted` within 10 s, it reloads once (sessionStorage guard: not again within 60 s). `lib/newVersion` still handles Dexie `versionchange`/`blocked` (a newer tab upgrading the DB schema) and keeps the `vite:preloadError` reload as a safety net.
+
+### Bulk-edit pipeline (`/pipeline`, experimental)
+
+A single page for bulk work, meant to replace ModMany and CopyFrom (they will become aliases with a default action):
+
+1. **Filter**: a list of `Condition`s ANDed together (`pipeline/filters.ts`). The filter is the URL (`?dates=next+month&summary=soccer&cal=a,b`), so it survives reloads and other views can link to it. Dates and calendars also narrow the IndexedDB query (`eventsInRange`); no `cal` means the top-bar selection.
+2. **Select**: `{ mode: 'all' | 'none', exceptions }` (starts as all). Exceptions persist across filter changes; counts only include matching events.
+3. **Act**: an action's pure `plan(events, params, ctx)` returns one `Change` per event (before/after, warnings, `blocked` reason). Adding an action = a plan function + a form in `ActionForms.tsx`.
+4. **Preview** always shows before anything is written; rows can be skipped; blocked rows can't run.
+5. **Run** groups changes into `patchEvents`/`deleteEvents`/`saveEvents` (progress, summary, Undo); failed rows stay selected.
+
+Repeating events and guests only produce warnings for now (series editing and guest notification are planned).
 
 ### Write access
 
