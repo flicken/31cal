@@ -6,22 +6,20 @@
 
 ## Tech stack
 
-| Concern             | Library                                                                                  |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| Framework           | React 19                                                                                 |
-| Build tool          | Vite 8                                                                                   |
-| Router              | wouter                                                                                   |
-| Local DB            | Dexie 4 (IndexedDB)                                                                      |
-| Date/time           | Luxon + chrono-node (NLP date parsing)                                                   |
-| Tables              | @tanstack/react-table                                                                    |
-| Google OAuth / API  | @react-oauth/google (GIS token client); Calendar REST via `fetch` (no gapi)              |
-| CSV import          | papaparse                                                                                |
-| Toasts              | react-toastify                                                                           |
-| Syntax highlighting | prismjs + codejar                                                                        |
-| Testing             | vitest + happy-dom + fake-indexeddb                                                      |
-| Linting/formatting  | oxlint (typescript-eslint can't run on TS 7) + Prettier (lint-staged + husky pre-commit) |
-| Package manager     | **pnpm** 12 (`packageManager`); Node 26 LTS (`.node-version`)                            |
-| TypeScript          | 7 (native `tsc`, no JS compiler API)                                                     |
+| Concern            | Library                                                                                  |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Framework          | React 19                                                                                 |
+| Build tool         | Vite 8                                                                                   |
+| Router             | wouter                                                                                   |
+| Local DB           | Dexie 4 (IndexedDB)                                                                      |
+| Date/time          | Luxon + chrono-node (NLP date parsing)                                                   |
+| Google OAuth / API | @react-oauth/google (GIS token client); Calendar REST via `fetch` (no gapi)              |
+| CSV import         | papaparse                                                                                |
+| Toasts             | react-toastify (`/unstyled` entry + its CSS file; no runtime `<style>`)                  |
+| Testing            | vitest + happy-dom + fake-indexeddb                                                      |
+| Linting/formatting | oxlint (typescript-eslint can't run on TS 7) + Prettier (lint-staged + husky pre-commit) |
+| Package manager    | **pnpm** 12 (`packageManager`); Node 26 LTS (`.node-version`)                            |
+| TypeScript         | 7 (native `tsc`, no JS compiler API)                                                     |
 
 ## Commands
 
@@ -93,14 +91,18 @@ src/
     settings.tsx            # SettingsProvider + useSetting hook (DB-backed)
     useScheduleList.ts      # Schedule-related logic
     utils.ts                # General helpers (asArray, notEmpty, toRelativeDate, days, …)
+    reactHooks.ts           # useInterval, useLocalStorage, useMediaQuery, useOnClickOutside (vendored; no usehooks-ts)
 
   useGoogleButton.tsx       # OAuth login flow, token refresh, read/write scopes
   authContext.ts            # isLoggedIn / hasWriteAccess / ensureWriteAccess context
 
   # Feature views (all statically imported; single bundle):
   EmptyState.tsx            # useEmptyState(): signed out / loading / no calendars / syncing / empty range
-  VirtualList.tsx           # Virtualizes lists > 200 rows (scrolls inside #root); shorter lists stay Ctrl-F-able
+  RowList.tsx               # Renders all list rows with CSS content-visibility (fast scrolling, Ctrl-F finds everything)
   CalendarFilter.tsx        # Top-bar calendar picker
+  Calendars.tsx             # Accessible calendar multi-select (combobox/listbox, colored chips, drag or Alt+←/→ to reorder)
+  JsonEditor.tsx            # Plain textarea JSON editor with live validation (no highlighting by design)
+  Table.tsx                 # Plain <table>, day groups + selection (no table library)
   BulkFilters.tsx           # Filter panel shared by ModMany and CopyFrom
   DateRangeField.tsx        # Date control: free text (kept as typed), From/To chips, Calendar… presets + range, ‹ › nudge, Updated since
   Calendar.tsx              # Small accessible Luxon month grid (single/range, keyboard); no calendar library by design
@@ -112,7 +114,6 @@ src/
   ModMany.tsx               # Bulk modify/delete events
   Paper.tsx                 # Multi-column paper calendar view
   Schedule.tsx              # Schedule/agenda view
-  Table.tsx                 # Spreadsheet table view
   Attachments.tsx           # View file attachments on events
   CalendarsStatus.tsx       # Sync status per calendar
 ```
@@ -174,3 +175,7 @@ Write operations (save/patch/delete) require `EVENTS_READWRITE` scope. The app s
 - `renovate.json` automated dependency updates.
 - `public/_headers` — Cloudflare Pages (CSP and security headers)
 - `public/_redirects` — Cloudflare Pages
+
+## Dependencies policy
+
+Keep the single bundle small: prefer platform features and small in-repo code over UI libraries (no react-select, table/virtualization libraries, dropzone, code editors). The CSP has no `style-src 'unsafe-inline'`, so nothing may inject `<style>` elements at runtime; React `style={}` props are fine (set via CSSOM). Google's GIS client tries to inject one for its button/One Tap UI, which we don't use; that console violation is expected.

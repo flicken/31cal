@@ -143,7 +143,6 @@ Done ideas from the original list have moved into the table above. Still open:
   [react-command-palette](https://github.com/asabaylus/react-command-palette) — command bar
 - [clui](https://github.com/replit/clui) — command-line UI in JavaScript
 - [ical.js](https://github.com/kewisch/ical.js) — iCal parsing for import/export
-- [@tanstack/react-virtual](https://tanstack.com/virtual) — list virtualization
 - `Intl.RelativeTimeFormat` / Temporal — relative times without extra libraries
 
 ## Potential databases
