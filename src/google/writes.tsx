@@ -4,7 +4,7 @@
  * callers can keep failed rows selected.
  */
 import React from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 import { DateTime } from 'luxon';
 
 import { db } from '../models/db';

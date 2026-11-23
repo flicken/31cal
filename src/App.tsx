@@ -4,7 +4,7 @@ import { userContext } from './userContext';
 import { authContext } from './authContext';
 import { useGoogleButton } from './useGoogleButton';
 import { SettingsProvider } from './lib/settings';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify/unstyled';
 import { FilterStateProvider } from './lib/FilterStateContext';
 import { Routes } from './Nav';
 import { googleButtonContext } from './googleButtonContext';

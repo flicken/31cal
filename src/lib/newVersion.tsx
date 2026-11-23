@@ -7,7 +7,7 @@
  * very recently (avoid loops); otherwise offer a Reload button.
  */
 import React from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 
 const LAST_RELOAD_KEY = '31cal:lastAutoReload';
 const MIN_RELOAD_INTERVAL_MS = 60 * 1000;

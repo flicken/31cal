@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { setUnsavedWork } from './lib/newVersion';
 import { Link } from 'wouter';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 
 import { saveEvents } from './google/writes';
 import { useDefaultCalendar } from './lib/hooks';

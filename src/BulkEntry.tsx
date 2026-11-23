@@ -23,7 +23,7 @@ import { authContext } from './authContext';
 
 import { Attachment } from './models/types';
 import { ViewAttachment } from './ViewAttachment';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 
 const placeholderEntry = 'Saturday 3pm rehearsal\n6pm-9pm concert';
 

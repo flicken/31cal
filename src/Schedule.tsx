@@ -1,5 +1,5 @@
 import { useEmptyState } from './EmptyState';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
 import { useFilterState } from './lib/FilterStateContext';
 import {
@@ -15,38 +15,28 @@ import EventList from './EventList';
 
 import { isEmpty, intersection } from './lib/utils';
 
-import Select from 'react-select';
-
-type SelectValue = {
-  label: string;
-  value: string;
-};
-
 function SelectSchedule() {
-  const [state, setState] = useState<SelectValue | undefined>(undefined);
   const { list } = useScheduleList();
   const [selectedSchedules, setSelectedSchedules] =
     useSetting('selectedSchedules');
-
-  // Follow the stored selection when it changes.
-  const [prevSelected, setPrevSelected] = useState(selectedSchedules);
-  if (selectedSchedules !== prevSelected) {
-    setPrevSelected(selectedSchedules);
-    const s = selectedSchedules && selectedSchedules[0];
-    if (s) setState({ value: s, label: s });
-  }
+  const current = asArray(selectedSchedules ?? [])[0] ?? '';
 
   return (
-    <Select
-      isClearable={true}
-      onChange={(e) => {
-        setState(e ?? undefined);
-        setSelectedSchedules(e ? [e.value] : []);
-      }}
-      value={state}
-      isLoading={!list || !selectedSchedules}
-      options={(list ?? []).map((s) => ({ value: s, label: s })) as any}
-    />
+    <select
+      aria-label="Schedule"
+      value={current}
+      disabled={!list}
+      onChange={(e) =>
+        setSelectedSchedules(e.target.value ? [e.target.value] : [])
+      }
+    >
+      <option value="">All schedules</option>
+      {(list ?? []).map((s) => (
+        <option key={String(s)} value={String(s)}>
+          {String(s)}
+        </option>
+      ))}
+    </select>
   );
 }
 

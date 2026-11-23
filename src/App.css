@@ -443,3 +443,209 @@ textarea.autosize {
   content-visibility: auto;
   contain-intrinsic-size: auto 44px;
 }
+
+/* Calendar multi-select (Calendars.tsx) */
+.ms {
+  position: relative;
+  font-size: 14px;
+}
+.ms-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 38px;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: text;
+}
+.ms-open .ms-control,
+.ms-control:focus-within {
+  border-color: #2684ff;
+  box-shadow: 0 0 0 1px #2684ff;
+}
+.ms-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  border-radius: 3px;
+  cursor: grab;
+  touch-action: none;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+}
+.ms-chip-primary {
+  font-weight: bold;
+}
+.ms-drop-left {
+  border-left-color: #2684ff;
+}
+.ms-drop-right {
+  border-right-color: #2684ff;
+}
+.ms-chip-label {
+  padding: 2px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-chip-remove,
+.ms-clear {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+}
+.ms-chip-remove:hover {
+  outline: 1px solid currentColor;
+}
+.ms-clear {
+  color: #666;
+  margin-left: auto;
+}
+.ms-more {
+  border: none;
+  background: none;
+  color: #555;
+  font-size: 0.85em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ms-input {
+  flex: 1 0 4em;
+  min-width: 4em;
+  border: none;
+  outline: none;
+  font: inherit;
+  padding: 2px;
+  background: transparent;
+}
+.ms-list {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 2px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 11px rgba(0, 0, 0, 0.1);
+}
+.ms-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.ms-option-active {
+  background: #deebff;
+}
+.ms-option[aria-selected='true'] {
+  font-weight: bold;
+}
+.ms-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 3px;
+  font-size: 0.8em;
+  flex: none;
+}
+.ms-empty {
+  padding: 6px 10px;
+  color: #555;
+}
+/* Top bar: one line while closed, expands over the page while open. */
+.ms-compact:not(.ms-open) .ms-control {
+  flex-wrap: nowrap;
+  height: 38px;
+  overflow: hidden;
+}
+.ms-compact.ms-open {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 12;
+}
+
+/* Top bar layout (moved from an inline <style> so the CSP needs no 'unsafe-inline'). */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.topbar-home {
+  flex: 0 0 auto;
+  order: 0;
+  margin-left: 8px;
+  position: relative;
+}
+.home-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  min-width: 140px;
+  padding: 4px 0;
+  margin: 0;
+  list-style: none;
+}
+.home-dropdown-item {
+  display: block;
+  padding: 4px 12px;
+  text-decoration: none;
+  color: #333;
+}
+.home-dropdown-item:hover {
+  background: #f0f0f0;
+}
+.topbar-search {
+  flex: 1 1 200px;
+  min-width: 0;
+  order: 1;
+}
+.topbar-calendars {
+  flex: 1 0 200px;
+  order: 2;
+  z-index: 11;
+  position: relative;
+  height: 38px;
+}
+.topbar-status {
+  flex: 0 0 auto;
+  order: 3;
+  margin-left: auto;
+}
+@media (max-width: 640px) {
+  .topbar-status {
+    order: 0;
+    margin-left: auto;
+  }
+  .topbar-search {
+    order: 1;
+    flex-basis: 100%;
+  }
+  .topbar-calendars {
+    order: 2;
+    flex-basis: 100%;
+  }
+}

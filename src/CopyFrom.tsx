@@ -12,11 +12,10 @@ import { userContext } from './userContext';
 import { authContext } from './authContext';
 import BulkFilters from './BulkFilters';
 import { EventCheckList } from './EventCheckList';
-import Calendars from './Calendars';
 import { saveEvents } from './google/writes';
 import { useDefaultCalendar } from './lib/hooks';
 import { useEventSelection, useMatchingEvents } from './lib/useEventSelection';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 
 /** Private extended properties recording where a copy came from (values must be strings). */
 export const COPIED_FROM_ID = '31cal.copiedFromId';
@@ -161,18 +160,30 @@ function CopyFrom() {
         >
           Copy {selected.length || ''} to:
         </button>
-        <div style={{ width: '20em', maxWidth: '100%' }}>
-          <Calendars
-            options={calendars.filter(
+        <select
+          aria-label="Copy to calendar"
+          value={copyToCalendar?.id ?? ''}
+          onChange={(e) =>
+            setCopyToCalendar(calendars.find((c) => c.id === e.target.value))
+          }
+          style={{ maxWidth: '100%' }}
+        >
+          <option value="" disabled>
+            Choose a calendar…
+          </option>
+          {calendars
+            .filter(
               (c) =>
                 !c.accessRole ||
                 c.accessRole === 'owner' ||
                 c.accessRole === 'writer',
-            )}
-            value={copyToCalendar ? [copyToCalendar] : []}
-            onChange={(e) => setCopyToCalendar(e.at(-1))}
-          />
-        </div>
+            )
+            .map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.summary}
+              </option>
+            ))}
+        </select>
         {busy && <span aria-live="polite">Copying…</span>}
       </div>
       {emptyState ?? (

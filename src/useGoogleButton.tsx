@@ -7,7 +7,7 @@ import {
 } from '@react-oauth/google';
 
 import { useLocalStorage } from './lib/reactHooks';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 import { AUTH_EXPIRED_EVENT } from './google/googleErrors';
 import { on, off } from './lib/dispatcher';
 import { clearLocalData } from './models/db';

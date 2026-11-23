@@ -15,7 +15,7 @@ import { deleteEvents, EventPatch, patchEvents } from './google/writes';
 
 import { keyBy } from './lib/utils';
 import BulkFilters from './BulkFilters';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify/unstyled';
 import JsonEditor from './JsonEditor';
 import { EventCheckList } from './EventCheckList';
 import { useEventSelection, useMatchingEvents } from './lib/useEventSelection';

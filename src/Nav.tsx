@@ -204,75 +204,6 @@ function StatusBar() {
   );
 }
 
-const topBarStyles = `
-  .topbar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .topbar-home {
-    flex: 0 0 auto;
-    order: 0;
-    margin-left: 8px;
-    position: relative;
-  }
-  .home-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 20;
-    min-width: 140px;
-    padding: 4px 0;
-    margin: 0;
-    list-style: none;
-  }
-  .home-dropdown-item {
-    display: block;
-    padding: 4px 12px;
-    text-decoration: none;
-    color: #333;
-  }
-  .home-dropdown-item:hover {
-    background: #f0f0f0;
-  }
-  .topbar-search {
-    flex: 1 1 200px;
-    min-width: 0;
-    order: 1;
-  }
-  .topbar-calendars {
-    flex: 1 0 200px;
-    order: 2;
-    z-index: 11;
-    position: relative;
-    height: 38px;
-  }
-  .topbar-status {
-    flex: 0 0 auto;
-    order: 3;
-    margin-left: auto;
-  }
-  @media (max-width: 640px) {
-    .topbar-status {
-      order: 0;
-      margin-left: auto;
-    }
-    .topbar-search {
-      order: 1;
-      flex-basis: 100%;
-    }
-    .topbar-calendars {
-      order: 2;
-      flex-basis: 100%;
-    }
-  }
-`;
-
 function HomeNav() {
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -368,7 +299,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   return (
     <div>
-      <style>{topBarStyles}</style>
       <TopBar />
       <hr />
       <ErrorBoundary key={location}>
