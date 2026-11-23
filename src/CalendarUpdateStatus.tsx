@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { max } from './lib/utils';
 import { DateTime } from 'luxon';
 
-import { useInterval } from 'usehooks-ts';
+import { useInterval } from './lib/reactHooks';
 
 import UpdateStatusIcon from './UpdateStatusIcon';
 import { authContext } from './authContext';

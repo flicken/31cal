@@ -10,7 +10,7 @@ import {
   MultiValueProps,
 } from 'react-select';
 import makeAnimated from 'react-select/animated';
-import { useMediaQuery } from 'usehooks-ts';
+import { useMediaQuery } from './lib/reactHooks';
 
 const animatedComponents = makeAnimated();
 

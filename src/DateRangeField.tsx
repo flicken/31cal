@@ -6,7 +6,7 @@
  */
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { DateTime } from 'luxon';
-import { useMediaQuery, useOnClickOutside } from 'usehooks-ts';
+import { useMediaQuery, useOnClickOutside } from './lib/reactHooks';
 import Calendar from './Calendar';
 import { parseSearchText } from './lib/searchTextParser';
 import {

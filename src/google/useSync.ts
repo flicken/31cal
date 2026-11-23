@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useInterval } from 'usehooks-ts';
+import { useInterval } from '../lib/reactHooks';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '../models/db';

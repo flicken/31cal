@@ -6,7 +6,7 @@ import {
   useGoogleLogin,
 } from '@react-oauth/google';
 
-import { useLocalStorage } from 'usehooks-ts';
+import { useLocalStorage } from './lib/reactHooks';
 import { toast } from 'react-toastify';
 import { AUTH_EXPIRED_EVENT } from './google/googleErrors';
 import { on, off } from './lib/dispatcher';

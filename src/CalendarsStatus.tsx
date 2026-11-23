@@ -19,7 +19,7 @@ import { DateTime } from 'luxon';
 
 import { syncResource } from './google/sync';
 
-import { useInterval } from 'usehooks-ts';
+import { useInterval } from './lib/reactHooks';
 import UpdateStatusIcon from './UpdateStatusIcon';
 
 function sortKey(c: Calendar): string {

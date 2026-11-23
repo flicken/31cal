@@ -226,9 +226,6 @@ importers:
       react-toastify:
         specifier: 11.2.0
         version: 11.2.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      usehooks-ts:
-        specifier: 3.1.1
-        version: 3.1.1(react@19.3.1)
       wouter:
         specifier: 3.13.0
         version: 3.13.0(react@19.3.1)
@@ -1287,9 +1284,6 @@ packages:
     engines: {node: '>=22.22.1'}
     hasBin: true
 
-  lodash.debounce@4.0.8:
-    resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
-
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
@@ -1547,12 +1541,6 @@ packages:
     resolution: {integrity: sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
-  usehooks-ts@3.1.1:
-    resolution: {integrity: sha512-I4diPp9Cq6ieSUH2wu+fDAVQO43xwtulo+fKEidHUwZPnYImbtkTjzIJYcDcJqxgmX31GVqNFURodvcgHcW0pA==}
-    engines: {node: '>=16.15.0'}
-    peerDependencies:
-      react: ^16.8.0  || ^17 || ^18 || ^19 || ^19.0.0-rc
 
   vite-plugin-svgr@5.2.0:
     resolution: {integrity: sha512-qj2eAKF8C6PZWemVTvQA0xgQIcP1hHU6Buh7fl6BhvayWwnuxE+z417miKxeDvRWbDrupQ1oK99hfxElopJ3sQ==}
@@ -2488,8 +2476,6 @@ snapshots:
     optionalDependencies:
       yaml: 2.9.1
 
-  lodash.debounce@4.0.8: {}
-
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
@@ -2761,11 +2747,6 @@ snapshots:
 
   use-sync-external-store@1.7.0(react@19.3.1):
     dependencies:
-      react: 19.3.1
-
-  usehooks-ts@3.1.1(react@19.3.1):
-    dependencies:
-      lodash.debounce: 4.0.8
       react: 19.3.1
 
   vite-plugin-svgr@5.2.0(typescript@7.0.2)(vite@8.3.8(@types/node@26.6.6)(yaml@2.9.1)):
