@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { setUnsavedWork } from './lib/newVersion';
-import { useDropzone } from 'react-dropzone';
 import { Link } from 'wouter';
 import { toast } from 'react-toastify';
 
@@ -9,21 +8,28 @@ import { useDefaultCalendar } from './lib/hooks';
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
-import { eventIdFor, ImportRow, parseCsv } from './lib/importCsv';
+import {
+  ACCEPT,
+  eventIdFor,
+  ImportRow,
+  isImportable,
+  parseCsv,
+} from './lib/importCsv';
 
-const baseStyle = {
-  display: 'flex',
-  flexDirection: 'column' as const,
-  alignItems: 'center',
-  padding: '20px',
-  borderWidth: 2,
-  borderRadius: 2,
-  borderColor: '#ccc',
-  borderStyle: 'dashed',
-  backgroundColor: '#fafafa',
-  color: '#555',
-  transition: 'border .24s ease-in-out',
-};
+/** While dragging, browsers expose only MIME types, not names. */
+const draggedLooksImportable = (dt: DataTransfer | null) =>
+  !!dt &&
+  [...dt.items].every(
+    (i) =>
+      i.kind === 'file' &&
+      [
+        '',
+        'text/csv',
+        'text/tab-separated-values',
+        'text/plain',
+        'application/vnd.ms-excel',
+      ].includes(i.type),
+  );
 
 const LARGE_IMPORT = 200;
 
@@ -41,7 +47,15 @@ function ImportFile() {
   const [fileNames, setFileNames] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const readFiles = useCallback(async (files: File[]) => {
+    const acceptedFiles = files.filter(isImportable);
+    const rejected = files.length - acceptedFiles.length;
+    if (rejected > 0) {
+      toast.error(
+        `Skipped ${rejected} file${rejected === 1 ? '' : 's'}: only .csv and .tsv can be imported.`,
+      );
+    }
+    if (acceptedFiles.length === 0) return;
     const parsed: ImportRow[] = [];
     for (const file of acceptedFiles) {
       try {
@@ -54,23 +68,24 @@ function ImportFile() {
     setFileNames(acceptedFiles.map((f) => f.name));
   }, []);
 
-  const {
-    getRootProps,
-    getInputProps,
-    isDragAccept,
-    isDragReject,
-    isDragActive,
-  } = useDropzone({ accept: { 'text/*': ['.csv', '.tsv'] }, onDrop });
-
-  const style = useMemo(
-    () => ({
-      ...baseStyle,
-      ...(isDragActive ? { borderColor: '#2196f3' } : {}),
-      ...(isDragAccept ? { borderColor: '#00a152' } : {}),
-      ...(isDragReject ? { borderColor: '#d50000' } : {}),
-    }),
-    [isDragActive, isDragAccept, isDragReject],
-  );
+  // Drop-zone state; a counter because dragenter/leave fire for children.
+  const dragDepth = useRef(0);
+  const [drag, setDrag] = useState<'none' | 'accept' | 'reject'>('none');
+  const onDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragDepth.current += 1;
+    setDrag(draggedLooksImportable(e.dataTransfer) ? 'accept' : 'reject');
+  };
+  const onDragLeave = () => {
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setDrag('none');
+  };
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDrag('none');
+    readFiles([...e.dataTransfer.files]);
+  };
 
   const valid = rows.filter((r) => r.event && r.errors.length === 0);
   const invalid = rows.length - valid.length;
@@ -121,8 +136,24 @@ function ImportFile() {
 
   return (
     <>
-      <div {...getRootProps({ style })}>
-        <input {...getInputProps()} aria-label="CSV file to import" />
+      <label
+        className={`dropzone dropzone-${drag}`}
+        onDragEnter={onDragEnter}
+        onDragOver={(e) => e.preventDefault()}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
+        <input
+          type="file"
+          className="visually-hidden"
+          accept={ACCEPT.join(',')}
+          multiple
+          aria-label="CSV file to import"
+          onChange={(e) => {
+            readFiles([...(e.target.files ?? [])]);
+            e.target.value = ''; // allow choosing the same file again
+          }}
+        />
         <p>
           Drop a CSV file here, or click to choose one. Nothing is saved until
           you review it and press Import.
@@ -132,7 +163,7 @@ function ImportFile() {
           Description, Location (Google Calendar CSV format). Rows without a
           time become all-day events.
         </p>
-      </div>
+      </label>
       {rows.length > 0 && (
         <div>
           <p>

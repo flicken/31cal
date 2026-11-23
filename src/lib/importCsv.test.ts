@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { eventIdFor, parseCsv } from './importCsv';
+import { eventIdFor, isImportable, parseCsv } from './importCsv';
 
 describe('parseCsv', () => {
   it('creates all-day events for date-only rows with inclusive end dates', () => {
@@ -46,5 +46,14 @@ describe('eventIdFor', () => {
     expect(a).toMatch(/^[0-9a-v]{5,1024}$/);
     expect(await eventIdFor('c1', e)).toBe(a);
     expect(await eventIdFor('c2', e)).not.toBe(a);
+  });
+});
+
+describe('isImportable', () => {
+  it('accepts .csv and .tsv in any case, nothing else', () => {
+    expect(isImportable({ name: 'a.CSV' })).toBe(true);
+    expect(isImportable({ name: 'b.tsv' })).toBe(true);
+    expect(isImportable({ name: 'c.xlsx' })).toBe(false);
+    expect(isImportable({ name: 'csv' })).toBe(false);
   });
 });

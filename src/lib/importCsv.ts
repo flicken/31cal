@@ -139,3 +139,9 @@ export function parseCsv(text: string): ImportRow[] {
   const parsed = PapaParse.parse<Record<string, unknown>>(text, parserOptions);
   return parsed.data.map((row, i) => ({ line: i + 2, ...rowToEvent(row) }));
 }
+
+/** File extensions the importer accepts. */
+export const ACCEPT = ['.csv', '.tsv'];
+
+export const isImportable = (file: { name: string }) =>
+  ACCEPT.some((ext) => file.name.toLowerCase().endsWith(ext));

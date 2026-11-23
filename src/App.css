@@ -387,3 +387,26 @@ textarea.autosize {
   min-height: calc(5lh + 4px);
   resize: vertical;
 }
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border: 2px dashed #ccc;
+  border-radius: 2px;
+  background: #fafafa;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.24s ease-in-out;
+}
+.dropzone:focus-within {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
+}
+.dropzone-accept {
+  border-color: #00a152;
+}
+.dropzone-reject {
+  border-color: #d50000;
+}
