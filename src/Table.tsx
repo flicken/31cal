@@ -1,140 +1,95 @@
+import React, { useMemo, useState } from 'react';
+import { DateTime } from 'luxon';
+
 import { useEmptyState } from './EmptyState';
 import { CalendarEvent } from './models/types';
 import { FilterValues } from './lib/filters';
-import { eventDays } from './lib/events';
-import React, { useMemo } from 'react';
+import { eventDays, keyFor } from './lib/events';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
-import { asArray } from './lib/utils';
-import {
-  useTable,
-  tableFeatures,
-  rowSelectionFeature,
-  flexRender,
-  ColumnDef,
-  RowSelectionState,
-} from '@tanstack/react-table';
-
-const features = tableFeatures({ rowSelectionFeature });
-type Features = typeof features;
-type Columns = ColumnDef<Features, CalendarEvent, unknown>[];
-type ExpandedState = true | Record<string, boolean>;
-
+import { asArray, days, intersection } from './lib/utils';
 import { ViewEventSummary } from './ViewEvent';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
-
-import { DateTime } from 'luxon';
-import { intersection, days } from './lib/utils';
-
 import { deleteEvents } from './google/writes';
-
 import { userContext } from './userContext';
 import { authContext } from './authContext';
 
-function Table_({
-  columns,
-  data,
+const COLUMN_COUNT = 4; // select, when, time, what
+
+function IndeterminateCheckbox({
+  indeterminate,
+  ...rest
+}: { indeterminate?: boolean } & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      type="checkbox"
+      ref={(el) => {
+        if (el) el.indeterminate = !!indeterminate;
+      }}
+      {...rest}
+    />
+  );
+}
+
+/** Events grouped by each local day they occupy within the filter range. */
+export function groupByDay(events: CalendarEvent[], dates: string[]) {
+  const grouped = new Map<string, CalendarEvent[]>();
+  for (const event of events) {
+    for (const day of intersection(eventDays(event), dates)) {
+      const list = grouped.get(day);
+      if (list) list.push(event);
+      else grouped.set(day, [event]);
+    }
+  }
+  return [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
+}
+
+function EventTable({
+  events,
   filters,
 }: {
-  columns: Columns;
-  data: CalendarEvent[];
+  events: CalendarEvent[];
   filters: FilterValues;
 }) {
   const user = React.useContext(userContext);
   const { ensureWriteAccess } = React.useContext(authContext);
-  const [busy, setBusy] = React.useState(false);
-  const dates = React.useMemo(
-    () => Array.from(days(filters.start, filters.end)),
-    [filters.start, filters.end],
-  );
-  const initialExpanded = React.useMemo(
-    () =>
-      dates.reduce(
-        (prev, date) => {
-          prev[`date:${date}`] = true;
-          return prev;
-        },
-        {} as Record<string, boolean>,
-      ),
-    [dates],
+  const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  // Days the user collapsed; everything starts expanded.
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+
+  const groups = useMemo(
+    () => groupByDay(events, Array.from(days(filters.start, filters.end))),
+    [events, filters.start, filters.end],
   );
 
-  const [expanded, setExpanded] =
-    React.useState<ExpandedState>(initialExpanded);
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-
-  // Reset expanded state when dates change
-  const [prevInitial, setPrevInitial] = React.useState(initialExpanded);
-  if (prevInitial !== initialExpanded) {
-    setPrevInitial(initialExpanded);
-    setExpanded(initialExpanded);
-  }
-
-  const allColumns = React.useMemo<Columns>(
-    () => [
-      {
-        id: 'selection',
-        header: ({ table }) => (
-          <div>
-            <IndeterminateCheckbox
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={
-                table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
-              }
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div>
-            <IndeterminateCheckbox
-              checked={row.getIsSelected()}
-              indeterminate={row.getIsSomeSelected()}
-              onChange={row.getToggleSelectedHandler()}
-            />
-          </div>
-        ),
-      },
-      ...columns,
-    ],
-    [columns],
+  // Only count selections that are still visible after filters change.
+  const selectedEvents = useMemo(
+    () => events.filter((e) => selected.has(keyFor(e))),
+    [events, selected],
   );
+  const allSelected =
+    events.length > 0 && selectedEvents.length === events.length;
 
-  const table = useTable({
-    features,
-    columns: allColumns,
-    data,
-    state: { rowSelection },
-    onRowSelectionChange: setRowSelection,
-    enableRowSelection: true,
-  });
+  const toggle = (event: CalendarEvent) =>
+    setSelected((old) => {
+      const next = new Set(old);
+      const key = keyFor(event);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
-  // Custom grouping: assign rows to date buckets based on event start/end
-  const coreRows = table.getCoreRowModel().rows;
-  const customGroupedRows = React.useMemo(() => {
-    const flatRows = coreRows;
-    const grouped: Record<string, typeof flatRows> = {};
-    for (const row of flatRows) {
-      if (!row.original) continue;
-      for (const key of intersection(eventDays(row.original), dates)) {
-        (grouped[key] ??= []).push(row);
-      }
-    }
-    return grouped;
-  }, [coreRows, dates]);
+  const toggleAll = () =>
+    setSelected(allSelected ? new Set() : new Set(events.map(keyFor)));
 
-  const selectedEvents = (() => {
-    const seen = new Set<string>();
-    return table
-      .getSelectedRowModel()
-      .flatRows.map((r) => r.original)
-      .filter((e) => {
-        const key = `${e?.calendarId}/${e?.id}`;
-        if (!e || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-  })();
+  const toggleDay = (day: string) =>
+    setCollapsed((old) => {
+      const next = new Set(old);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
 
   const onDelete = async () => {
     const n = selectedEvents.length;
@@ -155,55 +110,13 @@ function Table_({
         })),
         user?.email,
       );
-      const failedKeys = new Set(
-        failed.map(({ item }) => `${item.calendarId}/${item.eventId}`),
-      );
-      setRowSelection((sel) =>
-        Object.fromEntries(
-          Object.entries(sel).filter(([rowId]) => {
-            const e = table.getRow(rowId, true)?.original;
-            return e && failedKeys.has(`${e.calendarId}/${e.id}`);
-          }),
-        ),
+      // Keep only failures selected so they can be retried.
+      setSelected(
+        new Set(failed.map(({ item }) => `${item.calendarId}/${item.eventId}`)),
       );
     } finally {
       setBusy(false);
     }
-  };
-
-  const headerGroups = table.getHeaderGroups();
-
-  // Build display rows: date group headers + their child rows
-  const displayRows = React.useMemo(() => {
-    const result: Array<
-      | { type: 'group'; date: string; rowCount: number }
-      | { type: 'row'; row: (typeof coreRows)[number] }
-    > = [];
-    const sortedDates = Object.keys(customGroupedRows).sort();
-    for (const date of sortedDates) {
-      const isExpanded =
-        expanded === true ||
-        (expanded as Record<string, boolean>)[`date:${date}`];
-      result.push({
-        type: 'group',
-        date,
-        rowCount: customGroupedRows[date].length,
-      });
-      if (isExpanded) {
-        for (const row of customGroupedRows[date]) {
-          result.push({ type: 'row', row });
-        }
-      }
-    }
-    return result;
-  }, [customGroupedRows, expanded]);
-
-  const toggleDateExpanded = (date: string) => {
-    setExpanded((prev) => {
-      if (prev === true) return { [`date:${date}`]: false };
-      const p = prev as Record<string, boolean>;
-      return { ...p, [`date:${date}`]: !p[`date:${date}`] };
-    });
   };
 
   return (
@@ -218,53 +131,66 @@ function Table_({
       </div>
       <table>
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </th>
-              ))}
-            </tr>
-          ))}
+          <tr>
+            <th>
+              <IndeterminateCheckbox
+                aria-label="Select all events"
+                checked={allSelected}
+                indeterminate={selectedEvents.length > 0 && !allSelected}
+                onChange={toggleAll}
+              />
+            </th>
+            <th>When</th>
+            <th>Time</th>
+            <th>What</th>
+          </tr>
         </thead>
         <tbody>
-          {displayRows.map((item) => {
-            if (item.type === 'group') {
-              return (
-                <tr key={`group-${item.date}`}>
-                  <td
-                    colSpan={allColumns.length}
-                    style={{ fontWeight: 'bold' }}
-                  >
+          {groups.map(([day, dayEvents]) => {
+            const open = !collapsed.has(day);
+            return (
+              <React.Fragment key={day}>
+                <tr>
+                  <td colSpan={COLUMN_COUNT} style={{ fontWeight: 'bold' }}>
                     <button
                       type="button"
                       className="link-button"
-                      aria-expanded={
-                        expanded === true || !!expanded[`date:${item.date}`]
-                      }
-                      onClick={() => toggleDateExpanded(item.date)}
+                      aria-expanded={open}
+                      onClick={() => toggleDay(day)}
                     >
-                      {item.date} ({item.rowCount})
+                      {day} ({dayEvents.length})
                     </button>
                   </td>
                 </tr>
-              );
-            }
-            const row = item.row;
-            return (
-              <tr key={row.id}>
-                {row.getAllCells().map((cell) => (
-                  <td key={cell.id} style={{ background: 'white' }}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
+                {open &&
+                  dayEvents.map((event) => (
+                    <tr key={`${day}/${keyFor(event)}`}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${event.summary || 'event'}`}
+                          checked={selected.has(keyFor(event))}
+                          onChange={() => toggle(event)}
+                        />
+                      </td>
+                      <td>
+                        {event.start?.ms !== undefined
+                          ? DateTime.fromMillis(event.start.ms).toISODate()
+                          : null}
+                      </td>
+                      <td>
+                        <ViewStartAndEnd
+                          start={event.start}
+                          end={event.end}
+                          showDate={false}
+                        />
+                      </td>
+                      <td>
+                        <ViewEventSummary event={event} />
+                      </td>
+                    </tr>
+                  ))}
+              </React.Fragment>
             );
           })}
         </tbody>
@@ -273,64 +199,7 @@ function Table_({
   );
 }
 
-function IndeterminateCheckbox({
-  indeterminate,
-  ...rest
-}: {
-  indeterminate?: boolean;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
-  const ref = React.useRef<HTMLInputElement>(null);
-
-  React.useEffect(() => {
-    if (ref.current) {
-      ref.current.indeterminate = !!indeterminate;
-    }
-  }, [indeterminate]);
-
-  return <input type="checkbox" ref={ref} {...rest} />;
-}
-
-function dateOf(ms: number) {
-  return DateTime.fromMillis(ms).toISODate();
-}
-
 export default function Table() {
-  const columns = React.useMemo<Columns>(
-    () => [
-      {
-        id: 'date',
-        header: 'When',
-        cell: ({ row }) => {
-          return row.original?.start?.ms !== undefined ? (
-            <span>{dateOf(row.original.start.ms)}</span>
-          ) : null;
-        },
-      },
-      {
-        id: 'time',
-        header: 'Time',
-        cell: ({ row }) => {
-          return (
-            <ViewStartAndEnd
-              start={row.original?.start}
-              end={row.original?.end}
-              showDate={false}
-            />
-          );
-        },
-      },
-      {
-        id: 'summary',
-        header: 'What',
-        cell: ({ row }) => {
-          if (!row.original) return null;
-          return <ViewEventSummary event={row.original} />;
-        },
-      },
-    ],
-    [],
-  );
-
   const { eventFilters } = useFilterState();
   const [selectedCalendarIds] = useSelectedCalendarIds();
 
@@ -343,5 +212,5 @@ export default function Table() {
   const empty = useEmptyState(events, allFilters.calendarIds);
   if (empty || !events) return empty;
 
-  return <Table_ columns={columns} data={events} filters={allFilters} />;
+  return <EventTable events={events} filters={allFilters} />;
 }
