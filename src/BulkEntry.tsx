@@ -8,8 +8,6 @@ import React, {
 } from 'react';
 import { setUnsavedWork } from './lib/newVersion';
 
-import TextareaAutosize from 'react-textarea-autosize';
-
 import parseEvent from './lib/parseEvent';
 
 import EventList from './EventList';
@@ -165,9 +163,10 @@ function BulkEntry() {
   return (
     <div onPaste={onPaste} className="two-column">
       <div>
-        <TextareaAutosize
+        <textarea
+          className="autosize"
           name="events"
-          minRows={5}
+          rows={5}
           style={{ width: '40em', maxWidth: '100%' }}
           placeholder={placeholderEntry}
           aria-label="Events, one per line (e.g. Saturday 3pm rehearsal)"
@@ -213,9 +212,10 @@ function BulkEntry() {
           </ul>
         </details>
         <br />
-        <TextareaAutosize
+        <textarea
+          className="autosize"
           name="description"
-          minRows={5}
+          rows={5}
           style={{ width: '40em', maxWidth: '100%' }}
           placeholder="Description for all events"
           aria-label="Description for all events"
