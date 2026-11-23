@@ -3,7 +3,7 @@ import { Calendar, CalendarEvent } from './models/types';
 import React from 'react';
 import { ViewStartAndEnd } from './ViewStartAndEnd';
 import { keyFor } from './lib/events';
-import VirtualList from './VirtualList';
+import RowList from './RowList';
 
 export function EventCheckList({
   events,
@@ -34,7 +34,7 @@ export function EventCheckList({
         />{' '}
         Select all ({checkedCount} of {events.length} selected)
       </label>
-      <VirtualList
+      <RowList
         items={events}
         getKey={(e) => keyFor(e)}
         renderItem={(e) => (
