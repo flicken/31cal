@@ -265,11 +265,12 @@ export type JsonParams = { json: string };
 /** The editable fields of an event as pretty JSON (a starting point). */
 export function editableJson(event: CalendarEvent | undefined): string {
   if (!event) return '{}';
-  const copy: Record<string, unknown> = { ...event };
-  READ_ONLY_FIELDS.forEach((f) => delete copy[f]);
-  for (const k of ['start', 'end']) if (copy[k]) copy[k] = stripMs(copy[k]);
-  delete copy.status;
-  return JSON.stringify(copy, null, 2);
+  const fields: Record<string, unknown> = { ...event };
+  READ_ONLY_FIELDS.forEach((f) => delete fields[f]);
+  for (const k of ['start', 'end'])
+    if (fields[k]) fields[k] = stripMs(fields[k]);
+  delete fields.status;
+  return JSON.stringify(fields, null, 2);
 }
 
 export function parseJsonFields(json: string): {

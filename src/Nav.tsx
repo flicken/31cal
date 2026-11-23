@@ -28,6 +28,7 @@ import Paper from './Paper';
 import CalendarFilter from './CalendarFilter';
 import ImportFile from './ImportFile';
 import ModMany from './ModMany';
+import Pipeline from './Pipeline';
 import Schedule from './Schedule';
 import Table from './Table';
 
@@ -92,6 +93,13 @@ const ROUTES: AppRoute[] = [
     name: 'Import CSV',
     description: 'Import a CSV file, reviewing every row before saving.',
     Component: ImportFile,
+  },
+  {
+    path: '/pipeline',
+    name: 'Bulk edit (experimental)',
+    description:
+      'Filter, pick events, then rename, delete, copy or edit them all, with a preview first. Experimental.',
+    Component: Pipeline,
   },
   {
     path: '/mod',
