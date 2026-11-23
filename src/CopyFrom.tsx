@@ -17,9 +17,8 @@ import { useDefaultCalendar } from './lib/hooks';
 import { useEventSelection, useMatchingEvents } from './lib/useEventSelection';
 import { toast } from 'react-toastify/unstyled';
 
-/** Private extended properties recording where a copy came from (values must be strings). */
-export const COPIED_FROM_ID = '31cal.copiedFromId';
-export const COPIED_FROM_CALENDAR = '31cal.copiedFromCalendarId';
+import { COPIED_FROM_CALENDAR, COPIED_FROM_ID } from './lib/copies';
+export { COPIED_FROM_CALENDAR, COPIED_FROM_ID };
 
 const sourceKey = (calendarId: string, id: string) => `${calendarId}/${id}`;
 
