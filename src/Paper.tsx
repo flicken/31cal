@@ -1,6 +1,7 @@
+import RepeatMark from './RepeatMark';
 import { RECURRING_COLOR, SINGLE_COLOR } from './lib/paperColors';
 import { useEmptyState } from './EmptyState';
-import { dayOfWeek, eventDays } from './lib/events';
+import { dayOfWeek, eventDays, isRecurring } from './lib/events';
 import { safeRegExp } from './lib/regex';
 import React from 'react';
 
@@ -144,12 +145,11 @@ const EL = ({ event, day }: ELProps) => {
   return (
     <span style={{ color: recurring ? RECURRING_COLOR : SINGLE_COLOR }}>
       <b>{showTime(event, day)}</b>
-      {recurring && (
-        <span title="Repeats">
+      {isRecurring(event) && (
+        <>
           {' '}
-          <span aria-hidden="true">↻</span>
-          <span className="sr-only">(repeats)</span>
-        </span>
+          <RepeatMark event={event} />
+        </>
       )}
       <br />
       {event.summary || event.description || JSON.stringify(event)}

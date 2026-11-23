@@ -1,3 +1,4 @@
+import RepeatMark from './RepeatMark';
 import React from 'react';
 import { CalendarEvent, StartEnd } from './models/types';
 
@@ -33,6 +34,7 @@ export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
     return (
       <details>
         <summary style={{ cursor: 'pointer', padding: '.5rem 1rem' }}>
+          <RepeatMark event={event} />
           {event.summary}
         </summary>
         <div>
@@ -47,7 +49,12 @@ export function ViewEventSummary({ event }: { event: Partial<CalendarEvent> }) {
       </details>
     );
   } else {
-    return <div>{event.summary}</div>;
+    return (
+      <div>
+        <RepeatMark event={event} />
+        {event.summary}
+      </div>
+    );
   }
 }
 
@@ -97,6 +104,7 @@ function ViewEvent({ event }: { event: Partial<CalendarEvent> }) {
       <details style={{ border: '2px dotted #bbb' }}>
         <summary style={{ cursor: 'pointer', padding: '.5rem 1rem' }}>
           <ViewStartAndEnd start={event.start} end={event.end} />{' '}
+          <RepeatMark event={event} />
           <b style={{ display: 'inline' }}>{event.summary}</b>
         </summary>
         <div style={{ marginTop: 0, padding: '1rem' }}>
@@ -117,6 +125,7 @@ function ViewEvent({ event }: { event: Partial<CalendarEvent> }) {
         style={{ border: '2px dotted #bbb, padding: ', padding: '.5rem 1rem' }}
       >
         <ViewStartAndEnd start={event.start} end={event.end} />{' '}
+        <RepeatMark event={event} />
         <b style={{ display: 'inline' }}>{event.summary}</b>
       </div>
     );

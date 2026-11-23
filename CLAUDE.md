@@ -81,7 +81,7 @@ src/
     filters.ts              # FilterValues type + filterForFilters()
     FilterStateContext.tsx  # Global filter state context
     dispatcher.ts           # Custom DOM event bus (on/off/trigger)
-    events.ts               # keyFor, eventDays (day bucketing), dayOfWeek
+    events.ts               # keyFor, eventDays (day bucketing), dayOfWeek, isRecurring
     importCsv.ts            # CSV → events with per-row errors, deterministic ids
     sanitize.ts             # DOMPurify profile for event descriptions
     regex.ts                # safeRegExp for user-entered patterns
@@ -98,6 +98,7 @@ src/
 
   # Feature views (all statically imported; single bundle):
   EmptyState.tsx            # useEmptyState(): signed out / loading / no calendars / syncing / empty range
+  RepeatMark.tsx            # "↻" + sr-only "(repeats)" before a recurring event's title (lib/events isRecurring)
   RowList.tsx               # Renders all list rows with CSS content-visibility (fast scrolling, Ctrl-F finds everything)
   CalendarFilter.tsx        # Top-bar calendar picker
   Calendars.tsx             # Accessible calendar multi-select (combobox/listbox, colored chips, drag or Alt+←/→ to reorder)

@@ -1,3 +1,4 @@
+import RepeatMark from './RepeatMark';
 import { readableOn } from './lib/contrast';
 import { Calendar, CalendarEvent } from './models/types';
 import React from 'react';
@@ -81,6 +82,7 @@ function ViewCheckEvent({
         onChange={(e) => onChange(e.target.checked)}
       />
       <ViewStartAndEnd start={event.start} end={event.end} />{' '}
+      <RepeatMark event={event} />
       <b style={{ display: 'inline' }}>{event.summary}</b>
     </label>
   );

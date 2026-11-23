@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { dayOfWeek, eventDays } from './events';
+import { dayOfWeek, eventDays, isRecurring } from './events';
 
 test('all-day events use their own dates regardless of time zone', () => {
   // ms computed in a far-east calendar zone would land on the previous local day.
@@ -34,4 +34,10 @@ test('zero-length events at midnight still show on their day', () => {
 test('dayOfWeek does not shift west of UTC', () => {
   expect(dayOfWeek('2026-03-02')).toBe(1); // Monday
   expect(dayOfWeek('2026-03-01')).toBe(0); // Sunday
+});
+
+test('isRecurring is true only for instances of a series', () => {
+  expect(isRecurring({ recurringEventId: 'abc' })).toBe(true);
+  expect(isRecurring({ recurringEventId: '' })).toBe(false);
+  expect(isRecurring({})).toBe(false);
 });

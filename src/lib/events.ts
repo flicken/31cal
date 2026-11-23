@@ -43,3 +43,10 @@ export function eventDays(
 export function dayOfWeek(isoDate: string): number {
   return DateTime.fromISO(isoDate).weekday % 7;
 }
+
+/** True for an occurrence of a repeating event (any instance of a series). */
+export function isRecurring(
+  event: Pick<CalendarEvent, 'recurringEventId'>,
+): boolean {
+  return !!event.recurringEventId;
+}
