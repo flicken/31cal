@@ -50,3 +50,24 @@ export function isRecurring(
 ): boolean {
   return !!event.recurringEventId;
 }
+
+/**
+ * A plain warning when some of the events repeat: bulk actions change only
+ * the selected occurrences, never the rest of the series.
+ */
+export function repeatingNote(
+  events: Pick<CalendarEvent, 'recurringEventId'>[],
+  { copying = false }: { copying?: boolean } = {},
+): string | undefined {
+  const n = events.filter(isRecurring).length;
+  if (n === 0) return undefined;
+  const which =
+    n === events.length
+      ? n === 1
+        ? 'This event repeats'
+        : `All ${n} events repeat`
+      : `${n} of these ${events.length} events repeat`;
+  return copying
+    ? `${which}. Only the selected occurrences are copied, each as a single event, not the series.`
+    : `${which}. Only the selected occurrences change; the other occurrences in each series stay as they are.`;
+}

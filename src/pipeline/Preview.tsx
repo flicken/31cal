@@ -3,6 +3,7 @@ import { Calendar } from '../models/types';
 import RepeatMark from '../RepeatMark';
 import { ViewStartAndEnd } from '../ViewStartAndEnd';
 import type { Change, Plan } from './actions';
+import { repeatingNote } from '../lib/events';
 
 function show(v: unknown): string {
   if (v === undefined || v === null || v === '') return '—';
@@ -63,8 +64,17 @@ export default function Preview({
       </p>
     );
   }
+  const note = repeatingNote(
+    plan.changes.map((c) => c.event),
+    { copying: plan.changes.every((c) => c.kind === 'insert') },
+  );
   return (
     <div className="table-scroll">
+      {note && (
+        <p role="note" className="repeat-note">
+          <span aria-hidden="true">↻</span> {note}
+        </p>
+      )}
       <table className="pipeline-preview">
         <thead>
           <tr>

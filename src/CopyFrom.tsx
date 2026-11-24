@@ -1,4 +1,5 @@
 import { useEmptyState } from './EmptyState';
+import { repeatingNote } from './lib/events';
 import React, { useMemo, useState } from 'react';
 import {
   useCalendars,
@@ -184,6 +185,12 @@ function CopyFrom() {
             ))}
         </select>
         {busy && <span aria-live="polite">Copying…</span>}
+        {repeatingNote(selected, { copying: true }) && (
+          <p role="note" className="repeat-note">
+            <span aria-hidden="true">↻</span>{' '}
+            {repeatingNote(selected, { copying: true })}
+          </p>
+        )}
       </div>
       {emptyState ?? (
         <EventCheckList

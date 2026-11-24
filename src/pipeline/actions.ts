@@ -84,7 +84,7 @@ function canWrite(ctx: PlanContext, calendarId: string): boolean {
 function editWarnings(e: CalendarEvent): string[] {
   const w: string[] = [];
   if (isRecurring(e)) {
-    w.push('Repeating event: only this occurrence changes.');
+    w.push('Repeating event: only this occurrence changes, not the series.');
   }
   if (hasGuests(e)) {
     const n = (e.attendees ?? []).length;

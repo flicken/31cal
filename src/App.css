@@ -873,3 +873,12 @@ textarea.autosize {
     padding-left: 8px;
   }
 }
+
+/* Repeating events: bulk actions change only the selected occurrences. */
+.repeat-note {
+  margin: 0.5rem 0;
+  padding: 0.4rem 0.75rem;
+  border-left: 4px solid #8a6d00;
+  background: #fff8e1;
+  color: #4d3d00;
+}

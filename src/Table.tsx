@@ -4,7 +4,7 @@ import { DateTime } from 'luxon';
 import { useEmptyState } from './EmptyState';
 import { CalendarEvent } from './models/types';
 import { FilterValues } from './lib/filters';
-import { eventDays, keyFor } from './lib/events';
+import { eventDays, keyFor, repeatingNote } from './lib/events';
 import { useFilterState } from './lib/FilterStateContext';
 import { useFilteredEvents, useSelectedCalendarIds } from './lib/hooks';
 import { asArray, days, intersection } from './lib/utils';
@@ -95,7 +95,7 @@ function EventTable({
     const n = selectedEvents.length;
     if (
       !window.confirm(
-        `Delete ${n} event${n === 1 ? '' : 's'}? This cannot be undone here.`,
+        `Delete ${n} event${n === 1 ? '' : 's'}?${repeatingNote(selectedEvents) ? `\n\n${repeatingNote(selectedEvents)}` : ''}`,
       )
     )
       return;

@@ -1,4 +1,5 @@
 import { useEmptyState } from './EmptyState';
+import { repeatingNote } from './lib/events';
 import React, { useState, useMemo } from 'react';
 
 import { userContext } from './userContext';
@@ -113,7 +114,7 @@ function ModMany() {
     const calendarCount = new Set(selected.map((e) => e.calendarId)).size;
     if (
       !window.confirm(
-        `Delete ${selected.length} event${selected.length === 1 ? '' : 's'} from ${calendarCount} calendar${calendarCount === 1 ? '' : 's'}? This cannot be undone here.`,
+        `Delete ${selected.length} event${selected.length === 1 ? '' : 's'} from ${calendarCount} calendar${calendarCount === 1 ? '' : 's'}?${repeatingNote(selected) ? `\n\n${repeatingNote(selected)}` : ''}`,
       )
     )
       return;
@@ -202,6 +203,11 @@ function ModMany() {
           </button>
         )}
         {busy && <span aria-live="polite"> Working…</span>}
+        {repeatingNote(selected) && (
+          <p role="note" className="repeat-note">
+            <span aria-hidden="true">↻</span> {repeatingNote(selected)}
+          </p>
+        )}
       </div>
       {showEditor && <JsonEditor value={jsonText} onChange={setJsonText} />}
       {emptyState ?? (
