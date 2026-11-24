@@ -68,7 +68,12 @@ export type UpdateState = {
   resyncRequired?: boolean;
   /** Recent events are stored; older history is still being fetched. */
   backfilling?: boolean;
+  /** Last failure, kept until a sync succeeds (retries don't clear it). */
   error?: string;
+  /** HTTP status of the last failure (0 = not signed in, -1 = network). */
+  errorStatus?: number;
+  /** When the last failure happened (ms). */
+  errorAt?: number;
   disabled?: boolean;
 };
 

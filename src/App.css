@@ -89,6 +89,28 @@
   font-size: 0.85em;
   color: #555;
 }
+.status-text.status-error,
+.sync-errors {
+  color: #b00020;
+}
+.sync-errors {
+  border: 1px solid #b00020;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  background: #fff5f5;
+}
+.sync-errors ul {
+  margin: 0.25rem 0;
+  padding-left: 1.2em;
+}
+.sync-errors li {
+  margin: 0.25rem 0;
+}
+.sync-errors .hint,
+.sync-errors details {
+  color: #333;
+}
 
 /* Never let a form control push the page wider than the screen. */
 input,

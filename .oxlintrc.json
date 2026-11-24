@@ -26,6 +26,17 @@
       {
         "allowAsProps": true
       }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react-toastify",
+            "message": "Import from 'react-toastify/unstyled': the default entry injects a <style> (blocked by the CSP) and has a separate toast queue from our ToastContainer."
+          }
+        ]
+      }
     ]
   },
   "ignorePatterns": ["build/**", "public/**"]

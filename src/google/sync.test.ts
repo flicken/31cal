@@ -344,3 +344,41 @@ describe('recent-first sync', () => {
     expect((await db.events.toArray()).map((e) => e.id)).toEqual(['keep']);
   });
 });
+
+describe('sync errors stay visible', () => {
+  it('keeps the error through a failing retry and clears it on success', async () => {
+    await seedCalendar();
+    let fail = true;
+    let seenWhileRetrying: string | undefined;
+    setCalendarApiProvider(async () =>
+      fakeApi({
+        events: async () => {
+          seenWhileRetrying = (await db.updateState.get(['me', 'calendar/c1']))
+            ?.error;
+          if (fail) throw googleError(404);
+          return { items: [], nextSyncToken: 's' };
+        },
+      }),
+    );
+    await expect(syncResource('me', 'calendar/c1')).rejects.toBeTruthy();
+    let state = await db.updateState.get(['me', 'calendar/c1']);
+    expect(state?.errorStatus).toBe(404);
+    expect(state?.errorAt).toBeGreaterThan(0);
+
+    await expect(syncResource('me', 'calendar/c1')).rejects.toBeTruthy();
+    expect(seenWhileRetrying).toBe('HTTP 404');
+
+    fail = false;
+    await syncResource('me', 'calendar/c1');
+    state = await db.updateState.get(['me', 'calendar/c1']);
+    expect(state?.error).toBeUndefined();
+    expect(state?.errorStatus).toBeUndefined();
+  });
+
+  it('records failures that happen before the sync starts', async () => {
+    setCalendarApiProvider(async () => fakeApi({}));
+    await expect(syncResource('me', 'calendar/missing')).rejects.toBeTruthy();
+    const state = await db.updateState.get(['me', 'calendar/missing']);
+    expect(state?.error).toMatch(/Unknown calendar/);
+  });
+});

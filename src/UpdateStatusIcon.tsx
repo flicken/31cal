@@ -5,6 +5,7 @@ import Loading from './assets/loading.svg';
 import Ok from './assets/ok.svg';
 import { toRelativeDate } from './lib/utils';
 import { UpdateState } from './models/types';
+import { describeSyncError } from './lib/syncErrors';
 
 export default function UpdateStatusIcon({
   update,
@@ -14,21 +15,29 @@ export default function UpdateStatusIcon({
   showText?: boolean;
   update?: Pick<
     UpdateState,
-    'updatedAt' | 'requesting' | 'error' | 'nextPageToken' | 'backfilling'
+    | 'updatedAt'
+    | 'requesting'
+    | 'error'
+    | 'errorStatus'
+    | 'nextPageToken'
+    | 'backfilling'
   >;
 }) {
   if (!update) {
     return null;
   }
   const label = statusLabel(update);
-  const icon =
-    update.requesting || update.nextPageToken || !update.updatedAt
+  const icon = update.error
+    ? Error
+    : update.requesting || update.nextPageToken || !update.updatedAt
       ? Loading
-      : update.error
-        ? Error
-        : Ok;
+      : Ok;
   return (
-    <span role="status" title={update.error ?? label}>
+    <span
+      role="status"
+      title={update.error ? describeSyncError(update).summary : label}
+      className={update.error ? 'status-error' : undefined}
+    >
       <img
         alt=""
         aria-hidden="true"
@@ -53,9 +62,10 @@ export function statusLabel(
     'updatedAt' | 'requesting' | 'error' | 'backfilling'
   >,
 ): string {
+  if (update.error)
+    return update.requesting ? 'Retrying after a sync error…' : 'Sync error';
   if (update.requesting)
     return update.backfilling ? 'Loading older history…' : 'Syncing…';
-  if (update.error) return 'Sync error';
   if (!update.updatedAt) return 'Not synced yet';
   if (update.backfilling) return 'Loading older history…';
   return `Synced ${toRelativeDate(update.updatedAt) ?? ''}`.trim();

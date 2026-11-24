@@ -21,6 +21,8 @@ import { syncResource } from './google/sync';
 
 import { useInterval } from './lib/reactHooks';
 import UpdateStatusIcon from './UpdateStatusIcon';
+import { describeSyncError } from './lib/syncErrors';
+import { toRelativeDate } from './lib/utils';
 
 function sortKey(c: Calendar): string {
   if (c.primary) {
@@ -64,8 +66,18 @@ function Calendars() {
     [selectedCalendarIds_, setSelectedCalendarIds],
   );
 
+  const nameOf = (resource: string) =>
+    resource === 'calendarList'
+      ? 'Calendar list'
+      : (calList?.find((c) => `calendar/${c.id}` === resource)?.summary ??
+        resource.slice('calendar/'.length));
+  const failures = (updates ?? []).filter((u) => u.error && !u.disabled);
+
   return (
     <>
+      {failures.length > 0 && (
+        <SyncErrors failures={failures} nameOf={nameOf} />
+      )}
       <table style={{ margin: 0, padding: 0, border: 'none' }}>
         <thead>
           <tr>
@@ -102,9 +114,7 @@ function Calendars() {
                 <td>{update?.disabled ? null : counts[c.id]}</td>
                 <td>{update?.disabled ? null : latest[c.id]}</td>
                 <td>
-                  {update?.disabled ? null : (
-                    <UpdateStatusIcon update={update} />
-                  )}
+                  {update?.disabled ? null : <UpdateStatus update={update} />}
                 </td>
               </tr>
             );
@@ -116,29 +126,64 @@ function Calendars() {
   );
 }
 
-function UpdateStatus({ update }: { update?: UpdateState }) {
-  if (!update) {
-    return null;
-  }
-  if (update.error) {
-    return (
-      <>
-        <button
-          onClick={async () => {
-            await db.updateState.update([update.account, update.resource], {
-              nextSyncToken: undefined,
-            });
-            await syncResource(update.account, update.resource).catch(() => {});
-          }}
-        >
-          <UpdateStatusIcon update={update} />
-          {update.error}
-        </button>
-      </>
-    );
-  }
+async function retry(update: UpdateState) {
+  await syncResource(update.account, update.resource).catch(() => {});
+}
 
-  return <UpdateStatusIcon update={update} />;
+/** Status cell: icon plus, on failure, the reason as text and a Retry button. */
+function UpdateStatus({ update }: { update?: UpdateState }) {
+  if (!update) return null;
+  if (!update.error) return <UpdateStatusIcon update={update} />;
+  return (
+    <span>
+      <UpdateStatusIcon update={update} /> {describeSyncError(update).summary}{' '}
+      <button disabled={update.requesting} onClick={() => retry(update)}>
+        {update.requesting ? 'Retrying…' : 'Retry'}
+      </button>
+    </span>
+  );
+}
+
+/** Every current sync failure, in plain language, with Retry buttons. */
+function SyncErrors({
+  failures,
+  nameOf,
+}: {
+  failures: UpdateState[];
+  nameOf: (resource: string) => string;
+}) {
+  return (
+    <div role="alert" className="sync-errors">
+      <strong>
+        {failures.length === 1
+          ? 'One sync problem'
+          : `${failures.length} sync problems`}
+      </strong>{' '}
+      <button onClick={() => failures.forEach(retry)}>Retry all</button>
+      <ul>
+        {failures.map((u) => {
+          const { summary, hint, detail } = describeSyncError(u);
+          return (
+            <li key={u.resource}>
+              <b>{nameOf(u.resource)}</b>: {summary}
+              {u.errorAt ? ` (${toRelativeDate(u.errorAt)})` : ''}
+              {u.requesting ? ' — retrying…' : ''}
+              {hint && <div className="hint">{hint}</div>}
+              {detail && detail !== summary && (
+                <details>
+                  <summary>Details from Google</summary>
+                  {detail}
+                  {u.errorStatus && u.errorStatus > 0
+                    ? ` (HTTP ${u.errorStatus})`
+                    : ''}
+                </details>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
 
 export default Calendars;

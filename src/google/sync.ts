@@ -211,12 +211,15 @@ async function doSync(account: string, resource: string) {
     return runSync(account, resource, undefined, calendarListHandler);
   }
   if (calendarId) {
-    return runSync(
-      account,
-      resource,
-      calendarId,
-      await eventsHandler(calendarId),
-    );
+    let handler;
+    try {
+      handler = await eventsHandler(calendarId);
+    } catch (e) {
+      // Record failures that happen before the sync itself starts, too.
+      await recordSyncError(account, resource, e);
+      throw e;
+    }
+    return runSync(account, resource, calendarId, handler);
   }
   throw new Error(`Unknown resource ${resource}`);
 }
@@ -235,7 +238,7 @@ async function runSync<T extends { id: string }>(
     resource,
     requestedAt: Date.now(),
     requesting: true,
-    error: undefined,
+    // Keep the last error visible while retrying; success clears it.
   });
 
   const api = await calendarApi();
@@ -312,13 +315,36 @@ async function runSync<T extends { id: string }>(
     }
   } catch (e) {
     debug(`Sync failed for ${resource}`, e);
-    await db.updateState.update(key, {
-      requesting: false,
-      backfilling: false,
-      error: errorMessage(e),
-      updatedAt: Date.now(),
-    });
+    await recordSyncError(account, resource, e, { backfilling: false });
     throw e;
+  }
+}
+
+/** HTTP status for a failure; -1 for network errors (fetch TypeError). */
+export function failureStatus(e: unknown): number | undefined {
+  const status = statusOf(e);
+  if (status !== undefined) return status;
+  if (e instanceof TypeError) return -1;
+  return undefined;
+}
+
+async function recordSyncError(
+  account: string,
+  resource: string,
+  e: unknown,
+  extra: Partial<UpdateState> = {},
+) {
+  const key: [string, string] = [account, resource];
+  const now = Date.now();
+  const changes = {
+    requesting: false,
+    error: errorMessage(e),
+    errorStatus: failureStatus(e),
+    errorAt: now,
+    ...extra,
+  };
+  if (!(await db.updateState.update(key, changes))) {
+    await db.updateState.put({ account, resource, updatedAt: 0, ...changes });
   }
 }
 
