@@ -178,8 +178,9 @@ async function eventsHandler(
         if (local) puts.push(local);
         else debug('Skipping event without a usable start', item.id);
       }
-      await db.events.bulkPut(puts);
-      await noteDurations(calendarId, puts);
+      const fresh = await newerThanStored(puts);
+      await db.events.bulkPut(fresh);
+      await noteDurations(calendarId, fresh);
     },
     async purgeExcept(seen) {
       await db.events
@@ -191,13 +192,72 @@ async function eventsHandler(
   };
 }
 
-const inFlight = new Map<string, Promise<void>>();
+/**
+ * Drop events older than what's already stored. A sync page fetched before
+ * one of our own writes must not put the old version back over the
+ * response we stored from that write.
+ */
+export async function newerThanStored(
+  events: CalendarEvent[],
+): Promise<CalendarEvent[]> {
+  const stored = await db.events.bulkGet(
+    events.map((e): [string, string] => [e.id, e.calendarId]),
+  );
+  return events.filter(
+    (e, i) =>
+      !stored[i]?.updated || !e.updated || e.updated >= stored[i]!.updated,
+  );
+}
 
-/** Sync one resource; concurrent calls for the same key share one run. */
-export function syncResource(account: string, resource: string): Promise<void> {
+/**
+ * Store events Google just returned from our own insert/patch, so changes
+ * show immediately instead of after the next sync.
+ */
+export async function storeEvents(
+  calendarId: string,
+  events: GoogleEvent[],
+): Promise<void> {
+  if (events.length === 0) return;
+  const calendar = await db.calendars.get(calendarId);
+  const local = events
+    .map((e) => toLocalEvent(e, calendarId, calendar?.timeZone))
+    .filter((e): e is CalendarEvent => !!e);
+  await db.transaction('rw', [db.events, db.calendarStats], async () => {
+    await db.events.bulkPut(local);
+    await noteDurations(calendarId, local);
+  });
+}
+
+const inFlight = new Map<string, Promise<void>>();
+const followUps = new Map<string, Promise<void>>();
+
+/**
+ * Sync one resource; concurrent calls for the same key share one run.
+ * With `fresh`, a run already in progress (which may have fetched data from
+ * before a write we just made) is followed by one more run, shared by every
+ * caller that asked for fresh data meanwhile.
+ */
+export function syncResource(
+  account: string,
+  resource: string,
+  { fresh = false }: { fresh?: boolean } = {},
+): Promise<void> {
   const key = `${account}\u0000${resource}`;
   const running = inFlight.get(key);
-  if (running) return running;
+  if (running) {
+    if (!fresh) return running;
+    let next = followUps.get(key);
+    if (!next) {
+      next = running
+        .catch(() => {})
+        .then(() => {
+          followUps.delete(key);
+          return syncResource(account, resource);
+        });
+      followUps.set(key, next);
+    }
+    return next;
+  }
   const run = doSync(account, resource).finally(() => inFlight.delete(key));
   inFlight.set(key, run);
   return run;
@@ -352,11 +412,12 @@ async function recordSyncError(
 export async function syncCalendars(
   account: string | undefined,
   calendarIds: Iterable<string>,
+  { fresh = false }: { fresh?: boolean } = {},
 ): Promise<void> {
   if (!account) return;
   const results = await Promise.allSettled(
     [...new Set(calendarIds)].map((id) =>
-      syncResource(account, calendarResource(id)),
+      syncResource(account, calendarResource(id), { fresh }),
     ),
   );
   results

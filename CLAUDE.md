@@ -147,7 +147,8 @@ src/
 1. `useSync` (called from `StatusBar` in `Nav.tsx`) polls on a 5-minute interval and when the calendar selection changes.
 2. It syncs `calendarList` first (removed calendars are deleted with their events); if no `selectedCalendars` setting exists, auto-selects primary + `selected` calendars.
 3. Then syncs events for each selected calendar via `syncResource`. A full sync (first time or after 410) first fetches a recent window (1 month back to 6 months ahead) so views fill fast, then backfills all history (`updateState.backfilling`); pages are stored as they arrive, the sync token is saved after the last page, a 410 triggers a full sync that purges rows Google no longer returns, and cancelled instances without start/end update the existing row.
-4. Sync state per `[account, resource]` is stored in `updateState`. Errors are recorded there; 401s (and scope 403s) fire `AUTH_EXPIRED_EVENT` so `useGoogleButton` re-authenticates.
+4. Writes show immediately: `writes.tsx` stores the event Google returns from each insert/patch (`storeEvents`) and marks deletes cancelled locally, then runs a _fresh_ sync (`syncResource(..., { fresh: true })` queues one more run after any in-flight one). Sync never replaces a stored event with an older `updated` (`newerThanStored`), so a page fetched before the write can't bring the old version back.
+5. Sync state per `[account, resource]` is stored in `updateState`. Errors are recorded there; 401s (and scope 403s) fire `AUTH_EXPIRED_EVENT` so `useGoogleButton` re-authenticates.
 
 ### Contexts
 

@@ -11,8 +11,8 @@ import { db } from '../models/db';
 import { Calendar, CalendarEvent } from '../models/types';
 import { calendarApi } from './calendarClient';
 import { callGoogle, errorMessage, statusOf } from './googleErrors';
-import { syncCalendars } from './sync';
-import type { EventResource } from './calendarTypes';
+import { storeEvents, syncCalendars } from './sync';
+import type { EventResource, GoogleEvent } from './calendarTypes';
 import { snapshot, undeletePatches, undoPatches } from './undo';
 
 export type BatchResult<T> = {
@@ -137,12 +137,33 @@ function toGoogle(event: Record<string, unknown>): Record<string, unknown> {
 const describeEvent = (e: { summary?: string; id?: string }) =>
   e.summary || e.id || '(untitled)';
 
+/**
+ * Store what Google returned for our writes right away, then sync those
+ * calendars (after any sync that was already running) to confirm.
+ */
+async function showRightAway(
+  account: string | undefined,
+  returned: { calendarId: string; event: GoogleEvent }[],
+  calendarIds: string[],
+) {
+  const byCalendar = new Map<string, GoogleEvent[]>();
+  for (const { calendarId, event } of returned) {
+    if (!event?.id) continue;
+    byCalendar.set(calendarId, [...(byCalendar.get(calendarId) ?? []), event]);
+  }
+  for (const [calendarId, events] of byCalendar) {
+    await storeEvents(calendarId, events);
+  }
+  await syncCalendars(account, calendarIds, { fresh: true });
+}
+
 export async function saveEvents(
   calendar: Calendar,
   events: NewEvent[],
   { description, account }: { description?: string; account?: string } = {},
 ) {
   const api = await calendarApi();
+  const returned: { calendarId: string; event: GoogleEvent }[] = [];
   const result = await runBatch(
     `Saving to ${calendar.summary}`,
     events,
@@ -154,11 +175,13 @@ export async function saveEvents(
         ),
       );
       try {
-        return await api.events.insert({
+        const { result } = await api.events.insert({
           calendarId: calendar.id,
           supportsAttachments: true,
           resource: resource as EventResource,
         });
+        returned.push({ calendarId: calendar.id, event: result });
+        return result;
       } catch (e) {
         // Re-importing an event with a deterministic id.
         if (statusOf(e) === 409 && event.id) return SKIPPED;
@@ -167,7 +190,7 @@ export async function saveEvents(
     },
     describeEvent,
   );
-  await syncCalendars(account, [calendar.id]);
+  await showRightAway(account, returned, [calendar.id]);
   return result;
 }
 
@@ -185,16 +208,20 @@ export async function patchEvents(
 ) {
   const api = await calendarApi();
   const before = undoable ? await snapshot(patches) : new Map();
+  const returned: { calendarId: string; event: GoogleEvent }[] = [];
   const result = await runBatch(
     label ?? `Updating ${patches.length} events`,
     patches,
-    ({ eventId, calendarId, ...resource }) =>
-      api.events.patch({
+    async ({ eventId, calendarId, ...resource }) => {
+      const { result } = await api.events.patch({
         calendarId,
         eventId,
         supportsAttachments: true,
         resource: toGoogle(resource),
-      }),
+      });
+      returned.push({ calendarId, event: result });
+      return result;
+    },
     (p) => p.summary ?? p.eventId,
     {
       undo: (succeeded) => {
@@ -208,8 +235,9 @@ export async function patchEvents(
       },
     },
   );
-  await syncCalendars(
+  await showRightAway(
     account,
+    returned,
     patches.map((p) => p.calendarId),
   );
   return result;
@@ -243,17 +271,20 @@ export async function deleteEvents(events: EventRef[], account?: string) {
         }),
     },
   );
-  // Optimistic: hide deleted events until the next sync confirms.
+  // Hide deleted events right away. Stamping `updated` keeps a sync page
+  // fetched before the delete from bringing them back.
   const done = [...result.succeeded, ...result.skipped];
+  const now = new Date().toISOString();
   await db.events.bulkUpdate(
     done.map((e) => ({
       key: [e.eventId, e.calendarId],
-      changes: { status: 'cancelled' },
+      changes: { status: 'cancelled', updated: now },
     })),
   );
   await syncCalendars(
     account,
     events.map((e) => e.calendarId),
+    { fresh: true },
   );
   return result;
 }
