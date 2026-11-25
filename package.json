@@ -2,7 +2,7 @@
   "name": "31cal",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@12.21.0",
+  "packageManager": "pnpm@12.22.0",
   "dependencies": {
     "@react-oauth/google": "0.13.5",
     "chrono-node": "2.10.3",
@@ -36,13 +36,13 @@
     "fake-indexeddb": "6.2.8",
     "happy-dom": "21.0.4",
     "husky": "9.1.7",
-    "lint-staged": "17.6.0",
-    "oxlint": "1.93.0",
+    "lint-staged": "17.6.1",
+    "oxlint": "1.94.0",
     "prettier": "3.10.1",
     "typescript": "7.0.2",
     "vite": "8.3.8",
     "vite-plugin-svgr": "5.2.0",
-    "vitest": "5.1.0"
+    "vitest": "5.1.1"
   },
   "lint-staged": {
     "*.{tsx,ts,js,jsx,json,css,md}": [
